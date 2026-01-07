@@ -19,11 +19,12 @@ function toLocalInput(dt: Date) {
   return new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
 }
 
-test('E1: crear sal¢n, evento y reserva', async ({ page }) => {
-  const email = `e2e+events+${Date.now()}@chefos.test`
+test('E2: crear evento y añadir servicio', async ({ page }) => {
+  const email = `e2e+services+${Date.now()}@chefos.test`
   const password = 'Test1234!'
   const orgId = randomUUID()
   const hotelId = randomUUID()
+  const eventTitle = `Evento Servicios ${Date.now()}`
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -42,9 +43,9 @@ test('E1: crear sal¢n, evento y reserva', async ({ page }) => {
   if (userError || !userData.user) throw userError || new Error('No se pudo crear usuario')
   const userId = userData.user.id
 
-  await admin.from('orgs').insert({ id: orgId, name: 'Org E2E Eventos', slug: `org-e2e-events-${orgId.slice(0, 6)}` })
+  await admin.from('orgs').insert({ id: orgId, name: 'Org E2E Services', slug: `org-e2e-services-${orgId.slice(0, 6)}` })
   await admin.from('org_memberships').insert({ org_id: orgId, user_id: userId, role: 'owner' })
-  await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel E2E Eventos' })
+  await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel Servicios E2E' })
 
   const { data: sessionData, error: signinError } = await anon.auth.signInWithPassword({
     email,
@@ -63,34 +64,28 @@ test('E1: crear sal¢n, evento y reserva', async ({ page }) => {
     { key: storageKey, session: sessionData.session },
   )
 
-  // ir al tablero y crear sal¢n
-  await page.goto('/events')
-  await page.getByRole('combobox').first().selectOption({ label: 'Hotel E2E Eventos' })
-  await page.getByPlaceholder('Nombre').fill('Sala E2E')
-  await page.getByPlaceholder('Capacidad').fill('50')
-  await page.getByRole('button', { name: /Crear sal¢n/i }).click()
-  await expect(page.getByText(/Sala E2E/i)).toBeVisible()
-
-  // crear evento
-  await page.getByRole('link', { name: /Nuevo evento/i }).click()
-  await page.getByLabel('Hotel').selectOption({ label: 'Hotel E2E Eventos' })
-  await page.getByLabel('Titulo').fill('Evento E2E')
+  // Crear evento
+  await page.goto('/events/new')
+  await page.getByLabel('Hotel').selectOption({ label: 'Hotel Servicios E2E' })
+  await page.getByLabel('Titulo').fill(eventTitle)
   await page.getByLabel('Estado').selectOption({ value: 'confirmed' })
   await page.getByRole('button', { name: /Crear evento/i }).click()
 
   await page.waitForURL(/\/events\/.+/)
-  await expect(page.getByRole('heading', { name: /Evento E2E/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: new RegExp(eventTitle, 'i') })).toBeVisible()
 
-  // crear reserva
+  // Añadir servicio
+  const serviceForm = page.locator('form').nth(1)
   const start = toLocalInput(new Date(Date.now() + 60 * 60 * 1000))
   const end = toLocalInput(new Date(Date.now() + 2 * 60 * 60 * 1000))
-  const bookingForm = page.locator('form').first()
-  await bookingForm.getByLabel('Salon').selectOption({ label: 'Sala E2E' })
-  await bookingForm.getByLabel('Inicio').fill(start)
-  await bookingForm.getByLabel('Fin').fill(end)
-  await bookingForm.getByRole('button', { name: /Anadir reserva/i }).click()
+  await serviceForm.getByLabel('Tipo de servicio').selectOption({ value: 'cena' })
+  await serviceForm.getByLabel('Inicio').fill(start)
+  await serviceForm.getByLabel('Fin (opcional)').fill(end)
+  await serviceForm.getByLabel('Pax').fill('50')
+  await serviceForm.getByLabel('Formato').selectOption({ value: 'sentado' })
+  await serviceForm.getByRole('button', { name: /Anadir servicio/i }).click()
 
-  const bookingRow = page.locator('div').filter({ hasText: /Sala E2E/ }).first()
-  await expect(bookingRow).toBeVisible()
-  await expect(bookingRow.getByRole('button', { name: /Borrar/i })).toBeVisible()
+  const serviceRow = page.locator('div').filter({ hasText: /cena/i }).first()
+  await expect(serviceRow).toBeVisible()
+  await expect(serviceRow.getByText(/50 pax/i)).toBeVisible()
 })

@@ -110,3 +110,15 @@ set starts_at = excluded.starts_at,
     ends_at = excluded.ends_at,
     group_label = excluded.group_label,
     note = excluded.note;
+
+insert into public.event_services (id, org_id, event_id, service_type, format, starts_at, ends_at, pax, notes)
+values
+  ('73000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '71000000-0000-0000-0000-000000000001', 'coffee_break', 'de_pie', '2026-01-10T11:30:00Z', null, 80, 'Coffee de mañana'),
+  ('73000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', '71000000-0000-0000-0000-000000000001', 'cena', 'sentado', '2026-01-10T20:00:00Z', '2026-01-10T22:00:00Z', 60, 'Cena formal')
+on conflict (id) do update
+set service_type = excluded.service_type,
+    format = excluded.format,
+    starts_at = excluded.starts_at,
+    ends_at = excluded.ends_at,
+    pax = excluded.pax,
+    notes = excluded.notes;

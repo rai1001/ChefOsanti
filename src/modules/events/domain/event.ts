@@ -21,6 +21,29 @@ export type SpaceBooking = {
   note?: string | null
 }
 
+export type ServiceType =
+  | 'desayuno'
+  | 'coffee_break'
+  | 'comida'
+  | 'merienda'
+  | 'cena'
+  | 'coctel'
+  | 'otros'
+
+export type ServiceFormat = 'sentado' | 'de_pie'
+
+export type EventService = {
+  id: string
+  orgId: string
+  eventId: string
+  serviceType: ServiceType
+  format: ServiceFormat
+  startsAt: string
+  endsAt?: string | null
+  pax: number
+  notes?: string | null
+}
+
 type BookingLike = {
   id?: string
   startsAt: string
@@ -41,4 +64,26 @@ export function detectOverlaps(bookings: BookingLike[], candidate: BookingLike):
     if (!Number.isFinite(start) || !Number.isFinite(end)) return false
     return !(end <= candStart || start >= candEnd)
   })
+}
+
+export function normalizeServiceWindow(
+  startsAt: string,
+  endsAt?: string | null,
+): { starts: string; ends?: string } {
+  const startDate = new Date(startsAt)
+  if (!Number.isFinite(startDate.getTime())) {
+    throw new Error('Fecha inicio inv lida')
+  }
+  let endIso: string | undefined
+  if (endsAt) {
+    const endDate = new Date(endsAt)
+    if (!Number.isFinite(endDate.getTime())) {
+      throw new Error('Fecha fin inv lida')
+    }
+    if (endDate.getTime() <= startDate.getTime()) {
+      throw new Error('Fin debe ser posterior al inicio')
+    }
+    endIso = endDate.toISOString()
+  }
+  return { starts: startDate.toISOString(), ends: endIso }
 }

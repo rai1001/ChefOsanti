@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
-import type { EventStatus, Space, SpaceBooking } from '../domain/event'
+import type {
+  EventService,
+  EventStatus,
+  ServiceFormat,
+  ServiceType,
+  Space,
+  SpaceBooking,
+} from '../domain/event'
 
 export type Hotel = { id: string; orgId: string; name: string }
 
@@ -62,6 +69,20 @@ function mapBooking(row: any): BookingWithDetails {
     createdAt: row.created_at,
     spaceName: row.spaces?.name,
     eventTitle: row.events?.title,
+  }
+}
+
+function mapEventService(row: any): EventService {
+  return {
+    id: row.id,
+    orgId: row.org_id,
+    eventId: row.event_id,
+    serviceType: row.service_type as ServiceType,
+    format: row.format as ServiceFormat,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    pax: row.pax,
+    notes: row.notes,
   }
 }
 
@@ -162,6 +183,68 @@ export async function getEventWithBookings(
     .order('starts_at')
   if (bookingsErr) throw bookingsErr
   return { event: mapEvent(event), bookings: bookings?.map(mapBooking) ?? [] }
+}
+
+export async function listEventServices(eventId: string): Promise<EventService[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('event_services')
+    .select('*')
+    .eq('event_id', eventId)
+    .order('starts_at')
+  if (error) throw error
+  return data?.map(mapEventService) ?? []
+}
+
+export async function createEventService(params: {
+  orgId: string
+  eventId: string
+  serviceType: ServiceType
+  format: ServiceFormat
+  startsAt: string
+  endsAt?: string | null
+  pax: number
+  notes?: string | null
+}): Promise<EventService> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('event_services')
+    .insert({
+      org_id: params.orgId,
+      event_id: params.eventId,
+      service_type: params.serviceType,
+      format: params.format,
+      starts_at: params.startsAt,
+      ends_at: params.endsAt ?? null,
+      pax: params.pax,
+      notes: params.notes ?? null,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapEventService(data)
+}
+
+export async function updateEventService(serviceId: string, payload: Partial<EventService>) {
+  const supabase = getSupabaseClient()
+  const { error } = await supabase
+    .from('event_services')
+    .update({
+      service_type: payload.serviceType,
+      format: payload.format,
+      starts_at: payload.startsAt,
+      ends_at: payload.endsAt ?? null,
+      pax: payload.pax,
+      notes: payload.notes ?? null,
+    })
+    .eq('id', serviceId)
+  if (error) throw error
+}
+
+export async function deleteEventService(serviceId: string) {
+  const supabase = getSupabaseClient()
+  const { error } = await supabase.from('event_services').delete().eq('id', serviceId)
+  if (error) throw error
 }
 
 export async function listBookingsByHotel(params: {
@@ -295,6 +378,50 @@ export function useDeleteBooking(eventId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['event', eventId] })
       qc.invalidateQueries({ queryKey: ['space_bookings'] })
+    },
+  })
+}
+
+export function useEventServices(eventId: string | undefined) {
+  return useQuery({
+    queryKey: ['event_services', eventId],
+    queryFn: () => listEventServices(eventId ?? ''),
+    enabled: Boolean(eventId),
+  })
+}
+
+export function useCreateEventService(eventId: string | undefined, orgId: string | undefined) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Omit<Parameters<typeof createEventService>[0], 'eventId' | 'orgId'>) =>
+      createEventService({
+        ...payload,
+        eventId: eventId ?? '',
+        orgId: orgId ?? '',
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['event_services', eventId] })
+    },
+  })
+}
+
+export function useUpdateEventService(eventId: string | undefined) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { serviceId: string; data: Partial<EventService> }) =>
+      updateEventService(params.serviceId, params.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['event_services', eventId] })
+    },
+  })
+}
+
+export function useDeleteEventService(eventId: string | undefined) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: deleteEventService,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['event_services', eventId] })
     },
   })
 }

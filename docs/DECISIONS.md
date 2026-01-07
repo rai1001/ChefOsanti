@@ -12,3 +12,4 @@
 10. (2026-01-07) Reglas de redondeo de cantidades: `none`, `ceil_unit`, `ceil_pack` (requiere `pack_size>0`). Estado: Activa.
 11. (2026-01-07) P2 Purchasing: pedidos por hotel (`purchase_orders` + `purchase_order_lines`), stock local en `ingredients`, RLS por org via `org_memberships`, recepción atómica con RPC `receive_purchase_order`. Estado: Activa.
 12. (2026-01-07) E1 Eventos: salones y eventos por hotel con spaces, vents, space_bookings; RLS por org via org_memberships; coherencia org/hotel validada en triggers; helper SQL space_booking_overlaps para avisos de solape. Estado: Activa.
+13. (2026-01-07) E2 Servicios de evento: tabla event_services ligada a events, RLS por org via org_memberships, trigger de coherencia org y ventana valida; gestion en UI de EventDetail. Estado: Activa.
