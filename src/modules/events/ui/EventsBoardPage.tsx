@@ -50,25 +50,25 @@ export function EventsBoardPage() {
     return map
   }, [bookings.data])
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando sesi¢n...</p>
+  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   if (!session || error)
     return (
-      <div className="rounded border border-slate-200 bg-white p-4">
-        <p className="text-sm text-red-600">Inicia sesi¢n para ver eventos.</p>
+      <div className="rounded-xl glass-panel p-4 border-red-500/20 bg-red-500/5">
+        <p className="text-sm text-red-400">Inicia sesión para ver eventos.</p>
       </div>
     )
 
   return (
-    <div className="space-y-4">
-      <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-6">
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Salones</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Ocupaci¢n por sal¢n</h1>
-          <p className="text-sm text-slate-600">Rango semanal por hotel. Muestra avisos de solape.</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Salones</p>
+          <h1 className="text-2xl font-bold text-white mt-1">Ocupación por salón</h1>
+          <p className="text-sm text-slate-400">Rango semanal por hotel. Muestra avisos de solape.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           <select
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-lg border border-white/10 bg-nano-navy-800 px-3 py-2 text-sm text-white focus:border-nano-blue-500 focus:outline-none"
             value={hotelId}
             onChange={(e) => setHotelId(e.target.value)}
           >
@@ -81,13 +81,13 @@ export function EventsBoardPage() {
           </select>
           <input
             type="date"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-lg border border-white/10 bg-nano-navy-800 px-3 py-2 text-sm text-white focus:border-nano-blue-500 focus:outline-none"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
           />
           <Link
             to="/events/new"
-            className="rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
+            className="rounded-lg bg-gradient-to-r from-nano-blue-600 to-nano-blue-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-nano-blue-500/20 hover:scale-105 transition-all"
           >
             Nuevo evento
           </Link>
@@ -95,7 +95,7 @@ export function EventsBoardPage() {
       </header>
 
       <form
-        className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
+        className="flex flex-wrap items-center gap-3 rounded-2xl glass-panel p-4"
         onSubmit={async (e) => {
           e.preventDefault()
           if (!hotelId || !spaceName) return
@@ -112,65 +112,65 @@ export function EventsBoardPage() {
           setSpaceCapacity('')
         }}
       >
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Nuevo sal¢n</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Nuevo salón</span>
         <input
-          className="w-40 rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-40 rounded-lg border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-nano-blue-500 focus:outline-none"
           placeholder="Nombre"
           value={spaceName}
           onChange={(e) => setSpaceName(e.target.value)}
         />
         <input
-          className="w-28 rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-28 rounded-lg border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-nano-blue-500 focus:outline-none"
           placeholder="Capacidad"
           value={spaceCapacity}
           onChange={(e) => setSpaceCapacity(e.target.value)}
         />
         <button
           type="submit"
-          className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={!hotelId || !spaceName || createSpace.isPending}
         >
-          {createSpace.isPending ? 'Guardando...' : 'Crear sal¢n'}
+          {createSpace.isPending ? 'Guardando...' : 'Crear salón'}
         </button>
         {createSpace.isError && (
-          <span className="text-xs text-red-600">
-            {(createSpace.error as Error).message || 'No se pudo crear el sal¢n'}
+          <span className="text-xs text-red-400">
+            {(createSpace.error as Error).message || 'No se pudo crear el salón'}
           </span>
         )}
       </form>
 
-      {bookings.isLoading && <p className="text-sm text-slate-600">Cargando reservas...</p>}
+      {bookings.isLoading && <p className="text-sm text-slate-400">Cargando reservas...</p>}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {spaces.data?.map((space) => {
           const list = bookingsBySpace.get(space.id) ?? []
           return (
-            <div key={space.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between">
+            <div key={space.id} className="rounded-2xl glass-panel p-5 transition-all hover:bg-white/5">
+              <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-800">{space.name}</h2>
-                  <p className="text-xs text-slate-500">
+                  <h2 className="text-base font-bold text-white">{space.name}</h2>
+                  <p className="text-xs text-slate-400">
                     Capacidad {space.capacity ?? 'n/d'} · {list.length} reservas
                   </p>
                 </div>
               </div>
-              <div className="mt-3 space-y-2">
+              <div className="space-y-2">
                 {list.length ? (
                   list.map((b) => {
                     const hasOverlap = detectOverlaps(list, b)
                     return (
                       <div
                         key={b.id}
-                        className="flex flex-col gap-1 rounded border border-slate-200 bg-slate-50 px-3 py-2 md:flex-row md:items-center md:justify-between"
+                        className="flex flex-col gap-2 rounded-xl border border-white/5 bg-nano-navy-900/50 px-4 py-3 md:flex-row md:items-center md:justify-between hover:border-white/10 transition-colors"
                       >
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">{b.eventTitle ?? 'Evento'}</p>
-                          <p className="text-xs text-slate-600">
+                          <p className="text-sm font-semibold text-slate-200">{b.eventTitle ?? 'Evento'}</p>
+                          <p className="text-xs text-slate-500">
                             {formatRange(b.startsAt, b.endsAt)} {b.groupLabel ? `· ${b.groupLabel}` : ''}
                           </p>
                         </div>
                         {hasOverlap && (
-                          <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">
+                          <span className="rounded-full bg-amber-500/20 px-2 py-1 text-xs font-semibold text-amber-400 border border-amber-500/20">
                             SOLAPE
                           </span>
                         )}
@@ -178,7 +178,7 @@ export function EventsBoardPage() {
                     )
                   })
                 ) : (
-                  <p className="text-sm text-slate-600">Sin reservas en el rango.</p>
+                  <p className="text-xs text-slate-600 italic pl-1">Sin reservas en el rango.</p>
                 )}
               </div>
             </div>

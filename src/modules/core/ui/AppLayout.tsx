@@ -11,8 +11,10 @@ type Props = {
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'rounded-md px-3 py-2 text-sm font-medium transition-colors',
-    isActive ? 'bg-brand-100 text-brand-700' : 'text-slate-700 hover:bg-slate-100',
+    'rounded-md px-3 py-2 text-sm font-medium transition-all duration-300',
+    isActive
+      ? 'bg-nano-blue-500/10 text-nano-blue-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] border border-nano-blue-500/20'
+      : 'text-slate-400 hover:text-white hover:bg-white/5',
   ].join(' ')
 
 export function AppLayout({ children }: Props) {
@@ -57,18 +59,25 @@ export function AppLayout({ children }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2">
-            <div className="rounded bg-brand-600 px-2 py-1 text-sm font-semibold text-white">
-              ChefOS
+    <div className="min-h-screen font-sans text-slate-200 selection:bg-nano-blue-500/30">
+      <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-nano-blue-500 to-nano-pink-500 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+              <div className="relative rounded-lg bg-nano-navy-900 border border-white/10 px-3 py-1.5 text-sm font-bold text-white flex items-center gap-1.5">
+                <span className="text-nano-blue-400">⚡</span> ChefOS
+              </div>
             </div>
-            <span className="text-sm text-slate-500">Compras + Eventos</span>
+            <span className="text-xs text-slate-500 font-medium tracking-wider uppercase hidden sm:block">Premium</span>
           </div>
-          <nav className="flex items-center gap-2">
+
+          <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 mask-linear-fade">
             {loading ? (
-              <span className="text-xs text-slate-500">Cargando menu...</span>
+              <div className="flex items-center gap-2 px-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-nano-blue-500 border-t-transparent"></div>
+                <span className="text-xs text-slate-500">Cargando...</span>
+              </div>
             ) : (
               visibleNav.map((item) => (
                 <NavLink key={item.to} to={item.to} className={navClass}>
@@ -76,17 +85,18 @@ export function AppLayout({ children }: Props) {
                 </NavLink>
               ))
             )}
+            <div className="h-4 w-px bg-white/10 mx-2"></div>
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              className="rounded-md px-3 py-2 text-sm font-medium text-slate-400 hover:text-red-400 transition-colors hover:bg-red-500/10"
             >
-              Cerrar sesi¢n
+              Salir
             </button>
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">{children}</main>
     </div>
   )
 }

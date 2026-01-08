@@ -29,75 +29,83 @@ export function MenuTemplatesPage() {
     formState: { errors, isSubmitting },
   } = useForm<Form>({ resolver: zodResolver(schema) })
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<Form>({ resolver: zodResolver(schema) })
+
   const onSubmit = async (values: Form) => {
     if (!activeOrgId) return
     await create.mutateAsync({ ...values, orgId: activeOrgId })
   }
 
-  if (loading || orgLoading) return <p className="p-4 text-sm text-slate-600">Cargando organizacion...</p>
+  if (loading || orgLoading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (!session || error)
     return (
-      <div className="rounded border border-slate-200 bg-white p-4">
-        <p className="text-sm text-red-600">Inicia sesion para ver plantillas.</p>
+      <div className="rounded-xl glass-panel p-4 border-red-500/20 bg-red-500/5">
+        <p className="text-sm text-red-400">Inicia sesión para ver plantillas.</p>
       </div>
     )
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Menus</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Plantillas</h1>
+          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Menús</p>
+          <h1 className="text-2xl font-bold text-white mt-1">Plantillas</h1>
         </div>
       </header>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-800">Crear plantilla</h2>
-        <form className="mt-3 grid gap-3 md:grid-cols-3" onSubmit={handleSubmit(onSubmit)}>
-          <label className="space-y-1 md:col-span-1">
-            <span className="text-sm font-medium text-slate-800">Nombre</span>
+      <div className="rounded-2xl glass-panel p-6 shadow-xl">
+        <h2 className="text-lg font-semibold text-white mb-4">Crear plantilla</h2>
+        <form className="grid gap-4 md:grid-cols-3" onSubmit={handleSubmit(onSubmit)}>
+          <label className="space-y-1.5 md:col-span-1">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nombre</span>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-nano-blue-500 focus:outline-none focus:ring-1 focus:ring-nano-blue-500/50"
               {...register('name')}
               disabled={!canWrite}
+              placeholder="Ej. Menú Boda"
             />
-            {errors.name && <p className="text-xs text-red-600">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-red-400">{errors.name.message}</p>}
           </label>
-          <label className="space-y-1 md:col-span-1">
-            <span className="text-sm font-medium text-slate-800">Categoria</span>
+          <label className="space-y-1.5 md:col-span-1">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Categoría</span>
             <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 focus:outline-none"
               {...register('category')}
               disabled={!canWrite}
             >
               <option value="deportivo">Deportivo</option>
-              <option value="turistico">Turistico</option>
+              <option value="turistico">Turístico</option>
               <option value="empresa">Empresa</option>
               <option value="coffee_break">Coffee break</option>
-              <option value="coctel">Coctel</option>
+              <option value="coctel">Cóctel</option>
               <option value="otros">Otros</option>
             </select>
-            {errors.category && <p className="text-xs text-red-600">{errors.category.message}</p>}
+            {errors.category && <p className="text-xs text-red-400">{errors.category.message}</p>}
           </label>
-          <label className="space-y-1 md:col-span-1">
-            <span className="text-sm font-medium text-slate-800">Notas</span>
+          <label className="space-y-1.5 md:col-span-1">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Notas</span>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-nano-blue-500 focus:outline-none"
               {...register('notes')}
               disabled={!canWrite}
+              placeholder="Opcional"
             />
           </label>
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 pt-2">
             <button
               type="submit"
               disabled={isSubmitting || !activeOrgId || !canWrite}
-              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="rounded-lg bg-gradient-to-r from-nano-blue-600 to-nano-blue-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-nano-blue-500/20 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               title={!canWrite ? 'Sin permisos para crear' : undefined}
             >
-              {isSubmitting ? 'Creando...' : 'Crear'}
+              {isSubmitting ? 'Creando...' : 'Crear Plantilla'}
             </button>
             {create.isError && (
-              <p className="mt-2 text-sm text-red-600">
+              <p className="mt-2 text-sm text-red-400">
                 {(create.error as Error).message || 'Error al crear plantilla'}
               </p>
             )}
@@ -105,24 +113,31 @@ export function MenuTemplatesPage() {
         </form>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {templates.data?.map((tmpl) => (
           <Link
             key={tmpl.id}
             to={`/menus/${tmpl.id}`}
-            className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-200"
+            className="group flex flex-col justify-between rounded-xl glass-card p-4 hover:bg-white/5 border border-white/5 hover:border-nano-blue-500/30 transition-all duration-300"
           >
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{tmpl.name}</p>
-                <p className="text-xs text-slate-600">
-                Categoria: {tmpl.category} {tmpl.notes ? `- ${tmpl.notes}` : ''}
-                </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-base font-bold text-white group-hover:text-nano-blue-400 transition-colors">{tmpl.name}</p>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-slate-300 capitalize">{tmpl.category.replace('_', ' ')}</span>
               </div>
-            <span className="text-xs font-semibold text-brand-600">Ver</span>
+              <p className="text-xs text-slate-400 line-clamp-2">
+                {tmpl.notes || 'Sin notas adicionales.'}
+              </p>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <span className="text-xs font-semibold text-nano-blue-400 group-hover:translate-x-1 transition-transform">Ver detalles &rarr;</span>
+            </div>
           </Link>
         ))}
         {!templates.data?.length && (
-          <p className="text-sm text-slate-600">Aun no hay plantillas creadas.</p>
+          <div className="col-span-full py-12 text-center">
+            <p className="text-slate-500 italic">Aún no hay plantillas creadas.</p>
+          </div>
         )}
       </div>
     </div>
