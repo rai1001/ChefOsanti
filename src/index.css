@@ -4,8 +4,8 @@
 
 :root {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #0f172a;
-  background-color: #f8fafc;
+  color: #e2e8f0; /* Light text for dark mode default */
+  background-color: #0B1120; /* nano-navy-900 */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -14,4 +14,47 @@
 body {
   margin: 0;
   min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #172554 0%, #0B1120 100%); /* Deep blue glow at top */
+  overflow-x: hidden;
 }
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-xl;
+  }
+  
+  .glass-card {
+    @apply bg-slate-800/30 backdrop-blur-lg border border-white/5 hover:border-white/20 transition-all duration-300;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(34, 211, 238, 0.5); /* nano-blue glow */
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0B1120; 
+}
+::-webkit-scrollbar-thumb {
+  background: #334155; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569; 
+}
+
