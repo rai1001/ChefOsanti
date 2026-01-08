@@ -8,23 +8,23 @@ export function StockPage() {
   const [hotelId, setHotelId] = useState<string>('')
   const ingredients = useIngredients(hotelId || undefined)
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando sesión...</p>
+  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   if (!session || error)
     return (
-      <div className="rounded border border-slate-200 bg-white p-4">
-        <p className="text-sm text-red-600">Inicia sesión para ver stock.</p>
+      <div className="rounded border border-white/10 bg-white/5 p-4">
+        <p className="text-sm text-red-500">Inicia sesión para ver stock.</p>
       </div>
     )
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Inventario</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Stock por hotel</h1>
+          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Inventario</p>
+          <h1 className="text-2xl font-bold text-white">Stock por hotel</h1>
         </div>
         <select
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
           value={hotelId}
           onChange={(e) => setHotelId(e.target.value)}
         >
@@ -37,24 +37,24 @@ export function StockPage() {
         </select>
       </header>
 
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-800">Ingredientes</h2>
-          {ingredients.isLoading && <span className="text-xs text-slate-500">Cargando...</span>}
+      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <h2 className="text-sm font-semibold text-white">Ingredientes</h2>
+          {ingredients.isLoading && <span className="text-xs text-slate-400">Cargando...</span>}
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-white/10">
           {ingredients.data?.length ? (
             ingredients.data.map((ing) => (
-              <div key={ing.id} className="flex items-center justify-between px-4 py-3">
+              <div key={ing.id} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{ing.name}</p>
-                  <p className="text-xs text-slate-600">Unidad: {ing.baseUnit}</p>
+                  <p className="text-sm font-semibold text-slate-200">{ing.name}</p>
+                  <p className="text-xs text-slate-500">Unidad: {ing.baseUnit}</p>
                 </div>
-                <p className="text-sm font-semibold text-slate-900">{ing.stock ?? 0}</p>
+                <p className="text-sm font-semibold text-white">{ing.stock ?? 0}</p>
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-600">Selecciona hotel para ver stock.</p>
+            <p className="px-4 py-6 text-sm text-slate-400 italic">Selecciona hotel para ver stock.</p>
           )}
         </div>
       </div>

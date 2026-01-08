@@ -114,18 +114,18 @@ export function PurchaseOrderDetailPage() {
     await purchaseOrder.refetch()
   }
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando sesión...</p>
+  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   if (!session || error)
     return (
-      <div className="rounded border border-slate-200 bg-white p-4">
-        <p className="text-sm text-red-600">Inicia sesión para ver pedidos.</p>
+      <div className="rounded border border-white/10 bg-white/5 p-4">
+        <p className="text-sm text-red-500">Inicia sesión para ver pedidos.</p>
       </div>
     )
 
-  if (purchaseOrder.isLoading) return <p className="p-4 text-sm text-slate-600">Cargando pedido...</p>
+  if (purchaseOrder.isLoading) return <p className="p-4 text-sm text-slate-400">Cargando pedido...</p>
   if (purchaseOrder.isError)
     return (
-      <p className="p-4 text-sm text-red-600">
+      <p className="p-4 text-sm text-red-500">
         Error al cargar: {(purchaseOrder.error as Error).message}
       </p>
     )
@@ -134,19 +134,19 @@ export function PurchaseOrderDetailPage() {
   const lines = purchaseOrder.data?.lines ?? []
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Compras</p>
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Compras</p>
+          <h1 className="text-2xl font-bold text-white">
             Pedido {order?.orderNumber} · {supplierName}
           </h1>
-          <p className="text-sm text-slate-600">Estado: {order?.status}</p>
+          <p className="text-sm text-slate-400">Estado: {order?.status}</p>
         </div>
         <div className="flex gap-2">
           {isDraft && (
             <button
-              className="rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
+              className="rounded-md bg-nano-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 hover:bg-nano-blue-500 transition-colors"
               onClick={async () => {
                 await updateStatus.mutateAsync('confirmed')
               }}
@@ -157,20 +157,20 @@ export function PurchaseOrderDetailPage() {
         </div>
       </header>
 
-      <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-800">Líneas</h2>
-          <span className="text-xs text-slate-500">Total €{order?.totalEstimated?.toFixed(2)}</span>
+      <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <h2 className="text-sm font-semibold text-white">Líneas</h2>
+          <span className="text-xs text-slate-400">Total €{order?.totalEstimated?.toFixed(2)}</span>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-white/10">
           {lines.length ? (
             lines.map((l) => (
-              <div key={l.id} className="flex flex-col gap-1 px-4 py-3 md:flex-row md:items-center md:justify-between">
+              <div key={l.id} className="flex flex-col gap-1 px-4 py-3 md:flex-row md:items-center md:justify-between hover:bg-white/5 transition-colors">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-slate-200">
                     {ingredientMap[l.ingredientId] ?? l.ingredientId}
                   </p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-slate-500">
                     Artículo prov: {supplierItemMap[l.supplierItemId] ?? l.supplierItemId} · Solic:{' '}
                     {l.requestedQty} {l.purchaseUnit} · Regla {l.roundingRule}{' '}
                     {l.packSize ? `(pack ${l.packSize})` : ''} · €{l.unitPrice ?? 0} · Total €
@@ -181,7 +181,7 @@ export function PurchaseOrderDetailPage() {
                   <input
                     type="number"
                     step="0.01"
-                    className="w-32 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="w-32 rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
                     defaultValue={l.requestedQty}
                     onChange={(e) => setReceived({ ...received, [l.id]: Number(e.target.value) })}
                   />
@@ -189,19 +189,19 @@ export function PurchaseOrderDetailPage() {
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-600">Sin líneas todavía.</p>
+            <p className="px-4 py-6 text-sm text-slate-400 italic">Sin líneas todavía.</p>
           )}
         </div>
       </section>
 
       {isDraft && (
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-800">Añadir línea</h3>
+        <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+          <h3 className="text-sm font-semibold text-white">Añadir línea</h3>
           <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmitLine)}>
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-800">Artículo proveedor</span>
+              <span className="text-sm font-medium text-slate-300">Artículo proveedor</span>
               <select
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
                 {...register('supplierItemId')}
               >
                 <option value="">Selecciona</option>
@@ -212,14 +212,14 @@ export function PurchaseOrderDetailPage() {
                 ))}
               </select>
               {errors.supplierItemId && (
-                <p className="text-xs text-red-600">{errors.supplierItemId.message}</p>
+                <p className="text-xs text-red-500">{errors.supplierItemId.message}</p>
               )}
             </label>
 
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-800">Ingrediente</span>
+              <span className="text-sm font-medium text-slate-300">Ingrediente</span>
               <select
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
                 {...register('ingredientId')}
               >
                 <option value="">Selecciona</option>
@@ -230,29 +230,29 @@ export function PurchaseOrderDetailPage() {
                 ))}
               </select>
               {errors.ingredientId && (
-                <p className="text-xs text-red-600">{errors.ingredientId.message}</p>
+                <p className="text-xs text-red-500">{errors.ingredientId.message}</p>
               )}
             </label>
 
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-800">Cantidad solicitada</span>
+              <span className="text-sm font-medium text-slate-300">Cantidad solicitada</span>
               <input
                 type="number"
                 step="0.01"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
                 {...register('requestedQty', {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? 0 : Number(v)),
                 })}
               />
               {errors.requestedQty && (
-                <p className="text-xs text-red-600">{errors.requestedQty.message}</p>
+                <p className="text-xs text-red-500">{errors.requestedQty.message}</p>
               )}
             </label>
 
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-800">Unidad</span>
+              <span className="text-sm font-medium text-slate-300">Unidad</span>
               <select
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
                 {...register('purchaseUnit')}
               >
                 <option value="ud">Unidades</option>
@@ -261,9 +261,9 @@ export function PurchaseOrderDetailPage() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-800">Regla de redondeo</span>
+              <span className="text-sm font-medium text-slate-300">Regla de redondeo</span>
               <select
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
                 {...register('roundingRule')}
               >
                 <option value="none">Sin redondeo</option>
@@ -273,38 +273,38 @@ export function PurchaseOrderDetailPage() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-800">Tamaño de pack</span>
+              <span className="text-sm font-medium text-slate-300">Tamaño de pack</span>
               <input
                 type="number"
                 step="0.01"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
                 {...register('packSize', {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
                 })}
               />
-              {errors.packSize && <p className="text-xs text-red-600">{errors.packSize.message}</p>}
+              {errors.packSize && <p className="text-xs text-red-500">{errors.packSize.message}</p>}
               {roundingRule === 'ceil_pack' && (
-                <p className="text-xs text-slate-500">Obligatorio si redondeas por pack.</p>
+                <p className="text-xs text-slate-400">Obligatorio si redondeas por pack.</p>
               )}
             </label>
 
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-800">Precio unitario</span>
+              <span className="text-sm font-medium text-slate-300">Precio unitario</span>
               <input
                 type="number"
                 step="0.01"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
                 {...register('unitPrice', {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
                 })}
               />
               {errors.unitPrice && (
-                <p className="text-xs text-red-600">{errors.unitPrice.message}</p>
+                <p className="text-xs text-red-500">{errors.unitPrice.message}</p>
               )}
             </label>
 
             {addLine.isError && (
-              <p className="md:col-span-2 text-sm text-red-600">
+              <p className="md:col-span-2 text-sm text-red-500">
                 {(addLine.error as Error).message || 'Error al añadir línea'}
               </p>
             )}
@@ -313,7 +313,7 @@ export function PurchaseOrderDetailPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? 'Añadiendo...' : 'Añadir línea'}
               </button>
@@ -323,11 +323,11 @@ export function PurchaseOrderDetailPage() {
       )}
 
       {isConfirmed && (
-        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-slate-800">Recepción</h3>
+            <h3 className="text-sm font-semibold text-white">Recepción</h3>
             <button
-              className="rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="rounded-md bg-nano-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={onReceive}
               disabled={receivePo.isPending}
             >
@@ -335,7 +335,7 @@ export function PurchaseOrderDetailPage() {
             </button>
           </div>
           {receivePo.isError && (
-            <p className="mt-2 text-sm text-red-600">
+            <p className="mt-2 text-sm text-red-500">
               {(receivePo.error as Error).message || 'Error al recibir'}
             </p>
           )}

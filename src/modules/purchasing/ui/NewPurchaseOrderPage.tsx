@@ -38,28 +38,28 @@ export function NewPurchaseOrderPage() {
     navigate(`/purchasing/orders/${po.id}`)
   }
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando sesión...</p>
+  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   if (!session || error)
     return (
-      <div className="rounded border border-slate-200 bg-white p-4">
-        <p className="text-sm text-red-600">Inicia sesión para crear pedidos.</p>
+      <div className="rounded border border-white/10 bg-white/5 p-4">
+        <p className="text-sm text-red-500">Inicia sesión para crear pedidos.</p>
       </div>
     )
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Compras</p>
-        <h1 className="text-2xl font-semibold text-slate-900">Nuevo pedido</h1>
-        <p className="text-sm text-slate-600">Selecciona hotel y proveedor, y asigna un número.</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Compras</p>
+        <h1 className="text-2xl font-bold text-white">Nuevo pedido</h1>
+        <p className="text-sm text-slate-400">Selecciona hotel y proveedor, y asigna un número.</p>
       </header>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-slate-800">Hotel</span>
+            <span className="text-sm font-medium text-slate-300">Hotel</span>
             <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               {...register('hotelId')}
             >
               <option value="">Selecciona hotel</option>
@@ -69,13 +69,13 @@ export function NewPurchaseOrderPage() {
                 </option>
               ))}
             </select>
-            {errors.hotelId && <p className="text-xs text-red-600">{errors.hotelId.message}</p>}
+            {errors.hotelId && <p className="text-xs text-red-500">{errors.hotelId.message}</p>}
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-slate-800">Proveedor</span>
+            <span className="text-sm font-medium text-slate-300">Proveedor</span>
             <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               {...register('supplierId')}
             >
               <option value="">Selecciona proveedor</option>
@@ -85,25 +85,25 @@ export function NewPurchaseOrderPage() {
                 </option>
               ))}
             </select>
-            {errors.supplierId && <p className="text-xs text-red-600">{errors.supplierId.message}</p>}
+            {errors.supplierId && <p className="text-xs text-red-500">{errors.supplierId.message}</p>}
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-slate-800">Número de pedido</span>
+            <span className="text-sm font-medium text-slate-300">Número de pedido</span>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               placeholder="PO-20240101-001"
               {...register('orderNumber')}
             />
             {errors.orderNumber && (
-              <p className="text-xs text-red-600">{errors.orderNumber.message}</p>
+              <p className="text-xs text-red-500">{errors.orderNumber.message}</p>
             )}
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-slate-800">Notas</span>
+            <span className="text-sm font-medium text-slate-300">Notas</span>
             <textarea
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               rows={3}
               placeholder="Detalle opcional"
               {...register('notes')}
@@ -111,7 +111,7 @@ export function NewPurchaseOrderPage() {
           </label>
 
           {createOrder.isError && (
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-red-500">
               {(createOrder.error as Error).message || 'Error al crear el pedido.'}
             </p>
           )}
@@ -119,7 +119,7 @@ export function NewPurchaseOrderPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? 'Creando...' : 'Crear pedido'}
           </button>

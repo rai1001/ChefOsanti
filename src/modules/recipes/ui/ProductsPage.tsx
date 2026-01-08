@@ -13,9 +13,9 @@ export function ProductsPage() {
   const { role } = useCurrentRole()
   const canWrite = can(role, 'recipes:write')
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando organización...</p>
+  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (error || !activeOrgId)
-    return <p className="p-4 text-sm text-red-600">Selecciona una organización válida.</p>
+    return <p className="p-4 text-sm text-red-500">Selecciona una organización válida.</p>
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,32 +26,33 @@ export function ProductsPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Catalogo</p>
-        <h1 className="text-2xl font-semibold text-slate-900">Productos</h1>
-        <p className="text-sm text-slate-600">Productos globales por organizacion.</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Catálogo</p>
+        <h1 className="text-2xl font-bold text-white">Productos</h1>
+        <p className="text-sm text-slate-400">Productos globales por organización.</p>
       </header>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-800">Nuevo producto</h2>
+      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+        <h2 className="text-sm font-semibold text-white">Nuevo producto</h2>
         {!canWrite && <p className="text-xs text-slate-500">Sin permisos para crear.</p>}
         <form className="mt-3 flex flex-col gap-2 md:flex-row md:items-end" onSubmit={onSubmit}>
-          <div className="flex flex-col">
-            <label className="text-xs font-semibold text-slate-700" htmlFor="product-name">Nombre</label>
+          <div className="flex flex-col flex-1">
+            <label className="text-xs font-semibold text-slate-300" htmlFor="product-name">Nombre</label>
             <input
               id="product-name"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={!canWrite}
+              placeholder="Nombre del producto"
             />
           </div>
-          <div className="flex flex-col">
-            <label className="text-xs font-semibold text-slate-700" htmlFor="product-unit">Unidad base</label>
+          <div className="flex flex-col w-32">
+            <label className="text-xs font-semibold text-slate-300" htmlFor="product-unit">Unidad base</label>
             <select
               id="product-unit"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               value={baseUnit}
               onChange={(e) => setBaseUnit(e.target.value as 'kg' | 'ud')}
               disabled={!canWrite}
@@ -62,7 +63,7 @@ export function ProductsPage() {
           </div>
           <button
             type="submit"
-            className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={createProduct.isPending || !canWrite}
             title={!canWrite ? 'Sin permisos' : undefined}
           >
@@ -71,25 +72,25 @@ export function ProductsPage() {
         </form>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-800">Listado</h2>
-          {products.isLoading && <span className="text-xs text-slate-500">Cargando...</span>}
+      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <h2 className="text-sm font-semibold text-white">Listado</h2>
+          {products.isLoading && <span className="text-xs text-slate-400">Cargando...</span>}
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-white/10">
           {products.data?.length ? (
             products.data.map((p) => (
-              <div key={p.id} className="flex items-center justify-between px-4 py-3">
+              <div key={p.id} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{p.name}</p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-sm font-semibold text-slate-200">{p.name}</p>
+                  <p className="text-xs text-slate-500">
                     Unidad: {p.baseUnit} - Activo: {p.active ? 'Si' : 'No'}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-600">Sin productos.</p>
+            <p className="px-4 py-6 text-sm text-slate-400 italic">Sin productos.</p>
           )}
         </div>
       </div>

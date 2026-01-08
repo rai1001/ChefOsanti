@@ -52,9 +52,9 @@ export function SchedulingPage() {
     return map
   }, [shifts.data])
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando organización...</p>
+  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (error || !activeOrgId)
-    return <p className="p-4 text-sm text-red-600">Selecciona una organización válida.</p>
+    return <p className="p-4 text-sm text-red-500">Selecciona una organización válida.</p>
 
   const handleCreate = async (day: string, type: ShiftType) => {
     if (!selectedHotel || !canWrite) return
@@ -89,21 +89,21 @@ export function SchedulingPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Horarios</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Planificación de turnos</h1>
-          <p className="text-sm text-slate-600">Turnos por hotel y semana, con asignación de personal.</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Horarios</p>
+          <h1 className="text-2xl font-bold text-white">Planificación de turnos</h1>
+          <p className="text-sm text-slate-400">Turnos por hotel y semana, con asignación de personal.</p>
         </div>
-        {errorMsg && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{errorMsg}</p>}
+        {errorMsg && <p className="rounded bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-400">{errorMsg}</p>}
       </header>
 
-      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-end md:justify-between">
+      <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm md:flex-row md:items-end md:justify-between">
         <label className="flex flex-col text-sm">
-          <span className="text-xs font-semibold text-slate-700">Hotel</span>
+          <span className="text-xs font-semibold text-slate-300">Hotel</span>
           <select
-            className="rounded-md border border-slate-300 px-3 py-2"
+            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white focus:border-nano-blue-500 outline-none transition-colors"
             value={selectedHotel}
             onChange={(e) => setSelectedHotel(e.target.value)}
           >
@@ -116,10 +116,10 @@ export function SchedulingPage() {
           </select>
         </label>
         <label className="flex flex-col text-sm">
-          <span className="text-xs font-semibold text-slate-700">Semana (lunes)</span>
+          <span className="text-xs font-semibold text-slate-300">Semana (lunes)</span>
           <input
             type="date"
-            className="rounded-md border border-slate-300 px-3 py-2"
+            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white focus:border-nano-blue-500 outline-none transition-colors"
             value={weekStart}
             onChange={(e) => setWeekStart(e.target.value)}
           />
@@ -127,7 +127,7 @@ export function SchedulingPage() {
         <div className="flex gap-2 text-sm">
           <button
             type="button"
-            className="rounded-md border border-slate-300 px-3 py-2"
+            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white hover:bg-white/5 transition-colors"
             onClick={() => {
               const d = new Date(weekStart + 'T00:00:00')
               d.setDate(d.getDate() - 7)
@@ -138,7 +138,7 @@ export function SchedulingPage() {
           </button>
           <button
             type="button"
-            className="rounded-md border border-slate-300 px-3 py-2"
+            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white hover:bg-white/5 transition-colors"
             onClick={() => {
               const d = new Date(weekStart + 'T00:00:00')
               d.setDate(d.getDate() + 7)
@@ -151,26 +151,26 @@ export function SchedulingPage() {
       </div>
 
       {!selectedHotel ? (
-        <p className="text-sm text-slate-600">Selecciona un hotel para ver turnos.</p>
+        <p className="text-sm text-slate-400">Selecciona un hotel para ver turnos.</p>
       ) : shifts.isLoading ? (
-        <p className="text-sm text-slate-600">Cargando turnos...</p>
+        <p className="text-sm text-slate-400">Cargando turnos...</p>
       ) : (
-        <div className="overflow-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-auto rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
           <table className="min-w-full text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-white/5">
               <tr>
-                <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700">Turno</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-slate-300">Turno</th>
                 {days.map((d) => (
-                  <th key={d} className="px-3 py-2 text-left text-xs font-semibold text-slate-700">
+                  <th key={d} className="px-3 py-2 text-left text-xs font-semibold text-slate-300">
                     {d}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/10">
               {shiftOrder.map((type) => (
-                <tr key={type} className="border-t border-slate-100 align-top">
-                  <td className="px-3 py-2 font-semibold text-slate-800">{type}</td>
+                <tr key={type} className="align-top hover:bg-white/5 transition-colors">
+                  <td className="px-3 py-2 font-semibold text-white">{type}</td>
                   {days.map((day) => {
                     const key = `${day}-${type}`
                     const shift = shiftsByKey.get(key)
@@ -178,20 +178,20 @@ export function SchedulingPage() {
                     return (
                       <td key={key} className="min-w-[180px] px-3 py-2" data-testid={`cell-${day}-${type}`}>
                         {shift ? (
-                          <div className="space-y-2 rounded border border-slate-200 p-2" data-testid={`shift-${shift.id}`}>
-                            <p className="text-xs text-slate-700">
+                          <div className="space-y-2 rounded border border-white/10 bg-nano-navy-900/50 p-2" data-testid={`shift-${shift.id}`}>
+                            <p className="text-xs text-slate-300">
                               {shift.startsAt} - {shift.endsAt} · Req {shift.requiredCount}
                             </p>
                             <div className="flex flex-wrap gap-2">
                               {shift.assignments.map((a: any) => (
                                 <span
                                   key={a.id}
-                                  className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-800"
+                                  className="flex items-center gap-1 rounded-full bg-nano-blue-500/20 border border-nano-blue-500/30 px-2 py-1 text-xs text-nano-blue-100"
                                 >
                                   {a.staffName}
                                   <button
                                     type="button"
-                                    className="text-red-600 disabled:text-slate-400"
+                                    className="text-red-400 hover:text-red-300 disabled:text-slate-600 ml-1"
                                     onClick={() => canWrite && unassign.mutate(a.id)}
                                     aria-label="Quitar asignacion"
                                     disabled={!canWrite}
@@ -203,11 +203,11 @@ export function SchedulingPage() {
                               {!shift.assignments.length && <span className="text-xs text-slate-500">Sin asignar</span>}
                             </div>
                             {missing > 0 && (
-                              <p className="text-xs font-semibold text-amber-700">Faltan {missing}</p>
+                              <p className="text-xs font-semibold text-amber-500">Faltan {missing}</p>
                             )}
                             <div className="flex flex-col gap-1">
                               <select
-                                className="rounded border border-slate-300 px-2 py-1 text-xs"
+                                className="rounded border border-white/10 bg-nano-navy-900 px-2 py-1 text-xs text-white outline-none focus:border-nano-blue-500"
                                 aria-label={`Asignar-${day}-${type}`}
                                 value={assignTarget.shiftId === shift.id ? assignTarget.staffId : ''}
                                 onChange={(e) =>
@@ -224,7 +224,7 @@ export function SchedulingPage() {
                               </select>
                               <button
                                 type="button"
-                                className="rounded bg-brand-600 px-2 py-1 text-xs font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+                                className="rounded bg-nano-blue-600 px-2 py-1 text-xs font-semibold text-white hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                                 disabled={
                                   assign.isPending ||
                                   !assignTarget.staffId ||
@@ -240,7 +240,7 @@ export function SchedulingPage() {
                         ) : (
                           <button
                             type="button"
-                            className="rounded border border-dashed border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-slate-400"
+                            className="rounded border border-dashed border-white/20 px-3 py-2 text-xs font-semibold text-slate-400 hover:border-white/40 hover:text-white transition-colors"
                             onClick={() => handleCreate(day, type)}
                             disabled={!canWrite}
                           >

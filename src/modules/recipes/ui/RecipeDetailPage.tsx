@@ -40,11 +40,11 @@ export function RecipeDetailPage() {
     }
   }, [recipe.data, servingsTarget])
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando organización...</p>
-  if (error || !activeOrgId) return <p className="p-4 text-sm text-red-600">Selecciona organización.</p>
-  if (recipe.isLoading) return <p className="p-4 text-sm text-slate-600">Cargando receta...</p>
+  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
+  if (error || !activeOrgId) return <p className="p-4 text-sm text-red-400">Selecciona organización.</p>
+  if (recipe.isLoading) return <p className="p-4 text-sm text-slate-400">Cargando receta...</p>
   if (recipe.isError || !recipe.data)
-    return <p className="p-4 text-sm text-red-600">No se pudo cargar la receta.</p>
+    return <p className="p-4 text-sm text-red-400">No se pudo cargar la receta.</p>
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,32 +56,32 @@ export function RecipeDetailPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Receta</p>
-          <h1 className="text-2xl font-semibold text-slate-900">{recipe.data.name}</h1>
-          <p className="text-sm text-slate-600">Raciones base: {recipe.data.defaultServings}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Receta</p>
+          <h1 className="text-2xl font-bold text-white">{recipe.data.name}</h1>
+          <p className="text-sm text-slate-400">Raciones base: {recipe.data.defaultServings}</p>
         </div>
       </header>
 
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-800">Líneas</h2>
-          <span className="text-xs text-slate-500">{recipe.data.lines.length} items</span>
+      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <h2 className="text-sm font-semibold text-white">Líneas</h2>
+          <span className="text-xs text-slate-400">{recipe.data.lines.length} items</span>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-white/10">
           {recipe.data.lines.length ? (
             recipe.data.lines.map((l, idx) => (
-              <div key={idx} className="flex items-center justify-between px-4 py-3">
+              <div key={idx} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{l.productName ?? l.productId}</p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-sm font-semibold text-slate-200">{l.productName ?? l.productId}</p>
+                  <p className="text-xs text-slate-500">
                     Cantidad: {l.qty} {l.unit}
                   </p>
                 </div>
                 <button
-                  className="text-xs font-semibold text-red-600 disabled:text-slate-400"
+                  className="text-xs font-semibold text-red-400 hover:text-red-300 transition-colors disabled:text-slate-600"
                   onClick={() => l.id && canWrite && removeLine.mutate(l.id)}
                   aria-label={`Eliminar ${l.productName ?? l.productId}`}
                   disabled={!canWrite}
@@ -91,22 +91,22 @@ export function RecipeDetailPage() {
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-600">Sin líneas.</p>
+            <p className="px-4 py-6 text-sm text-slate-400 italic">Sin líneas.</p>
           )}
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-800">Añadir ingrediente</h3>
+      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+        <h3 className="text-sm font-semibold text-white">Añadir ingrediente</h3>
         {!canWrite && <p className="text-xs text-slate-500">Sin permisos para editar.</p>}
         <form className="mt-3 grid gap-3 md:grid-cols-3" onSubmit={onSubmit}>
           <label className="space-y-1">
-            <span className="text-xs font-semibold text-slate-700" id="product-select-label">
+            <span className="text-xs font-semibold text-slate-300" id="product-select-label">
               Producto
             </span>
             <select
               aria-labelledby="product-select-label"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               value={productId}
               onChange={(e) => {
                 setProductId(e.target.value)
@@ -124,25 +124,25 @@ export function RecipeDetailPage() {
             </select>
           </label>
           <label className="space-y-1">
-            <span className="text-xs font-semibold text-slate-700" id="qty-label">
+            <span className="text-xs font-semibold text-slate-300" id="qty-label">
               Cantidad
             </span>
             <input
               aria-labelledby="qty-label"
               type="number"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               value={qty}
               onChange={(e) => setQty(Number(e.target.value) || 0)}
               disabled={!canWrite}
             />
           </label>
           <label className="space-y-1">
-            <span className="text-xs font-semibold text-slate-700" id="unit-label">
+            <span className="text-xs font-semibold text-slate-300" id="unit-label">
               Unidad
             </span>
             <select
               aria-labelledby="unit-label"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               value={unit}
               onChange={(e) => setUnit(e.target.value as 'kg' | 'ud')}
               disabled={!canWrite}
@@ -154,7 +154,7 @@ export function RecipeDetailPage() {
           <div className="md:col-span-3">
             <button
               type="submit"
-              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={addLine.isPending || !canWrite}
               title={!canWrite ? 'Sin permisos' : undefined}
             >
@@ -164,31 +164,31 @@ export function RecipeDetailPage() {
         </form>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-800">Calcular raciones</h3>
+      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+        <h3 className="text-sm font-semibold text-white">Calcular raciones</h3>
         <div className="flex flex-col gap-2 md:flex-row md:items-center">
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex items-center gap-2 text-sm text-slate-300">
             Raciones objetivo:
             <input
               type="number"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors w-24"
               value={servingsTarget}
               onChange={(e) => setServingsTarget(Number(e.target.value) || 0)}
             />
           </label>
         </div>
-        <div className="mt-3 divide-y divide-slate-100">
+        <div className="mt-3 divide-y divide-white/10">
           {linesScaled.length ? (
             linesScaled.map((l, idx) => (
               <div key={idx} className="flex items-center justify-between py-2 text-sm">
-                <span>{products.data?.find((p) => p.id === l.productId)?.name ?? l.productId}</span>
-                <span>
+                <span className="text-slate-200">{products.data?.find((p) => p.id === l.productId)?.name ?? l.productId}</span>
+                <span className="text-slate-400 font-mono">
                   {l.qty.toFixed(2)} {l.unit}
                 </span>
               </div>
             ))
           ) : (
-            <p className="text-sm text-slate-600">Introduce raciones objetivo para ver cantidades.</p>
+            <p className="text-sm text-slate-400 italic">Introduce raciones objetivo para ver cantidades.</p>
           )}
         </div>
       </div>

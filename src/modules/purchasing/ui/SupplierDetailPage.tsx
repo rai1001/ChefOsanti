@@ -90,14 +90,14 @@ export function SupplierDetailPage() {
   const isPackRule = useMemo(() => roundingRule === 'ceil_pack', [roundingRule])
 
   if (loading) {
-    return <p className="p-4 text-sm text-slate-600">Cargando sesión...</p>
+    return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   }
 
   if (!session || error) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-4">
-        <p className="text-sm text-red-600">Inicia sesión para gestionar proveedores.</p>
-        {error && <p className="text-xs text-slate-500">{error.message}</p>}
+      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+        <p className="text-sm text-red-500">Inicia sesión para gestionar proveedores.</p>
+        {error && <p className="text-xs text-slate-400">{error.message}</p>}
       </div>
     )
   }
@@ -111,39 +111,39 @@ export function SupplierDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <header className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Compras</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Compras</p>
           <div className="flex items-center gap-2">
-            <Link to="/purchasing/suppliers" className="text-sm text-brand-700 underline">
+            <Link to="/purchasing/suppliers" className="text-sm text-nano-blue-400 hover:text-nano-blue-300 underline transition-colors">
               Proveedores
             </Link>
             <span className="text-slate-400">/</span>
-            <h1 className="text-2xl font-semibold text-slate-900">
+            <h1 className="text-2xl font-bold text-white">
               {supplier.data?.name ?? 'Proveedor'}
             </h1>
           </div>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-400">
             Añade artículos con reglas de redondeo y unidades de compra.
           </p>
         </div>
       </header>
 
-      <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-800">Artículos</h2>
+      <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <h2 className="text-sm font-semibold text-white">Artículos</h2>
           {items.isLoading && (
-            <span className="text-xs text-slate-500">Cargando artículos...</span>
+            <span className="text-xs text-slate-400">Cargando artículos...</span>
           )}
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-white/10">
           {items.data?.length ? (
             items.data.map((item) => (
-              <div key={item.id} className="flex items-center justify-between px-4 py-3">
+              <div key={item.id} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{item.name}</p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-sm font-semibold text-slate-200">{item.name}</p>
+                  <p className="text-xs text-slate-500">
                     Unidad: {item.purchaseUnit} · Regla: {item.roundingRule}
                     {item.packSize ? ` · Pack: ${item.packSize}` : ''}{' '}
                     {item.pricePerUnit ? `· Precio: €${item.pricePerUnit}` : ''}
@@ -152,28 +152,28 @@ export function SupplierDetailPage() {
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-600">Sin artículos aún.</p>
+            <p className="px-4 py-6 text-sm text-slate-400 italic">Sin artículos aún.</p>
           )}
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-800">Añadir artículo</h3>
+      <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+        <h3 className="text-sm font-semibold text-white">Añadir artículo</h3>
         <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
           <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Nombre</span>
+            <span className="text-sm font-medium text-slate-300">Nombre</span>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               placeholder="Producto"
               {...register('name')}
             />
-            {errors.name && <p className="text-xs text-red-600">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
           </label>
 
           <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Unidad de compra</span>
+            <span className="text-sm font-medium text-slate-300">Unidad de compra</span>
             <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               {...register('purchaseUnit')}
             >
               <option value="ud">Unidades</option>
@@ -182,9 +182,9 @@ export function SupplierDetailPage() {
           </label>
 
           <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Regla de redondeo</span>
+            <span className="text-sm font-medium text-slate-300">Regla de redondeo</span>
             <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               {...register('roundingRule')}
             >
               <option value="none">Sin redondeo</option>
@@ -194,42 +194,42 @@ export function SupplierDetailPage() {
           </label>
 
           <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Tamaño de pack</span>
+            <span className="text-sm font-medium text-slate-300">Tamaño de pack</span>
             <input
               type="number"
               step="0.01"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               placeholder="Ej: 5"
               {...register('packSize', {
                 setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
               })}
             />
-            {errors.packSize && <p className="text-xs text-red-600">{errors.packSize.message}</p>}
+            {errors.packSize && <p className="text-xs text-red-500">{errors.packSize.message}</p>}
             {isPackRule && (
-              <p className="text-xs text-slate-500">Obligatorio cuando se redondea por pack.</p>
+              <p className="text-xs text-slate-400">Obligatorio cuando se redondea por pack.</p>
             )}
           </label>
 
           <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Precio por unidad (EUR)</span>
+            <span className="text-sm font-medium text-slate-300">Precio por unidad (EUR)</span>
             <input
               type="number"
               step="0.01"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               placeholder="Ej: 2.50"
               {...register('pricePerUnit', {
                 setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
               })}
             />
             {errors.pricePerUnit && (
-              <p className="text-xs text-red-600">{errors.pricePerUnit.message}</p>
+              <p className="text-xs text-red-500">{errors.pricePerUnit.message}</p>
             )}
           </label>
 
           <label className="space-y-1 md:col-span-2">
-            <span className="text-sm font-medium text-slate-800">Notas</span>
+            <span className="text-sm font-medium text-slate-300">Notas</span>
             <textarea
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               placeholder="Detalles adicionales"
               rows={3}
               {...register('notes')}
@@ -237,7 +237,7 @@ export function SupplierDetailPage() {
           </label>
 
           {createItem.isError && (
-            <p className="md:col-span-2 text-xs text-red-600">
+            <p className="md:col-span-2 text-xs text-red-500">
               {(createItem.error as Error).message || 'Error al crear artículo.'}
             </p>
           )}
@@ -246,7 +246,7 @@ export function SupplierDetailPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? 'Guardando...' : 'Añadir artículo'}
             </button>
