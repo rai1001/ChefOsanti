@@ -3,6 +3,8 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateProduct, useProducts } from '../data/products'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
+import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
+import { useQueryClient } from '@tanstack/react-query'
 
 export function ProductsPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
@@ -12,6 +14,8 @@ export function ProductsPage() {
   const [baseUnit, setBaseUnit] = useState<'kg' | 'ud'>('ud')
   const { role } = useCurrentRole()
   const canWrite = can(role, 'recipes:write')
+  const [isImporterOpen, setIsImporterOpen] = useState(false)
+  const queryClient = useQueryClient()
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (error || !activeOrgId)
@@ -27,10 +31,23 @@ export function ProductsPage() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <header>
-        <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Catálogo</p>
-        <h1 className="text-2xl font-bold text-white">Productos</h1>
-        <p className="text-sm text-slate-400">Productos globales por organización.</p>
+      <header className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Catálogo</p>
+          <h1 className="text-2xl font-bold text-white">Productos</h1>
+          <p className="text-sm text-slate-400">Productos globales por organización.</p>
+        </div>
+        {canWrite && (
+          <button
+            onClick={() => setIsImporterOpen(true)}
+            className="flex items-center gap-2 rounded-lg border border-white/10 bg-nano-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-white/5 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            Importar
+          </button>
+        )}
       </header>
 
       <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
@@ -94,6 +111,27 @@ export function ProductsPage() {
           )}
         </div>
       </div>
+
+      <UniversalImporter
+        isOpen={isImporterOpen}
+        onClose={() => setIsImporterOpen(false)}
+        title="Productos"
+        fields={[
+          { key: 'name', label: 'Nombre' },
+          { key: 'baseUnit', label: 'Unidad (kg/ud)', transform: (val) => (val === 'kg' ? 'kg' : 'ud') },
+        ]}
+        onImport={async (data) => {
+          for (const item of data) {
+            if (item.name) {
+              await createProduct.mutateAsync({
+                name: item.name,
+                baseUnit: item.baseUnit === 'kg' ? 'kg' : 'ud',
+              })
+            }
+          }
+          queryClient.invalidateQueries({ queryKey: ['products', activeOrgId] })
+        }}
+      />
     </div>
   )
 }

@@ -5,6 +5,8 @@ import { useCreateStaffMember, useStaffMembers, useToggleStaffActive } from '../
 import type { EmploymentType, StaffRole } from '../domain/staff'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
+import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
+import { useQueryClient } from '@tanstack/react-query'
 
 const roles: StaffRole[] = ['jefe_cocina', 'cocinero', 'ayudante', 'pasteleria', 'office', 'otros']
 const types: EmploymentType[] = ['fijo', 'eventual', 'extra']
@@ -18,6 +20,8 @@ export function StaffPage() {
   const toggleActive = useToggleStaffActive(activeOrgId ?? undefined)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'staff:write')
+  const [isImporterOpen, setIsImporterOpen] = useState(false)
+  const queryClient = useQueryClient()
 
   const [fullName, setFullName] = useState('')
   const [roleInput, setRoleInput] = useState<StaffRole>('cocinero')
@@ -59,7 +63,7 @@ export function StaffPage() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Personal</p>
           <h1 className="text-2xl font-bold text-white">Staff por organización</h1>
@@ -75,6 +79,17 @@ export function StaffPage() {
             />
             Mostrar solo activos
           </label>
+          {canWrite && (
+            <button
+              onClick={() => setIsImporterOpen(true)}
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-nano-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-white/5 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              Importar
+            </button>
+          )}
         </div>
       </header>
 
@@ -228,6 +243,34 @@ export function StaffPage() {
           {!staff.data?.length && <p className="text-sm text-slate-400 italic">Sin empleados aún.</p>}
         </div>
       </div>
+
+      <UniversalImporter
+        isOpen={isImporterOpen}
+        onClose={() => setIsImporterOpen(false)}
+        title="Personal"
+        fields={[
+          { key: 'fullName', label: 'Nombre Completo' },
+          { key: 'role', label: 'Rol', transform: (val) => roles.includes(val as any) ? val : 'cocinero' },
+          { key: 'employmentType', label: 'Tipo (fijo/eventual)', transform: (val) => types.includes(val as any) ? val : 'fijo' },
+          { key: 'maxShifts', label: 'Max Turnos', transform: (val) => Number(val) || 5 },
+        ]}
+        onImport={async (data) => {
+          for (const item of data) {
+            if (item.fullName) {
+              await createStaff.mutateAsync({
+                fullName: item.fullName,
+                role: item.role as StaffRole,
+                employmentType: item.employmentType as EmploymentType,
+                homeHotelId: null,
+                notes: null,
+                shiftPattern: 'rotativo',
+                maxShiftsPerWeek: item.maxShifts,
+              })
+            }
+          }
+          queryClient.invalidateQueries({ queryKey: ['staff', activeOrgId] })
+        }}
+      />
     </div>
   )
 }
