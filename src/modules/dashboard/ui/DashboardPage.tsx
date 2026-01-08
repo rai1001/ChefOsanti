@@ -3,9 +3,6 @@ import { Link } from 'react-router-dom'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { useHotels } from '@/modules/events/data/events'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
-import { useOrgPlan } from '@/modules/orgs/data/orgPlans'
-import { useCurrentRole } from '@/modules/auth/data/permissions'
-import { aiFeatures, canUseFeature, type PlanTier } from '@/modules/auth/domain/aiAccess'
 import {
   useDashboardNote,
   useOrdersSummary,
@@ -30,9 +27,6 @@ export function DashboardPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [noteDraft, setNoteDraft] = useState<string>('')
   const hasLoadedNote = useRef(false)
-  const [rpcAllowed, setRpcAllowed] = useState<Record<string, boolean | null>>({})
-  const { role } = useCurrentRole()
-  const orgPlan = useOrgPlan(activeOrgId ?? undefined)
 
   // AI Modals state
   const [briefOpen, setBriefOpen] = useState(false)
@@ -75,21 +69,7 @@ export function DashboardPage() {
     return () => clearTimeout(timer)
   }, [noteDraft, activeOrgId, userId, weekStart])
 
-  useEffect(() => {
-    if (!activeOrgId) return
-    const supabase = getSupabaseClient()
-    aiFeatures.forEach((feature) => {
-      supabase
-        .rpc('can_use_feature', { feature_key: feature.key, p_org_id: activeOrgId })
-        .then(({ data, error }) => {
-          if (error) {
-            setRpcAllowed((prev) => ({ ...prev, [feature.key]: false }))
-            return
-          }
-          setRpcAllowed((prev) => ({ ...prev, [feature.key]: Boolean(data) }))
-        })
-    })
-  }, [activeOrgId])
+
 
   const weekLabel = useMemo(() => {
     const start = new Date(weekStart)
@@ -106,7 +86,7 @@ export function DashboardPage() {
     return <div className="text-red-600">No hay organización activa. Inicia sesión o selecciona una.</div>
   }
 
-  const plan: PlanTier = orgPlan.data ?? 'basic'
+
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
@@ -250,8 +230,8 @@ export function DashboardPage() {
                     key={day.date}
                     onClick={() => setSelectedDay(day.date)}
                     className={`relative flex flex-col items-center rounded-xl p-3 px-1 transition-all duration-300 ${selected
-                        ? 'bg-nano-blue-500 text-white shadow-lg shadow-nano-blue-500/25 scale-105 z-10'
-                        : 'bg-nano-navy-800/50 text-slate-400 hover:bg-nano-navy-700 hover:text-white border border-transparent hover:border-white/10'
+                      ? 'bg-nano-blue-500 text-white shadow-lg shadow-nano-blue-500/25 scale-105 z-10'
+                      : 'bg-nano-navy-800/50 text-slate-400 hover:bg-nano-navy-700 hover:text-white border border-transparent hover:border-white/10'
                       }`}
                   >
                     <span className="text-[10px] uppercase tracking-wider font-bold opacity-80">{weekdayLabels[idx]}</span>
