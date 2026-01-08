@@ -11,6 +11,7 @@ import {
 } from '../data/dashboard'
 import { startOfWeek } from '../domain/week'
 import { DailyBriefModal, OrderAuditModal } from './AiModals'
+import { DailyBriefWidget } from './DailyBriefWidget'
 
 const weekdayLabels = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
 
@@ -187,6 +188,15 @@ export function DashboardPage() {
               >
                 Auditar Pedidos
               </button>
+              <Link
+                to="/importer"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10 hover:border-white/20"
+                title="Importador Universal"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </Link>
             </div>
           </div>
 
@@ -290,6 +300,7 @@ export function DashboardPage() {
         {/* Right Column: Operaional */}
         <div className="space-y-6">
           {/* Quick Actions / AI Tools grid used to be here, now mostly in Hero but we can keep specific tools if needed or just stats */}
+          <DailyBriefWidget />
 
           {/* Pendientes */}
           <section className="glass-panel rounded-2xl p-6">

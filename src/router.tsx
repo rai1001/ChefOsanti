@@ -22,6 +22,7 @@ import { RecipeDetailPage } from './modules/recipes/ui/RecipeDetailPage'
 import { SchedulingPage } from './modules/scheduling/ui/SchedulingPage'
 import { RosterGeneratorPage } from './modules/scheduling/ui/RosterGeneratorPage'
 import { StaffPage } from './modules/staff/ui/StaffPage'
+import { ImporterPage } from './modules/importer/ui/ImporterPage'
 
 export const appRouter = createBrowserRouter([
   {
@@ -192,6 +193,14 @@ export const appRouter = createBrowserRouter([
         element: (
           <RequirePermission perm="purchasing:read">
             <StockPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'importer',
+        element: (
+          <RequirePermission perm="dashboard:read">
+            <ImporterPage />
           </RequirePermission>
         ),
       },
