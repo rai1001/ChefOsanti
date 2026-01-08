@@ -23,7 +23,7 @@ test('E5: flujo OCR adjunto -> revisar -> aplicar', async ({ page }) => {
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org OCR', slug: `org-ocr-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel OCR' })
   await admin.from('events').insert({
     id: eventId,
@@ -34,7 +34,7 @@ test('E5: flujo OCR adjunto -> revisar -> aplicar', async ({ page }) => {
   })
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
   await page.addInitScript(({ org }) => localStorage.setItem('activeOrgId', org), { org: orgId })
 
   // Preparar archivo dummy

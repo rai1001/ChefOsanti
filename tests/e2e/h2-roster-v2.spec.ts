@@ -29,7 +29,7 @@ test('H2: generar roster respetando time off y bloqueos', async ({ page }) => {
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org H2', slug: `org-h2-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel H2' })
   await admin.from('scheduling_rules').insert({
     org_id: orgId,
@@ -60,7 +60,7 @@ test('H2: generar roster respetando time off y bloqueos', async ({ page }) => {
   })
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
   await page.addInitScript(({ org }) => localStorage.setItem('activeOrgId', org), { org: orgId })
 
   await page.goto('/scheduling/generate')

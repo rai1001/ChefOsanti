@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useUserMemberships } from '@/modules/orgs/data/memberships'
 import { useCreateSupplier, useSuppliers } from '../data/suppliers'
+import { useCurrentRole } from '@/modules/auth/data/permissions'
+import { can } from '@/modules/auth/domain/roles'
 
 const supplierSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
@@ -18,6 +20,8 @@ export function SuppliersPage() {
   const orgId = memberships?.[0]?.orgId
   const suppliers = useSuppliers(!!session && !!orgId && !loading)
   const createSupplier = useCreateSupplier(orgId)
+  const { role } = useCurrentRole()
+  const canWrite = can(role, 'purchasing:write')
 
   const {
     register,
@@ -104,6 +108,7 @@ export function SuppliersPage() {
 
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-800">Nuevo proveedor</h3>
+          {!canWrite && <p className="text-xs text-slate-500">Sin permisos para crear.</p>}
           <form className="mt-3 space-y-3" onSubmit={handleSubmit(onSubmit)}>
             <label className="block space-y-1">
               <span className="text-sm font-medium text-slate-800">Nombre</span>
@@ -111,6 +116,7 @@ export function SuppliersPage() {
                 className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
                 placeholder="Proveedor mayorista"
                 {...register('name')}
+                disabled={!canWrite}
               />
               {errors.name && <p className="text-xs text-red-600">{errors.name.message}</p>}
             </label>
@@ -121,8 +127,9 @@ export function SuppliersPage() {
             )}
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !canWrite}
               className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              title={!canWrite ? 'Sin permisos' : undefined}
             >
               {isSubmitting ? 'Creando...' : 'Crear proveedor'}
             </button>

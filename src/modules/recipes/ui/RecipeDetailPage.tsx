@@ -4,6 +4,8 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useProducts } from '../data/products'
 import { useAddRecipeLine, useRecipe, useRemoveRecipeLine } from '../data/recipes'
 import { computeRecipeNeeds } from '../domain/recipes'
+import { useCurrentRole } from '@/modules/auth/data/permissions'
+import { can } from '@/modules/auth/domain/roles'
 
 export function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -12,6 +14,8 @@ export function RecipeDetailPage() {
   const products = useProducts(activeOrgId ?? undefined)
   const addLine = useAddRecipeLine(id, activeOrgId ?? undefined)
   const removeLine = useRemoveRecipeLine(id)
+  const { role } = useCurrentRole()
+  const canWrite = can(role, 'recipes:write')
 
   const [productId, setProductId] = useState<string>('')
   const [qty, setQty] = useState<number>(0)
@@ -36,15 +40,15 @@ export function RecipeDetailPage() {
     }
   }, [recipe.data, servingsTarget])
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando organizacion...</p>
-  if (error || !activeOrgId) return <p className="p-4 text-sm text-red-600">Selecciona organizacion.</p>
+  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando organización...</p>
+  if (error || !activeOrgId) return <p className="p-4 text-sm text-red-600">Selecciona organización.</p>
   if (recipe.isLoading) return <p className="p-4 text-sm text-slate-600">Cargando receta...</p>
   if (recipe.isError || !recipe.data)
     return <p className="p-4 text-sm text-red-600">No se pudo cargar la receta.</p>
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!productId || qty <= 0) return
+    if (!productId || qty <= 0 || !canWrite) return
     await addLine.mutateAsync({ productId, qty, unit })
     setProductId('')
     setQty(0)
@@ -63,7 +67,7 @@ export function RecipeDetailPage() {
 
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-800">Lineas</h2>
+          <h2 className="text-sm font-semibold text-slate-800">Líneas</h2>
           <span className="text-xs text-slate-500">{recipe.data.lines.length} items</span>
         </div>
         <div className="divide-y divide-slate-100">
@@ -77,25 +81,29 @@ export function RecipeDetailPage() {
                   </p>
                 </div>
                 <button
-                  className="text-xs font-semibold text-red-600"
-                  onClick={() => l.id && removeLine.mutate(l.id)}
+                  className="text-xs font-semibold text-red-600 disabled:text-slate-400"
+                  onClick={() => l.id && canWrite && removeLine.mutate(l.id)}
                   aria-label={`Eliminar ${l.productName ?? l.productId}`}
+                  disabled={!canWrite}
                 >
                   Borrar
                 </button>
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-600">Sin lineas.</p>
+            <p className="px-4 py-6 text-sm text-slate-600">Sin líneas.</p>
           )}
         </div>
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-800">Anadir ingrediente</h3>
+        <h3 className="text-sm font-semibold text-slate-800">Añadir ingrediente</h3>
+        {!canWrite && <p className="text-xs text-slate-500">Sin permisos para editar.</p>}
         <form className="mt-3 grid gap-3 md:grid-cols-3" onSubmit={onSubmit}>
           <label className="space-y-1">
-            <span className="text-xs font-semibold text-slate-700" id="product-select-label">Producto</span>
+            <span className="text-xs font-semibold text-slate-700" id="product-select-label">
+              Producto
+            </span>
             <select
               aria-labelledby="product-select-label"
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
@@ -105,6 +113,7 @@ export function RecipeDetailPage() {
                 const p = products.data?.find((pr) => pr.id === e.target.value)
                 if (p) setUnit(p.baseUnit)
               }}
+              disabled={!canWrite}
             >
               <option value="">Selecciona</option>
               {products.data?.map((p) => (
@@ -115,22 +124,28 @@ export function RecipeDetailPage() {
             </select>
           </label>
           <label className="space-y-1">
-            <span className="text-xs font-semibold text-slate-700" id="qty-label">Cantidad</span>
+            <span className="text-xs font-semibold text-slate-700" id="qty-label">
+              Cantidad
+            </span>
             <input
               aria-labelledby="qty-label"
               type="number"
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               value={qty}
               onChange={(e) => setQty(Number(e.target.value) || 0)}
+              disabled={!canWrite}
             />
           </label>
           <label className="space-y-1">
-            <span className="text-xs font-semibold text-slate-700" id="unit-label">Unidad</span>
+            <span className="text-xs font-semibold text-slate-700" id="unit-label">
+              Unidad
+            </span>
             <select
               aria-labelledby="unit-label"
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               value={unit}
               onChange={(e) => setUnit(e.target.value as 'kg' | 'ud')}
+              disabled={!canWrite}
             >
               <option value="ud">ud</option>
               <option value="kg">kg</option>
@@ -140,9 +155,10 @@ export function RecipeDetailPage() {
             <button
               type="submit"
               className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
-              disabled={addLine.isPending}
+              disabled={addLine.isPending || !canWrite}
+              title={!canWrite ? 'Sin permisos' : undefined}
             >
-              {addLine.isPending ? 'Guardando...' : 'Anadir'}
+              {addLine.isPending ? 'Guardando...' : 'Añadir'}
             </button>
           </div>
         </form>

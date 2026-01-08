@@ -9,10 +9,16 @@ set name = excluded.name,
 
 insert into public.org_memberships (org_id, user_id, role)
 values
-  ('00000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'owner'),
-  ('00000000-0000-0000-0000-000000000002', '22222222-2222-2222-2222-222222222222', 'owner')
+  ('00000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'admin'),
+  ('00000000-0000-0000-0000-000000000002', '22222222-2222-2222-2222-222222222222', 'admin')
 on conflict (org_id, user_id) do update
 set role = excluded.role;
+
+-- marcar org activa por defecto para demo
+update public.org_memberships
+set is_active = true
+where org_id = '00000000-0000-0000-0000-000000000001'
+  and user_id = '11111111-1111-1111-1111-111111111111';
 
 insert into public.hotels (id, org_id, name, city, country, currency)
 values
@@ -54,6 +60,24 @@ set name = excluded.name,
     base_unit = excluded.base_unit,
     stock = excluded.stock,
     par_level = excluded.par_level;
+
+-- Planes demo
+insert into public.org_plans (org_id, plan)
+values
+  ('00000000-0000-0000-0000-000000000001', 'vip'),
+  ('00000000-0000-0000-0000-000000000002', 'basic')
+on conflict (org_id) do update set plan = excluded.plan;
+
+-- Features IA demo
+insert into public.ai_features (key, min_plan, min_role, is_enabled)
+values
+  ('daily_brief', 'pro', 'manager', true),
+  ('ocr_review', 'pro', 'manager', true),
+  ('order_audit', 'vip', 'admin', true)
+on conflict (key) do update
+set min_plan = excluded.min_plan,
+    min_role = excluded.min_role,
+    is_enabled = excluded.is_enabled;
 
 insert into public.purchase_orders (id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated)
 values

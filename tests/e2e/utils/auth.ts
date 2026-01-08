@@ -60,7 +60,17 @@ export function getServiceClients() {
   }
 }
 
-export async function injectSession(page: Page, storageKey: string, session: any, supabaseUrl?: string, anonKey?: string) {
+export async function injectSession(
+  page: Page,
+  storageKey: string,
+  session: any,
+  supabaseUrl?: string,
+  anonKey?: string,
+  creds?: { email: string; password: string },
+) {
+  // Establece el origen correcto antes de inyectar sesión
+  await page.goto('/')
+
   await page.addInitScript(
     ({ key, sessionData }) => {
       window.localStorage.setItem(
@@ -74,14 +84,35 @@ export async function injectSession(page: Page, storageKey: string, session: any
     },
     { key: storageKey, sessionData: session },
   )
-  if (supabaseUrl && anonKey) {
-    await page.evaluate(
-      async ({ url, anon, sessionData }) => {
+
+  // Refuerza la sesión en Supabase para el contexto actual
+  await page.evaluate(
+    async ({ key, sessionData, url, anon }) => {
+      window.localStorage.setItem(
+        key,
+        JSON.stringify({
+          currentSession: sessionData,
+          expiresAt: sessionData?.expires_at,
+        }),
+      )
+      ;(window as any).__E2E_SESSION__ = sessionData
+      if (url && anon) {
         const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
         const client = createClient(url, anon)
         await client.auth.setSession(sessionData)
-      },
-      { url: supabaseUrl, anon: anonKey, sessionData: session },
-    )
+      }
+    },
+    { key: storageKey, sessionData: session, url: supabaseUrl, anon: anonKey },
+  )
+
+  await page.reload({ waitUntil: 'domcontentloaded' })
+
+  if (creds) {
+    await page.goto('/login')
+    if (page.url().includes('/login')) {
+      await page.getByLabel(/Correo/i).fill(creds.email)
+      await page.getByLabel(/Contrase/i).fill(creds.password)
+      await page.getByRole('button', { name: /Entrar/i }).click()
+    }
   }
 }

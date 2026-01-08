@@ -24,11 +24,11 @@ test('E2: crear evento y añadir servicio', async ({ page }) => {
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org E2E Services', slug: `org-e2e-services-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel Servicios E2E' })
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
 
   // Crear evento
   await page.goto('/events/new')

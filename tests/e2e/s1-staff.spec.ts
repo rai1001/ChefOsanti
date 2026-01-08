@@ -20,15 +20,15 @@ test('S1: crear y desactivar staff', async ({ page }) => {
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org Staff', slug: `org-staff-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel Staff' })
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
   await page.addInitScript(({ org }) => localStorage.setItem('activeOrgId', org), { org: orgId })
 
   await page.goto('/staff')
-  await expect(page.getByText('Staff por organizacion')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Staff por organiz/i })).toBeVisible()
 
   await page.getByLabel('Nombre completo').fill(staffName)
   await page.getByLabel('Rol').selectOption('cocinero')

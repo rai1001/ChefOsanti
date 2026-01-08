@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateMenuTemplate, useMenuTemplates } from '../data/menus'
+import { useCurrentRole } from '@/modules/auth/data/permissions'
+import { can } from '@/modules/auth/domain/roles'
 
 const schema = z.object({
   name: z.string().min(1, 'Nombre obligatorio'),
@@ -18,6 +20,8 @@ export function MenuTemplatesPage() {
   const { activeOrgId, loading: orgLoading } = useActiveOrgId()
   const templates = useMenuTemplates(activeOrgId ?? undefined)
   const create = useCreateMenuTemplate()
+  const { role } = useCurrentRole()
+  const canWrite = can(role, 'menus:write')
 
   const {
     register,
@@ -55,6 +59,7 @@ export function MenuTemplatesPage() {
             <input
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               {...register('name')}
+              disabled={!canWrite}
             />
             {errors.name && <p className="text-xs text-red-600">{errors.name.message}</p>}
           </label>
@@ -63,6 +68,7 @@ export function MenuTemplatesPage() {
             <select
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               {...register('category')}
+              disabled={!canWrite}
             >
               <option value="deportivo">Deportivo</option>
               <option value="turistico">Turistico</option>
@@ -78,13 +84,15 @@ export function MenuTemplatesPage() {
             <input
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               {...register('notes')}
+              disabled={!canWrite}
             />
           </label>
           <div className="md:col-span-3">
             <button
               type="submit"
-              disabled={isSubmitting || !activeOrgId}
+              disabled={isSubmitting || !activeOrgId || !canWrite}
               className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              title={!canWrite ? 'Sin permisos para crear' : undefined}
             >
               {isSubmitting ? 'Creando...' : 'Crear'}
             </button>

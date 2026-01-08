@@ -27,7 +27,7 @@ test('P2: genera pedido borrador agrupado por proveedor', async ({ page }) => {
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org P2', slug: `org-p2-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel P2' })
   await admin.from('events').insert({
     id: eventId,
@@ -78,7 +78,7 @@ test('P2: genera pedido borrador agrupado por proveedor', async ({ page }) => {
   })
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
   await page.addInitScript(({ org }) => localStorage.setItem('activeOrgId', org), { org: orgId })
 
   await page.goto(`/events/${eventId}`)

@@ -31,7 +31,7 @@ test('Dashboard semanal muestra eventos, pedidos pendientes y notas persistentes
   const user = await createUserWithRetry(admin, email, password)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org Dashboard', slug: `org-dash-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({
     id: hotelId,
     org_id: orgId,
@@ -73,7 +73,7 @@ test('Dashboard semanal muestra eventos, pedidos pendientes y notas persistentes
   const session = await signInWithRetry(anon, email, password)
   const storageKey = getAnonStorageKey(url, anon)
 
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
   await page.addInitScript(({ org }) => localStorage.setItem('activeOrgId', org), { org: orgId })
 
   await page.goto('/dashboard')

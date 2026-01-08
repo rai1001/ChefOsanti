@@ -33,11 +33,36 @@ export function useSupabaseSession(): SessionState {
       }
     }
 
+    const storageKey = (client.auth as any).storageKey ?? ''
+    const cached = storageKey ? window.localStorage.getItem(storageKey) : null
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached)
+        if (parsed?.currentSession) {
+          setState({ session: parsed.currentSession, loading: false })
+          client.auth
+            .setSession({
+              access_token: parsed.currentSession.access_token,
+              refresh_token: parsed.currentSession.refresh_token,
+            })
+            .catch(() => {})
+          return
+        }
+      } catch (_e) {
+        /* ignore parse errors */
+      }
+    }
+
     maybeSetE2ESession()
       .then(() => client.auth.getSession())
       .then(({ data, error }) => {
         if (error) throw error
-        setState({ session: data.session ?? null, loading: false })
+        if (data.session) {
+          setState({ session: data.session, loading: false })
+        } else {
+          const fallback = (window as any).__E2E_SESSION__ ?? null
+          setState({ session: fallback, loading: false })
+        }
       })
       .catch((error) => {
         setState({ session: null, loading: false, error })

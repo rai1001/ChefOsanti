@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateMenuTemplateItem, useMenuTemplateItems, useMenuTemplates } from '../data/menus'
+import { useCurrentRole } from '@/modules/auth/data/permissions'
+import { can } from '@/modules/auth/domain/roles'
 
 const schema = z
   .object({
@@ -37,6 +39,8 @@ export function MenuTemplateDetailPage() {
   const template = templates.data?.find((t) => t.id === id)
   const items = useMenuTemplateItems(id)
   const createItem = useCreateMenuTemplateItem(id, activeOrgId ?? template?.orgId ?? undefined)
+  const { role } = useCurrentRole()
+  const canWrite = can(role, 'menus:write')
 
   const {
     register,
@@ -121,19 +125,32 @@ export function MenuTemplateDetailPage() {
 
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-slate-800">Agregar item</h3>
+        {!canWrite && <p className="text-xs text-slate-500">Sin permisos para editar plantillas.</p>}
         <form className="mt-3 grid gap-3 md:grid-cols-3" onSubmit={handleSubmit(onSubmit)}>
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-800">Seccion</span>
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" {...register('section')} />
+            <input
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              {...register('section')}
+              disabled={!canWrite}
+            />
           </label>
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-800">Nombre</span>
-            <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" {...register('name')} />
+            <input
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              {...register('name')}
+              disabled={!canWrite}
+            />
             {errors.name && <p className="text-xs text-red-600">{errors.name.message}</p>}
           </label>
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-800">Unidad</span>
-            <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" {...register('unit')}>
+            <select
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              {...register('unit')}
+              disabled={!canWrite}
+            >
               <option value="ud">Unidad</option>
               <option value="kg">Kilogramo</option>
             </select>
@@ -144,6 +161,7 @@ export function MenuTemplateDetailPage() {
               type="number"
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               {...register('qtyPerPaxSeated', { setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? 0 : Number(v)) })}
+              disabled={!canWrite}
             />
             {errors.qtyPerPaxSeated && (
               <p className="text-xs text-red-600">{errors.qtyPerPaxSeated.message}</p>
@@ -157,6 +175,7 @@ export function MenuTemplateDetailPage() {
               {...register('qtyPerPaxStanding', {
                 setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? 0 : Number(v)),
               })}
+              disabled={!canWrite}
             />
             {errors.qtyPerPaxStanding && (
               <p className="text-xs text-red-600">{errors.qtyPerPaxStanding.message}</p>
@@ -164,7 +183,11 @@ export function MenuTemplateDetailPage() {
           </label>
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-800">Redondeo</span>
-            <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" {...register('roundingRule')}>
+            <select
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              {...register('roundingRule')}
+              disabled={!canWrite}
+            >
               <option value="none">None</option>
               <option value="ceil_unit">Ceil unit</option>
               <option value="ceil_pack">Ceil pack</option>
@@ -176,6 +199,7 @@ export function MenuTemplateDetailPage() {
               type="number"
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               {...register('packSize', { setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)) })}
+              disabled={!canWrite}
             />
             {errors.packSize && <p className="text-xs text-red-600">{errors.packSize.message}</p>}
           </label>
@@ -185,6 +209,7 @@ export function MenuTemplateDetailPage() {
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               rows={2}
               {...register('notes')}
+              disabled={!canWrite}
             />
           </label>
           {createItem.isError && (
@@ -195,8 +220,9 @@ export function MenuTemplateDetailPage() {
           <div className="md:col-span-3">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !canWrite}
               className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              title={!canWrite ? 'Sin permisos para editar' : undefined}
             >
               {isSubmitting ? 'Guardando...' : 'Agregar item'}
             </button>

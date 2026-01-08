@@ -23,7 +23,7 @@ test('P2: crear, confirmar y recibir pedido actualizando stock', async ({ page }
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org E2E P2', slug: `org-e2e-p2-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel E2E' })
   await admin
     .from('ingredients')
@@ -38,7 +38,7 @@ test('P2: crear, confirmar y recibir pedido actualizando stock', async ({ page }
   })
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
 
   // Create order
   await page.goto('/purchasing/orders')

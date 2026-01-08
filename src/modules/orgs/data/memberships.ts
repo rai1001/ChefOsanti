@@ -5,13 +5,14 @@ export type OrgMembership = {
   orgId: string
   userId: string
   role: string
+  isActive?: boolean
 }
 
 async function fetchMemberships(): Promise<OrgMembership[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('org_memberships')
-    .select('org_id, user_id, role')
+    .select('org_id, user_id, role, is_active')
     .order('created_at', { ascending: true })
 
   if (error) {
@@ -22,7 +23,9 @@ async function fetchMemberships(): Promise<OrgMembership[]> {
     data?.map((row) => ({
       orgId: row.org_id,
       userId: row.user_id,
-      role: row.role,
+      role:
+        row.role === 'owner' ? 'admin' : row.role === 'member' ? 'staff' : (row.role as string),
+      isActive: row.is_active ?? false,
     })) ?? []
   )
 }

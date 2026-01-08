@@ -4,6 +4,8 @@ import { useHotels } from '@/modules/events/data/events'
 import { useStaffMembers } from '@/modules/staff/data/staff'
 import { computeMissing, getWeekDays, type ShiftType } from '../domain/shifts'
 import { useAssignStaff, useShifts, useUnassignStaff, useUpsertShift, type ShiftRow } from '../data/shifts'
+import { useCurrentRole } from '@/modules/auth/data/permissions'
+import { can } from '@/modules/auth/domain/roles'
 
 const shiftDefaults: Record<ShiftType, { starts: string; ends: string }> = {
   desayuno: { starts: '07:00', ends: '15:00' },
@@ -35,6 +37,8 @@ export function SchedulingPage() {
   const unassign = useUnassignStaff(selectedHotel, weekStart)
   const [assignTarget, setAssignTarget] = useState<{ shiftId: string; staffId: string }>({ shiftId: '', staffId: '' })
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const { role } = useCurrentRole()
+  const canWrite = can(role, 'scheduling:write')
 
   const days = useMemo(() => getWeekDays(weekStart), [weekStart])
 
@@ -48,11 +52,12 @@ export function SchedulingPage() {
     return map
   }, [shifts.data])
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando organizacion...</p>
-  if (error || !activeOrgId) return <p className="p-4 text-sm text-red-600">Selecciona una organizacion valida.</p>
+  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando organización...</p>
+  if (error || !activeOrgId)
+    return <p className="p-4 text-sm text-red-600">Selecciona una organización válida.</p>
 
   const handleCreate = async (day: string, type: ShiftType) => {
-    if (!selectedHotel) return
+    if (!selectedHotel || !canWrite) return
     setErrorMsg(null)
     try {
       const defaults = shiftDefaults[type]
@@ -69,7 +74,7 @@ export function SchedulingPage() {
   }
 
   const handleAssign = async () => {
-    if (!assignTarget.shiftId || !assignTarget.staffId) return
+    if (!assignTarget.shiftId || !assignTarget.staffId || !canWrite) return
     setErrorMsg(null)
     try {
       await assign.mutateAsync({ shiftId: assignTarget.shiftId, staffMemberId: assignTarget.staffId })
@@ -88,8 +93,8 @@ export function SchedulingPage() {
       <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Horarios</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Planificacion de turnos</h1>
-          <p className="text-sm text-slate-600">Turnos por hotel y semana, con asignacion de personal.</p>
+          <h1 className="text-2xl font-semibold text-slate-900">Planificación de turnos</h1>
+          <p className="text-sm text-slate-600">Turnos por hotel y semana, con asignación de personal.</p>
         </div>
         {errorMsg && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{errorMsg}</p>}
       </header>
@@ -186,9 +191,10 @@ export function SchedulingPage() {
                                   {a.staffName}
                                   <button
                                     type="button"
-                                    className="text-red-600"
-                                    onClick={() => unassign.mutate(a.id)}
+                                    className="text-red-600 disabled:text-slate-400"
+                                    onClick={() => canWrite && unassign.mutate(a.id)}
                                     aria-label="Quitar asignacion"
+                                    disabled={!canWrite}
                                   >
                                     ×
                                   </button>
@@ -207,6 +213,7 @@ export function SchedulingPage() {
                                 onChange={(e) =>
                                   setAssignTarget({ shiftId: shift.id, staffId: e.target.value || '' })
                                 }
+                                disabled={!canWrite}
                               >
                                 <option value="">Selecciona empleado</option>
                                 {staff.data?.map((s) => (
@@ -218,7 +225,12 @@ export function SchedulingPage() {
                               <button
                                 type="button"
                                 className="rounded bg-brand-600 px-2 py-1 text-xs font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
-                                disabled={assign.isPending || !assignTarget.staffId || assignTarget.shiftId !== shift.id}
+                                disabled={
+                                  assign.isPending ||
+                                  !assignTarget.staffId ||
+                                  assignTarget.shiftId !== shift.id ||
+                                  !canWrite
+                                }
                                 onClick={handleAssign}
                               >
                                 Asignar
@@ -230,6 +242,7 @@ export function SchedulingPage() {
                             type="button"
                             className="rounded border border-dashed border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-slate-400"
                             onClick={() => handleCreate(day, type)}
+                            disabled={!canWrite}
                           >
                             Crear turno
                           </button>

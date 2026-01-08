@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { useHotels } from '@/modules/events/data/events'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
+import { useOrgPlan } from '@/modules/orgs/data/orgPlans'
+import { useCurrentRole } from '@/modules/auth/data/permissions'
+import { aiFeatures, canUseFeature, type PlanTier } from '@/modules/auth/domain/aiAccess'
 import {
   useDashboardNote,
   useOrdersSummary,
@@ -11,7 +14,7 @@ import {
 } from '../data/dashboard'
 import { startOfWeek } from '../domain/week'
 
-const weekdayLabels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+const weekdayLabels = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
 
 function isoWeekStart(date = new Date()) {
   return startOfWeek(date).toISOString().slice(0, 10)
@@ -26,10 +29,16 @@ export function DashboardPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [noteDraft, setNoteDraft] = useState<string>('')
   const hasLoadedNote = useRef(false)
+  const [rpcAllowed, setRpcAllowed] = useState<Record<string, boolean | null>>({})
+  const { role } = useCurrentRole()
+  const orgPlan = useOrgPlan(activeOrgId ?? undefined)
 
   useEffect(() => {
     const supabase = getSupabaseClient()
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)).catch(() => setUserId(null))
+    supabase.auth
+      .getUser()
+      .then(({ data }) => setUserId(data.user?.id ?? null))
+      .catch(() => setUserId(null))
   }, [])
 
   useEffect(() => {
@@ -54,11 +63,27 @@ export function DashboardPage() {
     if (!hasLoadedNote.current || !activeOrgId || !userId) return
     const timer = setTimeout(() => {
       note.save(noteDraft).catch(() => {
-        /* silencio: UI mostrará error con estado saving si hiciera falta */
+        /* no-op */
       })
     }, 600)
     return () => clearTimeout(timer)
   }, [noteDraft, activeOrgId, userId, weekStart])
+
+  useEffect(() => {
+    if (!activeOrgId) return
+    const supabase = getSupabaseClient()
+    aiFeatures.forEach((feature) => {
+      supabase
+        .rpc('can_use_feature', { feature_key: feature.key, p_org_id: activeOrgId })
+        .then(({ data, error }) => {
+          if (error) {
+            setRpcAllowed((prev) => ({ ...prev, [feature.key]: false }))
+            return
+          }
+          setRpcAllowed((prev) => ({ ...prev, [feature.key]: Boolean(data) }))
+        })
+    })
+  }, [activeOrgId])
 
   const weekLabel = useMemo(() => {
     const start = new Date(weekStart)
@@ -74,6 +99,8 @@ export function DashboardPage() {
   if (!activeOrgId) {
     return <div className="text-red-600">No hay organización activa. Inicia sesión o selecciona una.</div>
   }
+
+  const plan: PlanTier = orgPlan.data ?? 'basic'
 
   return (
     <div className="space-y-6">
@@ -152,12 +179,12 @@ export function DashboardPage() {
               >
                 <div className="flex items-baseline justify-between">
                   <div className="text-xs font-medium text-slate-500">{weekdayLabels[idx]}</div>
-                  <div className="text-xs text-slate-500">{dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}</div>
+                  <div className="text-xs text-slate-500">
+                    {dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                  </div>
                 </div>
                 <div className="mt-2 space-y-1">
-                  {day.events.length === 0 && (
-                    <div className="text-xs text-slate-400">Sin eventos</div>
-                  )}
+                  {day.events.length === 0 && <div className="text-xs text-slate-400">Sin eventos</div>}
                   {day.events.map((ev) => (
                     <div key={ev.id} className="rounded bg-slate-50 p-2 text-xs text-slate-700">
                       <div className="font-semibold text-slate-800">{ev.title}</div>
@@ -203,6 +230,56 @@ export function DashboardPage() {
         </div>
       </section>
 
+      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Acceso IA</h2>
+            <p className="text-sm text-slate-600">Plan activo: {plan.toUpperCase()} · Rol: {role}</p>
+          </div>
+          {orgPlan.isLoading && <span className="text-xs text-slate-500">Cargando plan...</span>}
+        </div>
+        <div className="grid gap-3 md:grid-cols-3" data-testid="ai-access-panel">
+          {aiFeatures.map((feature) => {
+            const allowed = rpcAllowed[feature.key] ?? canUseFeature(role, plan, feature.key)
+            const labelMap: Record<typeof feature.key, string> = {
+              daily_brief: 'Daily Brief (IA)',
+              ocr_review: 'OCR Review',
+              order_audit: 'Order Audit',
+            }
+            const requirement = `Disponible en PLAN ${feature.minPlan.toUpperCase()} / ROL ${feature.minRole}`
+            const onClick = async () => {
+              const supabase = getSupabaseClient()
+              const { data, error } = await supabase.rpc('can_use_feature', {
+                feature_key: feature.key,
+                p_org_id: activeOrgId,
+              })
+              if (error) {
+                alert(error.message)
+                return
+              }
+              alert(data ? 'Autorizado (RPC)' : 'No autorizado (RPC)')
+            }
+            return (
+              <div key={feature.key} className="rounded border border-slate-200 p-3">
+                <p className="text-sm font-semibold text-slate-900">{labelMap[feature.key]}</p>
+                <p className="text-xs text-slate-600">
+                  Plan mínimo: {feature.minPlan.toUpperCase()} · Rol mínimo: {feature.minRole}
+                </p>
+                <button
+                  type="button"
+                  data-testid={`btn-${feature.key}`}
+                  onClick={onClick}
+                  disabled={!allowed}
+                  className="mt-2 w-full rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                  {allowed ? 'Autorizado' : requirement}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-2">
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <div className="mb-2 flex items-center justify-between">
@@ -235,7 +312,9 @@ export function DashboardPage() {
                   <div className="font-semibold text-slate-800">
                     {po.type === 'purchase' ? 'Compra' : 'Evento'} · {po.orderNumber}
                   </div>
-                  <div className="text-xs text-slate-500">{po.status} · {po.createdAt?.slice(0, 10)}</div>
+                  <div className="text-xs text-slate-500">
+                    {po.status} · {po.createdAt?.slice(0, 10)}
+                  </div>
                 </div>
                 <Link
                   to={po.type === 'purchase' ? `/purchasing/orders/${po.id}` : `/purchasing/event-orders/${po.id}`}

@@ -25,12 +25,12 @@ test('P1: crear proveedor y artículo', async ({ page }) => {
   await admin.from('org_memberships').insert({
     org_id: orgId,
     user_id: user.id,
-    role: 'owner',
+    role: 'admin',
   })
 
   const session = await signInWithRetry(anon, email, password)
 
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
 
   await page.goto('/purchasing/suppliers')
 

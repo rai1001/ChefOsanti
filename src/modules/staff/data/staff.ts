@@ -22,7 +22,11 @@ function mapStaff(row: any): StaffMember {
 
 export async function listStaff(orgId: string, onlyActive?: boolean): Promise<StaffMember[]> {
   const supabase = getSupabaseClient()
-  let query = supabase.from('staff_members').select('*').eq('org_id', orgId).order('created_at', { ascending: false })
+  let query = supabase
+    .from('staff_members')
+    .select('*')
+    .eq('org_id', orgId)
+    .order('created_at', { ascending: false })
   if (onlyActive) query = query.eq('active', true)
   const { data, error } = await query
   if (error) throw error
@@ -58,7 +62,10 @@ export async function createStaffMember(params: {
   return mapStaff(data)
 }
 
-export async function updateStaffMember(id: string, payload: Partial<{ role: StaffRole; employmentType: EmploymentType; homeHotelId?: string | null; notes?: string | null }>) {
+export async function updateStaffMember(
+  id: string,
+  payload: Partial<{ role: StaffRole; employmentType: EmploymentType; homeHotelId?: string | null; notes?: string | null }>,
+) {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('staff_members')
@@ -93,7 +100,15 @@ export function useStaffMembers(orgId: string | undefined, onlyActive?: boolean)
 export function useCreateStaffMember(orgId: string | undefined) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { fullName: string; role: StaffRole; employmentType: EmploymentType; homeHotelId?: string | null; notes?: string | null; shiftPattern?: 'mañana' | 'tarde' | 'rotativo'; maxShiftsPerWeek?: number }) => {
+    mutationFn: (payload: {
+      fullName: string
+      role: StaffRole
+      employmentType: EmploymentType
+      homeHotelId?: string | null
+      notes?: string | null
+      shiftPattern?: 'mañana' | 'tarde' | 'rotativo'
+      maxShiftsPerWeek?: number
+    }) => {
       if (!orgId) throw new Error('Falta orgId')
       return createStaffMember({ orgId, ...payload })
     },

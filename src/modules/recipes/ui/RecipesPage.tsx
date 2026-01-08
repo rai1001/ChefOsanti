@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateRecipe, useRecipes } from '../data/recipes'
+import { useCurrentRole } from '@/modules/auth/data/permissions'
+import { can } from '@/modules/auth/domain/roles'
 
 export function RecipesPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
@@ -9,14 +11,16 @@ export function RecipesPage() {
   const createRecipe = useCreateRecipe(activeOrgId ?? undefined)
   const [name, setName] = useState('')
   const [servings, setServings] = useState(10)
+  const { role } = useCurrentRole()
+  const canWrite = can(role, 'recipes:write')
 
-  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando organizacion...</p>
+  if (loading) return <p className="p-4 text-sm text-slate-600">Cargando organización...</p>
   if (error || !activeOrgId)
-    return <p className="p-4 text-sm text-red-600">Selecciona una organizacion valida.</p>
+    return <p className="p-4 text-sm text-red-600">Selecciona una organización válida.</p>
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || servings <= 0) return
+    if (!name.trim() || servings <= 0 || !canWrite) return
     await createRecipe.mutateAsync({ name: name.trim(), defaultServings: servings })
     setName('')
     setServings(10)
@@ -32,6 +36,7 @@ export function RecipesPage() {
 
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <h2 className="text-sm font-semibold text-slate-800">Nueva receta</h2>
+        {!canWrite && <p className="text-xs text-slate-500">Sin permisos para crear.</p>}
         <form className="mt-3 flex flex-col gap-2 md:flex-row md:items-end" onSubmit={onSubmit}>
           <div className="flex flex-col">
             <label className="text-xs font-semibold text-slate-700" htmlFor="recipe-name">Nombre</label>
@@ -40,6 +45,7 @@ export function RecipesPage() {
               className="rounded-md border border-slate-300 px-3 py-2 text-sm"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              disabled={!canWrite}
             />
           </div>
           <div className="flex flex-col">
@@ -50,12 +56,14 @@ export function RecipesPage() {
               className="rounded-md border border-slate-300 px-3 py-2 text-sm"
               value={servings}
               onChange={(e) => setServings(Number(e.target.value) || 0)}
+              disabled={!canWrite}
             />
           </div>
           <button
             type="submit"
             className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
-            disabled={createRecipe.isPending}
+            disabled={createRecipe.isPending || !canWrite}
+            title={!canWrite ? 'Sin permisos' : undefined}
           >
             {createRecipe.isPending ? 'Guardando...' : 'Crear'}
           </button>

@@ -21,11 +21,11 @@ test('R1: productos y recetas basicos', async ({ page }) => {
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org R1', slug: `org-r1-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel R1' })
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
   await page.addInitScript(({ org }) => localStorage.setItem('activeOrgId', org), { org: orgId })
 
   await admin
@@ -34,7 +34,7 @@ test('R1: productos y recetas basicos', async ({ page }) => {
     .throwOnError()
 
   await page.goto('/products')
-  await expect(page.getByText('Productos')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /^Productos$/i })).toBeVisible()
   await expect(page.getByText(productName)).toBeVisible({ timeout: 15000 })
 
   await page.goto('/recipes')
@@ -50,6 +50,6 @@ test('R1: productos y recetas basicos', async ({ page }) => {
 
   await page.getByLabel('Producto').selectOption({ label: `${productName} (ud)` })
   await page.getByLabel('Cantidad').fill('2')
-  await page.getByRole('button', { name: 'Anadir' }).click()
+  await page.getByRole('button', { name: /Añadir|Anadir/ }).click()
   await expect(page.getByText(productName).nth(0)).toBeVisible()
 })

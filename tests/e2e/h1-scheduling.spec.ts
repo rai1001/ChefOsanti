@@ -31,7 +31,7 @@ test('H1: asignar turnos con bloqueo de doble asignacion', async ({ page }) => {
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org H1', slug: `org-h1-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel H1' })
   await admin.from('staff_members').insert([
     { id: staffA, org_id: orgId, full_name: 'Staff A', role: 'cocinero', employment_type: 'fijo', active: true },
@@ -61,13 +61,13 @@ test('H1: asignar turnos con bloqueo de doble asignacion', async ({ page }) => {
   ])
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
   await page.addInitScript(({ org }) => localStorage.setItem('activeOrgId', org), { org: orgId })
 
   await page.goto('/scheduling')
   await page.getByLabel('Hotel').selectOption(hotelId)
   await page.getByLabel('Semana (lunes)').fill(weekStart)
-  await expect(page.getByRole('heading', { name: /Planificacion de turnos/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Planific/i })).toBeVisible()
 
   const desayunoCell = page.getByTestId(`cell-${weekStart}-desayuno`)
   await expect(desayunoCell).toBeVisible({ timeout: 10000 })

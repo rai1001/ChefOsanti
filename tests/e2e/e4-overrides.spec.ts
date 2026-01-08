@@ -25,7 +25,7 @@ test('E4: overrides recalculan necesidades', async ({ page }) => {
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org E4', slug: `org-e4-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel E4' })
   await admin.from('events').insert({
     id: eventId,
@@ -45,7 +45,7 @@ test('E4: overrides recalculan necesidades', async ({ page }) => {
   })
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
   await page.addInitScript(({ org }) => localStorage.setItem('activeOrgId', org), { org: orgId })
 
   // Crear plantilla e item base
@@ -67,8 +67,9 @@ test('E4: overrides recalculan necesidades', async ({ page }) => {
   await page.goto(`/events/${eventId}`)
   let serviceSection = page.locator('div', { hasText: /coffee_break/i }).first()
   await serviceSection.getByLabel('Plantilla').selectOption({ label: templateName })
-  await page.reload()
-  serviceSection = page.locator('div', { hasText: /coffee_break/i }).first()
+  await expect(
+    serviceSection.getByText(`Menu aplicado: ${templateName}`, { exact: false }),
+  ).toBeVisible({ timeout: 10000 })
 
   const needsCard = serviceSection.locator('h4', { hasText: 'Necesidades' }).locator('..').locator('..')
   await expect(needsCard.getByText(templateItemName)).toBeVisible()

@@ -26,7 +26,7 @@ test('E3: aplicar plantilla y ver necesidades por pax', async ({ page }) => {
   const storageKey = getAnonStorageKey(url, anon)
 
   await admin.from('orgs').insert({ id: orgId, name: 'Org E3', slug: `org-e3-${orgId.slice(0, 6)}` })
-  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'owner' })
+  await admin.from('org_memberships').insert({ org_id: orgId, user_id: user.id, role: 'admin' })
   await admin.from('hotels').insert({ id: hotelId, org_id: orgId, name: 'Hotel E3' })
   await admin.from('events').insert({
     id: eventId,
@@ -46,7 +46,7 @@ test('E3: aplicar plantilla y ver necesidades por pax', async ({ page }) => {
   })
 
   const session = await signInWithRetry(anon, email, password)
-  await injectSession(page, storageKey, session, url, anonKey)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
   await page.addInitScript(({ org }) => org && localStorage.setItem('activeOrgId', org), { org: orgId })
 
   // Crear plantilla
@@ -72,5 +72,7 @@ test('E3: aplicar plantilla y ver necesidades por pax', async ({ page }) => {
   await serviceSection.getByLabel('Plantilla').selectOption({ label: templateName })
   const needRow = page.getByText(/Item E3/i).first()
   await expect(needRow).toBeVisible({ timeout: 15000 })
-  await expect(page.getByText(/100/)).toBeVisible({ timeout: 15000 }) // 2 * 50 pax
+  await expect(page.getByText('Unidad ud - Cantidad: 100.00', { exact: true })).toBeVisible({
+    timeout: 15000,
+  }) // 2 * 50 pax
 })
