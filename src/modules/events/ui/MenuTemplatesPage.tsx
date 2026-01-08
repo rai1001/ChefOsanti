@@ -29,11 +29,7 @@ export function MenuTemplatesPage() {
     formState: { errors, isSubmitting },
   } = useForm<Form>({ resolver: zodResolver(schema) })
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<Form>({ resolver: zodResolver(schema) })
+
 
   const onSubmit = async (values: Form) => {
     if (!activeOrgId) return
