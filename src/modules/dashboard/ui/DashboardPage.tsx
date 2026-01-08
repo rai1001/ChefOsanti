@@ -13,6 +13,7 @@ import {
   useWeekEvents,
 } from '../data/dashboard'
 import { startOfWeek } from '../domain/week'
+import { DailyBriefModal, OrderAuditModal } from './AiModals'
 
 const weekdayLabels = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
 
@@ -32,6 +33,11 @@ export function DashboardPage() {
   const [rpcAllowed, setRpcAllowed] = useState<Record<string, boolean | null>>({})
   const { role } = useCurrentRole()
   const orgPlan = useOrgPlan(activeOrgId ?? undefined)
+
+  // AI Modals state
+  const [briefOpen, setBriefOpen] = useState(false)
+  const [auditOpen, setAuditOpen] = useState(false)
+  const [auditOrderId, setAuditOrderId] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -173,9 +179,8 @@ export function DashboardPage() {
                 key={day.date}
                 type="button"
                 onClick={() => setSelectedDay(day.date)}
-                className={`flex flex-col rounded border p-3 text-left transition ${
-                  selected ? 'border-brand-500 bg-brand-50' : 'border-slate-200 hover:border-brand-300'
-                }`}
+                className={`flex flex-col rounded border p-3 text-left transition ${selected ? 'border-brand-500 bg-brand-50' : 'border-slate-200 hover:border-brand-300'
+                  }`}
               >
                 <div className="flex items-baseline justify-between">
                   <div className="text-xs font-medium text-slate-500">{weekdayLabels[idx]}</div>
@@ -248,16 +253,34 @@ export function DashboardPage() {
             }
             const requirement = `Disponible en PLAN ${feature.minPlan.toUpperCase()} / ROL ${feature.minRole}`
             const onClick = async () => {
+              if (!allowed) {
+                alert('Tu plan o rol no permite esta funcion.')
+                return
+              }
               const supabase = getSupabaseClient()
               const { data, error } = await supabase.rpc('can_use_feature', {
                 feature_key: feature.key,
                 p_org_id: activeOrgId,
               })
-              if (error) {
-                alert(error.message)
+              if (error || !data) {
+                alert('No autorizado (Server side check)')
                 return
               }
-              alert(data ? 'Autorizado (RPC)' : 'No autorizado (RPC)')
+
+              if (feature.key === 'daily_brief') {
+                setBriefOpen(true)
+              } else if (feature.key === 'order_audit') {
+                // Pick a pending order to audit
+                const pending = ordersToDeliver.data?.[0]
+                if (!pending) {
+                  alert('No hay pedidos recientes para auditar.')
+                  return
+                }
+                setAuditOrderId(pending.id)
+                setAuditOpen(true)
+              } else if (feature.key === 'ocr_review') {
+                alert('Sube un archivo en un evento para usar el OCR.')
+              }
             }
             return (
               <div key={feature.key} className="rounded border border-slate-200 p-3">
@@ -348,6 +371,26 @@ export function DashboardPage() {
         />
         {note.isError && <div className="mt-2 text-xs text-red-600">No se pudo guardar la nota.</div>}
       </section>
-    </div>
+
+      {
+        briefOpen && (
+          <DailyBriefModal
+            weekStart={weekStart}
+            onClose={() => setBriefOpen(false)}
+          />
+        )
+      }
+      {
+        auditOpen && auditOrderId && (
+          <OrderAuditModal
+            orderId={auditOrderId}
+            onClose={() => {
+              setAuditOpen(false)
+              setAuditOrderId(null)
+            }}
+          />
+        )
+      }
+    </div >
   )
 }

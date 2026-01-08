@@ -41,7 +41,6 @@ import {
   useEventAttachments,
   useOcrEnqueue,
   useOcrRun,
-  processOcrLocally,
   useServiceMenuContent,
   useUploadEventAttachment,
 } from '../data/ocr'
@@ -268,417 +267,413 @@ export function EventDetailPage() {
 
   return (
     <>
-    <div className="space-y-4">
-      <header className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Eventos</p>
-          <h1 className="text-2xl font-semibold text-slate-900">{event?.title}</h1>
-          <p className="text-sm text-slate-600">
-            Estado: {event?.status} - Cliente: {event?.clientName ?? 'N/D'}
-          </p>
-          <p className="text-xs text-slate-500">
-            {event?.startsAt ? `Inicio ${formatDate(event.startsAt)}` : ''}{' '}
-            {event?.endsAt ? `Fin ${formatDate(event.endsAt)}` : ''}
-          </p>
-        </div>
-      </header>
-
-      <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-800">Reservas de salon</h2>
-          <span className="text-xs text-slate-500">{bookings.length} reservas</span>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {bookings.length ? (
-            bookings.map((b) => (
-              <div
-                key={b.id}
-                className="flex flex-col gap-1 px-4 py-3 md:flex-row md:items-center md:justify-between"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {b.spaceName ?? b.spaceId} - {formatDate(b.startsAt)} {'->'} {formatDate(b.endsAt)}
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    {b.groupLabel ? `${b.groupLabel} - ` : ''}
-                    {b.note ?? ''}
-                  </p>
-                </div>
-                <button
-                  className="text-xs font-semibold text-red-600 hover:text-red-700"
-                  onClick={() => deleteBooking.mutate(b.id)}
-                >
-                  Borrar
-                </button>
-              </div>
-            ))
-          ) : (
-            <p className="px-4 py-6 text-sm text-slate-600">Sin reservas.</p>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-800">Anadir reserva de salon</h3>
-        <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
-          <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Salon</span>
-            <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              {...register('spaceId')}
-            >
-              <option value="">Selecciona salon</option>
-              {spaces.data?.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-            {errors.spaceId && <p className="text-xs text-red-600">{errors.spaceId.message}</p>}
-          </label>
-
-          <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Inicio</span>
-            <input
-              type="datetime-local"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              {...register('startsAt')}
-            />
-            {errors.startsAt && <p className="text-xs text-red-600">{errors.startsAt.message}</p>}
-          </label>
-
-          <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Fin</span>
-            <input
-              type="datetime-local"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              {...register('endsAt')}
-            />
-            {errors.endsAt && <p className="text-xs text-red-600">{errors.endsAt.message}</p>}
-          </label>
-
-          <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Group label (opcional)</span>
-            <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              placeholder="A+B"
-              {...register('groupLabel')}
-            />
-          </label>
-
-          <label className="md:col-span-2 space-y-1">
-            <span className="text-sm font-medium text-slate-800">Nota</span>
-            <textarea
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              rows={2}
-              {...register('note')}
-            />
-          </label>
-
-          {overlapWarning && (
-            <p className="md:col-span-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
-              Aviso: hay solape con otra reserva de este salon.
+      <div className="space-y-4">
+        <header className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Eventos</p>
+            <h1 className="text-2xl font-semibold text-slate-900">{event?.title}</h1>
+            <p className="text-sm text-slate-600">
+              Estado: {event?.status} - Cliente: {event?.clientName ?? 'N/D'}
             </p>
-          )}
-
-          {createBooking.isError && (
-            <p className="md:col-span-2 text-sm text-red-600">
-              {(createBooking.error as Error).message || 'Error al crear reserva.'}
+            <p className="text-xs text-slate-500">
+              {event?.startsAt ? `Inicio ${formatDate(event.startsAt)}` : ''}{' '}
+              {event?.endsAt ? `Fin ${formatDate(event.endsAt)}` : ''}
             </p>
-          )}
-
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
-            >
-              {isSubmitting ? 'Guardando...' : 'Anadir reserva'}
-            </button>
           </div>
-        </form>
-      </section>
+        </header>
 
-      <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-800">Adjuntos / OCR</h2>
-        </div>
-        <div className="space-y-3 p-4">
-          <label className="flex w-full flex-col gap-1 text-sm">
-            <span className="text-xs font-semibold text-slate-700">Subir PDF/imagen/texto</span>
-            <input
-              type="file"
-              accept=".pdf,.png,.jpg,.jpeg,.txt"
-              className="text-sm"
-              onChange={async (e) => {
-                const file = e.target.files?.[0]
-                if (file && eventQuery.data?.event.orgId) {
-                  await uploadAttachment.mutateAsync(file)
-                }
-              }}
-            />
-          </label>
-          {attachments.isLoading && <p className="text-sm text-slate-600">Cargando adjuntos...</p>}
-          {attachments.data?.map((att) => (
-            <div
-              key={att.id}
-              className="flex flex-col gap-2 rounded border border-slate-200 bg-slate-50 p-3 md:flex-row md:items-center md:justify-between"
-            >
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{att.originalName}</p>
-                <p className="text-xs text-slate-600">
-                  {att.mimeType} {att.job ? ` - estado OCR: ${att.job.status}` : ' - sin OCR'}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-800 hover:border-slate-400"
-                  onClick={async () => {
-                    try {
-                      const { jobId } = await ocrEnqueue.mutateAsync(att.id)
-                      await ocrRun.mutateAsync(jobId)
-                    } catch {
-                      await processOcrLocally(att.id, att.orgId)
-                    }
-                    attachments.refetch()
-                  }}
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+            <h2 className="text-sm font-semibold text-slate-800">Reservas de salon</h2>
+            <span className="text-xs text-slate-500">{bookings.length} reservas</span>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {bookings.length ? (
+              bookings.map((b) => (
+                <div
+                  key={b.id}
+                  className="flex flex-col gap-1 px-4 py-3 md:flex-row md:items-center md:justify-between"
                 >
-                  Procesar OCR
-                </button>
-                {att.job?.status === 'done' && (
-                  <button
-                    type="button"
-                    className="rounded-md border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-700 hover:border-brand-300"
-                    onClick={() => {
-                      const draft = normalizeDraft(att.job?.draftJson, att.job?.extractedText ?? '')
-                      setDraftToReview(draft)
-                      setReviewOpen(true)
-                    }}
-                  >
-                    Revisar
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-          {attachments.data?.length === 0 && !attachments.isLoading && (
-            <p className="text-sm text-slate-600">Sin adjuntos subidos.</p>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-800">Servicios</h2>
-          <span className="text-xs text-slate-500">{eventServices.length} servicios</span>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {eventServices.length ? (
-            eventServices.map((s) => (
-              <div
-                key={s.id}
-                className="flex flex-col gap-2 px-4 py-3"
-              >
-                <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-slate-900">
-                      {s.serviceType} - {formatDate(s.startsAt)} {s.endsAt ? `-> ${formatDate(s.endsAt)}` : ''} - {s.format} -{' '}
-                      {s.pax} pax
+                      {b.spaceName ?? b.spaceId} - {formatDate(b.startsAt)} {'->'} {formatDate(b.endsAt)}
                     </p>
-                    <p className="text-xs text-slate-600">{s.notes ?? ''}</p>
+                    <p className="text-xs text-slate-600">
+                      {b.groupLabel ? `${b.groupLabel} - ` : ''}
+                      {b.note ?? ''}
+                    </p>
                   </div>
                   <button
                     className="text-xs font-semibold text-red-600 hover:text-red-700"
-                    onClick={() => deleteService.mutate(s.id)}
+                    onClick={() => deleteBooking.mutate(b.id)}
                   >
                     Borrar
                   </button>
                 </div>
-                <ServiceMenuCard
-                  serviceId={s.id}
-                  orgId={s.orgId}
-                  format={s.format}
-                  pax={s.pax}
-                  templates={menuTemplates.data ?? []}
-                />
-              </div>
-            ))
-          ) : (
-            <p className="px-4 py-6 text-sm text-slate-600">Sin servicios.</p>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-800">Pedidos borrador</h2>
-            <p className="text-xs text-slate-600">
-              Genera pedidos agrupados por proveedor desde las necesidades de este evento.
-            </p>
-          </div>
-          {draftSuccess && <span className="text-xs text-emerald-700">{draftSuccess}</span>}
-        </div>
-        <div className="space-y-2 px-4 py-3">
-          {eventNeeds.isLoading && <p className="text-sm text-slate-600">Calculando necesidades...</p>}
-          {Boolean(eventNeeds.data?.missingServices.length) && (
-            <div className="rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
-              Servicios sin plantilla aplicada: {eventNeeds.data?.missingServices.length}. No se incluyen en el pedido.
-            </div>
-          )}
-          <p className="text-sm text-slate-700">
-            Items calculados: {eventNeeds.data?.needs.length ?? 0}
-          </p>
-          <button
-            type="button"
-            className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
-            disabled={
-              eventNeeds.isLoading ||
-              !eventNeeds.data?.needs.length ||
-              createDraftOrders.isPending ||
-              aliases.isLoading ||
-              supplierItemsByOrg.isLoading
-            }
-            onClick={() => setDraftOrdersOpen(true)}
-          >
-            Generar pedido borrador
-          </button>
-          {!eventNeeds.data?.needs.length && !eventNeeds.isLoading && (
-            <p className="text-xs text-slate-600">
-              Aplica una plantilla con ratios para calcular necesidades antes de generar el pedido.
-            </p>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-800">Anadir servicio</h3>
-        <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmitService(onSubmitService)}>
-          <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Tipo de servicio</span>
-            <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              {...registerService('serviceType')}
-            >
-              <option value="desayuno">Desayuno</option>
-              <option value="coffee_break">Coffee break</option>
-              <option value="comida">Comida</option>
-              <option value="merienda">Merienda</option>
-              <option value="cena">Cena</option>
-              <option value="coctel">Coctel</option>
-              <option value="otros">Otros</option>
-            </select>
-            {serviceErrors.serviceType && (
-              <p className="text-xs text-red-600">{serviceErrors.serviceType.message}</p>
+              ))
+            ) : (
+              <p className="px-4 py-6 text-sm text-slate-600">Sin reservas.</p>
             )}
-          </label>
-
-          <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Formato</span>
-            <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              {...registerService('format')}
-            >
-              <option value="sentado">Sentado</option>
-              <option value="de_pie">De pie</option>
-            </select>
-            {serviceErrors.format && <p className="text-xs text-red-600">{serviceErrors.format.message}</p>}
-          </label>
-
-          <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Inicio</span>
-            <input
-              type="datetime-local"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              {...registerService('startsAt')}
-            />
-            {serviceErrors.startsAt && <p className="text-xs text-red-600">{serviceErrors.startsAt.message}</p>}
-          </label>
-
-          <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Fin (opcional)</span>
-            <input
-              type="datetime-local"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              {...registerService('endsAt')}
-            />
-            {serviceErrors.endsAt && <p className="text-xs text-red-600">{serviceErrors.endsAt.message}</p>}
-          </label>
-
-          <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-800">Pax</span>
-            <input
-              type="number"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              {...registerService('pax', {
-                setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? 0 : Number(v)),
-              })}
-            />
-            {serviceErrors.pax && <p className="text-xs text-red-600">{serviceErrors.pax.message}</p>}
-          </label>
-
-          <label className="md:col-span-2 space-y-1">
-            <span className="text-sm font-medium text-slate-800">Notas</span>
-            <textarea
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-              rows={2}
-              {...registerService('notes')}
-            />
-          </label>
-
-          {createService.isError && (
-            <p className="md:col-span-2 text-sm text-red-600">
-              {(createService.error as Error).message || 'Error al crear servicio.'}
-            </p>
-          )}
-
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              disabled={serviceSubmitting}
-              className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
-            >
-              {serviceSubmitting ? 'Guardando...' : 'Anadir servicio'}
-            </button>
           </div>
-        </form>
-      </section>
-    </div>
+        </section>
 
-    {draftOrdersOpen && (
-      <DraftOrdersModal
-        needs={eventNeeds.data?.needs ?? []}
-        missingServices={eventNeeds.data?.missingServices ?? []}
-        aliases={aliases.data ?? []}
-        supplierItems={supplierItemsByOrg.data ?? []}
-        onClose={() => setDraftOrdersOpen(false)}
-        onCreated={(ids) => {
-          setDraftSuccess(`Pedidos creados: ${ids.length}`)
-          setDraftOrdersOpen(false)
-        }}
-        onSaveAlias={async (aliasText, supplierItemId) => {
-          await upsertAlias.mutateAsync({ aliasText, supplierItemId })
-        }}
-        createDraftOrders={createDraftOrders}
-        loading={!eventNeeds.data || aliases.isLoading || supplierItemsByOrg.isLoading}
-      />
-    )}
+        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <h3 className="text-sm font-semibold text-slate-800">Anadir reserva de salon</h3>
+          <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-slate-800">Salon</span>
+              <select
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                {...register('spaceId')}
+              >
+                <option value="">Selecciona salon</option>
+                {spaces.data?.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              {errors.spaceId && <p className="text-xs text-red-600">{errors.spaceId.message}</p>}
+            </label>
 
-    {reviewOpen && draftToReview && (
-      <OcrReviewModal
-        draft={draftToReview}
-        onClose={() => {
-          setReviewOpen(false)
-          setDraftToReview(null)
-        }}
-        onApply={async (draft) => {
-          await applyDraft.mutateAsync(draft)
-          setReviewOpen(false)
-          setDraftToReview(null)
-        }}
-      />
-    )}
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-slate-800">Inicio</span>
+              <input
+                type="datetime-local"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                {...register('startsAt')}
+              />
+              {errors.startsAt && <p className="text-xs text-red-600">{errors.startsAt.message}</p>}
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-slate-800">Fin</span>
+              <input
+                type="datetime-local"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                {...register('endsAt')}
+              />
+              {errors.endsAt && <p className="text-xs text-red-600">{errors.endsAt.message}</p>}
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-slate-800">Group label (opcional)</span>
+              <input
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                placeholder="A+B"
+                {...register('groupLabel')}
+              />
+            </label>
+
+            <label className="md:col-span-2 space-y-1">
+              <span className="text-sm font-medium text-slate-800">Nota</span>
+              <textarea
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                rows={2}
+                {...register('note')}
+              />
+            </label>
+
+            {overlapWarning && (
+              <p className="md:col-span-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                Aviso: hay solape con otra reserva de este salon.
+              </p>
+            )}
+
+            {createBooking.isError && (
+              <p className="md:col-span-2 text-sm text-red-600">
+                {(createBooking.error as Error).message || 'Error al crear reserva.'}
+              </p>
+            )}
+
+            <div className="md:col-span-2">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                {isSubmitting ? 'Guardando...' : 'Anadir reserva'}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+            <h2 className="text-sm font-semibold text-slate-800">Adjuntos / OCR</h2>
+          </div>
+          <div className="space-y-3 p-4">
+            <label className="flex w-full flex-col gap-1 text-sm">
+              <span className="text-xs font-semibold text-slate-700">Subir PDF/imagen/texto</span>
+              <input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.txt"
+                className="text-sm"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (file && eventQuery.data?.event.orgId) {
+                    await uploadAttachment.mutateAsync(file)
+                  }
+                }}
+              />
+            </label>
+            {attachments.isLoading && <p className="text-sm text-slate-600">Cargando adjuntos...</p>}
+            {attachments.data?.map((att) => (
+              <div
+                key={att.id}
+                className="flex flex-col gap-2 rounded border border-slate-200 bg-slate-50 p-3 md:flex-row md:items-center md:justify-between"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{att.originalName}</p>
+                  <p className="text-xs text-slate-600">
+                    {att.mimeType} {att.job ? ` - estado OCR: ${att.job.status}` : ' - sin OCR'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-800 hover:border-slate-400"
+                    onClick={async () => {
+                      const { jobId } = await ocrEnqueue.mutateAsync(att.id)
+                      await ocrRun.mutateAsync(jobId)
+                      attachments.refetch()
+                    }}
+                  >
+                    Procesar OCR
+                  </button>
+                  {att.job?.status === 'done' && (
+                    <button
+                      type="button"
+                      className="rounded-md border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-700 hover:border-brand-300"
+                      onClick={() => {
+                        const draft = normalizeDraft(att.job?.draftJson, att.job?.extractedText ?? '')
+                        setDraftToReview(draft)
+                        setReviewOpen(true)
+                      }}
+                    >
+                      Revisar
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+            {attachments.data?.length === 0 && !attachments.isLoading && (
+              <p className="text-sm text-slate-600">Sin adjuntos subidos.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+            <h2 className="text-sm font-semibold text-slate-800">Servicios</h2>
+            <span className="text-xs text-slate-500">{eventServices.length} servicios</span>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {eventServices.length ? (
+              eventServices.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex flex-col gap-2 px-4 py-3"
+                >
+                  <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {s.serviceType} - {formatDate(s.startsAt)} {s.endsAt ? `-> ${formatDate(s.endsAt)}` : ''} - {s.format} -{' '}
+                        {s.pax} pax
+                      </p>
+                      <p className="text-xs text-slate-600">{s.notes ?? ''}</p>
+                    </div>
+                    <button
+                      className="text-xs font-semibold text-red-600 hover:text-red-700"
+                      onClick={() => deleteService.mutate(s.id)}
+                    >
+                      Borrar
+                    </button>
+                  </div>
+                  <ServiceMenuCard
+                    serviceId={s.id}
+                    orgId={s.orgId}
+                    format={s.format}
+                    pax={s.pax}
+                    templates={menuTemplates.data ?? []}
+                  />
+                </div>
+              ))
+            ) : (
+              <p className="px-4 py-6 text-sm text-slate-600">Sin servicios.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-800">Pedidos borrador</h2>
+              <p className="text-xs text-slate-600">
+                Genera pedidos agrupados por proveedor desde las necesidades de este evento.
+              </p>
+            </div>
+            {draftSuccess && <span className="text-xs text-emerald-700">{draftSuccess}</span>}
+          </div>
+          <div className="space-y-2 px-4 py-3">
+            {eventNeeds.isLoading && <p className="text-sm text-slate-600">Calculando necesidades...</p>}
+            {Boolean(eventNeeds.data?.missingServices.length) && (
+              <div className="rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+                Servicios sin plantilla aplicada: {eventNeeds.data?.missingServices.length}. No se incluyen en el pedido.
+              </div>
+            )}
+            <p className="text-sm text-slate-700">
+              Items calculados: {eventNeeds.data?.needs.length ?? 0}
+            </p>
+            <button
+              type="button"
+              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              disabled={
+                eventNeeds.isLoading ||
+                !eventNeeds.data?.needs.length ||
+                createDraftOrders.isPending ||
+                aliases.isLoading ||
+                supplierItemsByOrg.isLoading
+              }
+              onClick={() => setDraftOrdersOpen(true)}
+            >
+              Generar pedido borrador
+            </button>
+            {!eventNeeds.data?.needs.length && !eventNeeds.isLoading && (
+              <p className="text-xs text-slate-600">
+                Aplica una plantilla con ratios para calcular necesidades antes de generar el pedido.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <h3 className="text-sm font-semibold text-slate-800">Anadir servicio</h3>
+          <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmitService(onSubmitService)}>
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-slate-800">Tipo de servicio</span>
+              <select
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                {...registerService('serviceType')}
+              >
+                <option value="desayuno">Desayuno</option>
+                <option value="coffee_break">Coffee break</option>
+                <option value="comida">Comida</option>
+                <option value="merienda">Merienda</option>
+                <option value="cena">Cena</option>
+                <option value="coctel">Coctel</option>
+                <option value="otros">Otros</option>
+              </select>
+              {serviceErrors.serviceType && (
+                <p className="text-xs text-red-600">{serviceErrors.serviceType.message}</p>
+              )}
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-slate-800">Formato</span>
+              <select
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                {...registerService('format')}
+              >
+                <option value="sentado">Sentado</option>
+                <option value="de_pie">De pie</option>
+              </select>
+              {serviceErrors.format && <p className="text-xs text-red-600">{serviceErrors.format.message}</p>}
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-slate-800">Inicio</span>
+              <input
+                type="datetime-local"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                {...registerService('startsAt')}
+              />
+              {serviceErrors.startsAt && <p className="text-xs text-red-600">{serviceErrors.startsAt.message}</p>}
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-slate-800">Fin (opcional)</span>
+              <input
+                type="datetime-local"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                {...registerService('endsAt')}
+              />
+              {serviceErrors.endsAt && <p className="text-xs text-red-600">{serviceErrors.endsAt.message}</p>}
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-sm font-medium text-slate-800">Pax</span>
+              <input
+                type="number"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                {...registerService('pax', {
+                  setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? 0 : Number(v)),
+                })}
+              />
+              {serviceErrors.pax && <p className="text-xs text-red-600">{serviceErrors.pax.message}</p>}
+            </label>
+
+            <label className="md:col-span-2 space-y-1">
+              <span className="text-sm font-medium text-slate-800">Notas</span>
+              <textarea
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                rows={2}
+                {...registerService('notes')}
+              />
+            </label>
+
+            {createService.isError && (
+              <p className="md:col-span-2 text-sm text-red-600">
+                {(createService.error as Error).message || 'Error al crear servicio.'}
+              </p>
+            )}
+
+            <div className="md:col-span-2">
+              <button
+                type="submit"
+                disabled={serviceSubmitting}
+                className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                {serviceSubmitting ? 'Guardando...' : 'Anadir servicio'}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      {draftOrdersOpen && (
+        <DraftOrdersModal
+          needs={eventNeeds.data?.needs ?? []}
+          missingServices={eventNeeds.data?.missingServices ?? []}
+          aliases={aliases.data ?? []}
+          supplierItems={supplierItemsByOrg.data ?? []}
+          onClose={() => setDraftOrdersOpen(false)}
+          onCreated={(ids) => {
+            setDraftSuccess(`Pedidos creados: ${ids.length}`)
+            setDraftOrdersOpen(false)
+          }}
+          onSaveAlias={async (aliasText, supplierItemId) => {
+            await upsertAlias.mutateAsync({ aliasText, supplierItemId })
+          }}
+          createDraftOrders={createDraftOrders}
+          loading={!eventNeeds.data || aliases.isLoading || supplierItemsByOrg.isLoading}
+        />
+      )}
+
+      {reviewOpen && draftToReview && (
+        <OcrReviewModal
+          draft={draftToReview}
+          onClose={() => {
+            setReviewOpen(false)
+            setDraftToReview(null)
+          }}
+          onApply={async (draft) => {
+            await applyDraft.mutateAsync(draft)
+            setReviewOpen(false)
+            setDraftToReview(null)
+          }}
+        />
+      )}
     </>
   )
 }
@@ -1074,9 +1069,8 @@ function ServiceMenuCard({
                       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                         <div>
                           <p
-                            className={`text-sm font-semibold ${
-                              isExcluded ? 'line-through text-slate-400' : 'text-slate-900'
-                            }`}
+                            className={`text-sm font-semibold ${isExcluded ? 'line-through text-slate-400' : 'text-slate-900'
+                              }`}
                           >
                             {item.section ? `${item.section} - ` : ''}
                             {item.name}
