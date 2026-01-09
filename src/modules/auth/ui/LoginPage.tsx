@@ -3,14 +3,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
-import { getSupabaseClient } from '@/lib/supabaseClient'
+import { loginWithPassword } from '../data/authService'
 import { useSupabaseSession } from '../data/session'
 import type { LoginInput } from '../domain/types'
 import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 const loginSchema = z.object({
-  email: z.string().email('Introduce un correo v\xa0lido'),
-  password: z.string().min(1, 'La contrase\xa4a es obligatoria'),
+  email: z.string().email('Introduce un correo válido'),
+  password: z.string().min(1, 'La contraseña es obligatoria'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
@@ -46,12 +46,8 @@ export function LoginPage() {
     setStatus(null)
     setAuthError(null)
     try {
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase.auth.signInWithPassword(values)
-      if (error || !data.session) {
-        throw error ?? new Error('No se pudo iniciar sesi\xa2n.')
-      }
-      setStatus('Sesi\xa2n iniciada, redirigiendo...')
+      await loginWithPassword(values)
+      setStatus('Sesión iniciada, redirigiendo...')
       navigate(redirectPath, { replace: true })
     } catch (err: any) {
       const { title, description } = formatError(err)

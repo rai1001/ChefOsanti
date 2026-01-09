@@ -46,17 +46,19 @@ function mapSupplierItem(row: any): SupplierItem {
   }
 }
 
-async function fetchSuppliers(): Promise<Supplier[]> {
+async function fetchSuppliers(orgId: string): Promise<Supplier[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('suppliers')
     .select('id, org_id, name, created_at')
+    .eq('org_id', orgId)
     .order('created_at', { ascending: false })
 
   if (error) {
     throw mapSupabaseError(error, {
       module: 'purchasing',
       operation: 'fetchSuppliers',
+      orgId,
     })
   }
 
@@ -153,11 +155,11 @@ export async function insertSupplierItem(input: CreateSupplierItemInput): Promis
   return mapSupplierItem(data)
 }
 
-export function useSuppliers(enabled = true) {
+export function useSuppliers(orgId: string | undefined, enabled = true) {
   return useQuery({
-    queryKey: ['suppliers'],
-    queryFn: fetchSuppliers,
-    enabled,
+    queryKey: ['suppliers', orgId],
+    queryFn: () => fetchSuppliers(orgId!),
+    enabled: enabled && Boolean(orgId),
   })
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getSupabaseClient } from '@/lib/supabaseClient'
+import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useHotels } from '@/modules/events/data/events'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import {
@@ -25,7 +25,6 @@ export default function DashboardPage() {
   const [hotelId, setHotelId] = useState<string | undefined>(undefined)
   const [weekStart, setWeekStart] = useState<string>(isoWeekStart())
   const [selectedDay, setSelectedDay] = useState<string>(isoWeekStart())
-  const [userId, setUserId] = useState<string | null>(null)
   const [noteDraft, setNoteDraft] = useState<string>('')
   const hasLoadedNote = useRef(false)
 
@@ -34,13 +33,8 @@ export default function DashboardPage() {
   const [auditOpen, setAuditOpen] = useState(false)
   const [auditOrderId, setAuditOrderId] = useState<string | null>(null)
 
-  useEffect(() => {
-    const supabase = getSupabaseClient()
-    supabase.auth
-      .getUser()
-      .then(({ data }) => setUserId(data.user?.id ?? null))
-      .catch(() => setUserId(null))
-  }, [])
+  const { session } = useSupabaseSession()
+  const userId = session?.user?.id ?? null
 
   useEffect(() => {
     if (hotels.data?.length && !hotelId) {
@@ -135,7 +129,7 @@ export default function DashboardPage() {
               >
                 {memberships.map((m) => (
                   <option key={m.orgId} value={m.orgId}>
-                    {m.orgId}
+                    {m.orgName ?? m.orgSlug ?? m.orgId}
                   </option>
                 ))}
               </select>
@@ -192,6 +186,7 @@ export default function DashboardPage() {
                 to="/importer"
                 className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10 hover:border-white/20"
                 title="Importador Universal"
+                aria-label="Ir al Importador Universal"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -325,6 +320,7 @@ export default function DashboardPage() {
                   <Link
                     to={po.type === 'purchase' ? `/purchasing/orders/${po.id}` : `/purchasing/event-orders/${po.id}`}
                     className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                    aria-label={`Ver detalle de pedido ${po.orderNumber}`}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -355,21 +351,25 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {briefOpen && (
-        <DailyBriefModal
-          weekStart={weekStart}
-          onClose={() => setBriefOpen(false)}
-        />
-      )}
-      {auditOpen && auditOrderId && (
-        <OrderAuditModal
-          orderId={auditOrderId}
-          onClose={() => {
-            setAuditOpen(false)
-            setAuditOrderId(null)
-          }}
-        />
-      )}
-    </div>
+      {
+        briefOpen && (
+          <DailyBriefModal
+            weekStart={weekStart}
+            onClose={() => setBriefOpen(false)}
+          />
+        )
+      }
+      {
+        auditOpen && auditOrderId && (
+          <OrderAuditModal
+            orderId={auditOrderId}
+            onClose={() => {
+              setAuditOpen(false)
+              setAuditOrderId(null)
+            }}
+          />
+        )
+      }
+    </div >
   )
 }

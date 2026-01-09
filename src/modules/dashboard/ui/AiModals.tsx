@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getSupabaseClient } from '@/lib/supabaseClient'
+import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { getEnv } from '@/config/env'
 
@@ -9,13 +9,13 @@ export function DailyBriefModal({ onClose, weekStart }: { onClose: () => void; w
     const { activeOrgId } = useActiveOrgId()
     const [content, setContent] = useState('')
     const [loading, setLoading] = useState(true)
+    const { session } = useSupabaseSession()
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         async function fetchBrief() {
             try {
-                const supabase = getSupabaseClient()
-                const { data: { session } } = await supabase.auth.getSession()
+                if (!session?.access_token) throw new Error('No active session')
 
                 const res = await fetch(`${supabaseUrl}/functions/v1/daily_brief`, {
                     method: 'POST',
@@ -45,7 +45,7 @@ export function DailyBriefModal({ onClose, weekStart }: { onClose: () => void; w
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
                         <span className="text-2xl">✨</span> Daily Brief (IA)
                     </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Cerrar modal">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -87,13 +87,13 @@ export function DailyBriefModal({ onClose, weekStart }: { onClose: () => void; w
 export function OrderAuditModal({ onClose, orderId }: { onClose: () => void; orderId: string }) {
     const [result, setResult] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const { session } = useSupabaseSession()
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         async function runAudit() {
             try {
-                const supabase = getSupabaseClient()
-                const { data: { session } } = await supabase.auth.getSession()
+                if (!session?.access_token) throw new Error('No active session')
 
                 const res = await fetch(`${supabaseUrl}/functions/v1/order_audit`, {
                     method: 'POST',
@@ -123,7 +123,7 @@ export function OrderAuditModal({ onClose, orderId }: { onClose: () => void; ord
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
                         <span className="text-2xl">🔍</span> Auditoria IA
                     </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Cerrar modal">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>

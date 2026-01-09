@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useSupabaseSession } from '@/modules/auth/data/session'
-import { useUserMemberships } from '@/modules/orgs/data/memberships'
+import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateSupplier, useSuppliers } from '../data/suppliers'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
@@ -20,10 +20,9 @@ type SupplierForm = z.infer<typeof supplierSchema>
 
 export default function SuppliersPage() {
   const { session, loading, error } = useSupabaseSession()
-  const { data: memberships } = useUserMemberships(!!session && !loading)
-  const orgId = memberships?.[0]?.orgId
-  const suppliers = useSuppliers(!!session && !!orgId && !loading)
-  const createSupplier = useCreateSupplier(orgId)
+  const { activeOrgId } = useActiveOrgId()
+  const suppliers = useSuppliers(activeOrgId ?? undefined, !!session && !!activeOrgId && !loading)
+  const createSupplier = useCreateSupplier(activeOrgId ?? undefined)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'purchasing:write')
   const sessionError = useFormattedError(error)
@@ -62,7 +61,7 @@ export default function SuppliersPage() {
     )
   }
 
-  if (!orgId) {
+  if (!activeOrgId) {
     return (
       <div className="rounded-lg border border-white/10 bg-white/5 p-4">
         <p className="text-sm text-slate-400">
@@ -173,7 +172,7 @@ export default function SuppliersPage() {
               await createSupplier.mutateAsync({ name: item.name })
             }
           }
-          queryClient.invalidateQueries({ queryKey: ['suppliers', orgId] })
+          queryClient.invalidateQueries({ queryKey: ['suppliers', activeOrgId] })
         }}
       />
     </div>

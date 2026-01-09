@@ -14,7 +14,7 @@ type Props = {
 export function RequireAuth({ children }: { children: ReactNode }) {
   const session = useSupabaseSession()
   const location = useLocation()
-  if (session.loading) return <div className="p-4 text-sm text-slate-600">Cargando sesi▋...</div>
+  if (session.loading) return <div className="p-4 text-sm text-slate-600">Cargando sesión...</div>
   if (!session.session) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
@@ -23,12 +23,12 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
 export function RequireActiveOrg({ children }: { children: ReactNode }) {
   const { activeOrgId, loading, memberships } = useActiveOrgId()
-  if (loading) return <div className="p-4 text-sm text-slate-600">Cargando organizaci▋...</div>
+  if (loading) return <div className="p-4 text-sm text-slate-600">Cargando organización...</div>
   if (!activeOrgId) {
     const message =
       memberships.length === 0
         ? 'No tienes organizaciones asignadas. Solicita acceso para continuar.'
-        : 'Selecciona una organizaci▋ o solicita acceso para continuar.'
+        : 'Selecciona una organización o solicita acceso para continuar.'
     return <ForbiddenState message={message} />
   }
   return <>{children}</>

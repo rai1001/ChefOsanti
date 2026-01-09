@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useImportJobs, useImportStage, useImportValidate, useImportCommit, useImportJobRows } from '../data/importer'
-import { parseCSV } from '../logic/csvParser'
+import { parseCSV } from '../data/csvParser'
 import type { ImportEntity } from '../domain/types'
 
 export default function ImporterPage() {
@@ -12,6 +12,7 @@ export default function ImporterPage() {
     const [file, setFile] = useState<File | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [activeJobId, setActiveJobId] = useState<string | null>(null)
+    const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null)
 
     // Queries & Mutations
     const jobs = useImportJobs(activeOrgId ?? undefined)
@@ -25,6 +26,7 @@ export default function ImporterPage() {
 
     // Handlers
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNotification(null)
         if (e.target.files?.[0]) {
             setFile(e.target.files[0])
         }
@@ -42,8 +44,9 @@ export default function ImporterPage() {
                 rows
             })
             setActiveJobId(jobId)
+            setNotification({ type: 'success', message: 'Datos previsualizados correctamente' })
         } catch (err) {
-            alert('Error parsing or staging CSV')
+            setNotification({ type: 'error', message: 'Error al procesar el archivo CSV' })
             console.error(err)
         } finally {
             setIsLoading(false)
@@ -55,8 +58,9 @@ export default function ImporterPage() {
         setIsLoading(true)
         try {
             await validateMutation.mutateAsync(activeJobId)
+            setNotification({ type: 'success', message: 'Validación completada' })
         } catch (err) {
-            alert('Validation failed')
+            setNotification({ type: 'error', message: 'Error durante la validación' })
         } finally {
             setIsLoading(false)
         }
@@ -67,11 +71,11 @@ export default function ImporterPage() {
         setIsLoading(true)
         try {
             await commitMutation.mutateAsync(activeJobId)
-            alert('Importación completada con éxito')
+            setNotification({ type: 'success', message: 'Importación completada con éxito' })
             setFile(null)
             setActiveJobId(null) // Reset to allow new import
         } catch (err) {
-            alert('Commit failed')
+            setNotification({ type: 'error', message: 'Error al guardar los datos' })
         } finally {
             setIsLoading(false)
         }
@@ -94,6 +98,18 @@ export default function ImporterPage() {
                 <h1 className="text-3xl font-bold text-white tracking-tight text-glow">Importador Universal</h1>
                 <p className="text-slate-400 mt-1">Sube tus archivos CSV para actualizar proveedores, artículos y eventos.</p>
             </header>
+
+            {
+                notification && (
+                    <div className={`p-4 rounded-lg border ${notification.type === 'success'
+                        ? 'bg-green-500/10 border-green-500/20 text-green-200'
+                        : 'bg-red-500/10 border-red-500/20 text-red-200'
+                        } flex justify-between items-center animate-fade-in`}>
+                        <span>{notification.message}</span>
+                        <button onClick={() => setNotification(null)} className="hover:opacity-75">✕</button>
+                    </div>
+                )
+            }
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Area: Wizard */}
@@ -267,6 +283,6 @@ export default function ImporterPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
