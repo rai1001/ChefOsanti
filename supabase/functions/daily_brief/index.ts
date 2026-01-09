@@ -5,7 +5,7 @@ import { GoogleGenerativeAI } from 'https://esm.sh/@google/generative-ai@0.1.3'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY') ?? 'AIzaSyCfjgND4PgkwhFvo5PvewjaJbEHPG8yf8o'
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
 
 function supabaseForUser(req: Request) {
     const authHeader = req.headers.get('Authorization') || ''

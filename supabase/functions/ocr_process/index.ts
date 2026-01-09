@@ -7,7 +7,7 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 // Use provided key as fallback if env var is missing (common in local dev without cli linking)
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY') ?? 'AIzaSyCfjgND4PgkwhFvo5PvewjaJbEHPG8yf8o'
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
 const ocrProvider = Deno.env.get('OCR_PROVIDER') ?? 'gemini'
 
 function supabaseForUser(req: Request) {
