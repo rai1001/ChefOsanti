@@ -27,6 +27,7 @@ export default function SuppliersPage() {
   const { role } = useCurrentRole()
   const canWrite = can(role, 'purchasing:write')
   const sessionError = useFormattedError(error)
+  const createError = useFormattedError(createSupplier.error)
 
   const {
     register,
@@ -75,8 +76,6 @@ export default function SuppliersPage() {
       </div>
     )
   }
-
-  const createError = useFormattedError(createSupplier.error)
 
   return (
     <div className="space-y-6 animate-fade-in">
