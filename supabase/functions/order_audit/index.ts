@@ -2,6 +2,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4'
 import { GoogleGenerativeAI } from 'https://esm.sh/@google/generative-ai@0.1.3'
+import { checkRateLimit, RateLimitError } from '../_shared/rateLimit.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -31,6 +32,9 @@ serve(async (req) => {
         if (!orderId) {
             return new Response(JSON.stringify({ error: 'orderId requerido' }), { status: 400 })
         }
+
+        // Check rate limit (20 requests per minute per org for audit)
+        checkRateLimit(orderId, { limit: 20, windowMs: 60 * 1000, keyPrefix: 'audit' })
 
         // 1. Fetch Order & Items
         // Try purchase_orders first
@@ -92,6 +96,9 @@ serve(async (req) => {
         return new Response(JSON.stringify(json), { headers: { 'Content-Type': 'application/json' } })
 
     } catch (err: any) {
+        if (err.name === 'RateLimitError') {
+            return new Response(JSON.stringify({ error: err.message, retryAfter: err.retryAfter }), { status: 429 })
+        }
         return new Response(JSON.stringify({ error: String(err?.message || err) }), { status: 500 })
     }
 })

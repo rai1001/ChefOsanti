@@ -2,6 +2,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4'
 import { GoogleGenerativeAI } from 'https://esm.sh/@google/generative-ai@0.1.3'
+import { checkRateLimit, RateLimitError } from '../_shared/rateLimit.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -71,6 +72,9 @@ async function handleRun(req: Request) {
   if (toProcessing.error) return new Response(JSON.stringify({ error: toProcessing.error.message }), { status: 400 })
 
   try {
+    // Check rate limit (10 requests per minute per org)
+    checkRateLimit(job.org_id, { limit: 10, windowMs: 60 * 1000, keyPrefix: 'ocr' })
+
     let extractedText = ''
     let draftJson: any = {}
 
@@ -168,6 +172,12 @@ async function handleRun(req: Request) {
     return new Response(JSON.stringify({ status: 'done', data: draftJson }), { headers: { 'Content-Type': 'application/json' } })
 
   } catch (err: any) {
+    if (err.name === 'RateLimitError') {
+      console.warn('Rate limit exceeded for OCR job', body.jobId)
+      // Do not fail the job, just retry later or return 429 to client
+      return new Response(JSON.stringify({ error: err.message, retryAfter: err.retryAfter }), { status: 429 })
+    }
+
     console.error('OCR Process Error:', err)
     await client.from('ocr_jobs').update({ status: 'failed', error: String(err?.message || err) }).eq('id', body.jobId)
     return new Response(JSON.stringify({ error: String(err?.message || err) }), { status: 500 })
