@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider } from 'react-router-dom'
 import './index.css'
+import { ErrorBoundary } from './modules/shared/ui/ErrorBoundary'
 import { queryClient } from './lib/queryClient'
 import { supabaseClient } from './lib/supabaseClient'
 import { appRouter } from './router'
@@ -16,7 +17,9 @@ if (e2eSession && supabaseClient) {
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={appRouter} />
+      <ErrorBoundary module="Main">
+        <RouterProvider router={appRouter} />
+      </ErrorBoundary>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </React.StrictMode>,

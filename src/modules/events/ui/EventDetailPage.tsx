@@ -7,17 +7,14 @@ import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useMenuItemAliases, useUpsertAlias } from '@/modules/purchasing/data/aliases'
 import { useEventNeeds, useCreateEventDraftOrders } from '@/modules/purchasing/data/eventOrders'
 import { useSupplierItemsByOrg } from '@/modules/purchasing/data/suppliers'
-import type { MenuItemAlias } from '@/modules/purchasing/data/aliases'
-import type { SupplierItem } from '@/modules/purchasing/domain/types'
 import {
   applyRoundingToLines,
   groupMappedNeeds,
   mapNeedsToSupplierItems,
-  type Need,
 } from '@/modules/purchasing/domain/eventDraftOrder'
 import { detectOverlaps } from '../domain/event'
 import { parseOcrText, type OcrDraft } from '../domain/ocrParser'
-import { computeServiceNeedsWithOverrides, type AddedItem, type ServiceOverrides } from '../domain/overrides'
+import { computeServiceNeedsWithOverrides } from '../domain/overrides'
 import {
   useCreateBooking,
   useCreateEventService,
@@ -36,15 +33,10 @@ import {
   useRemoveReplacement,
   useServiceOverrides,
 } from '../data/overrides'
-import {
-  useApplyOcrDraft as useApplyOcrDraftHook,
-  useEventAttachments,
-  useOcrEnqueue,
-  useOcrRun,
-  useServiceMenuContent,
-  useUploadEventAttachment,
-} from '../data/ocr'
+import { useApplyOcrDraft as useApplyOcrDraftHook, useEventAttachments, useOcrEnqueue, useOcrRun, useServiceMenuContent, useUploadEventAttachment } from '../data/ocr'
 import { useApplyTemplateToService, useMenuTemplates, useServiceMenu, type MenuTemplate } from '../data/menus'
+import { DraftOrdersModal } from './DraftOrdersModal'
+import { ErrorBoundary } from '@/modules/shared/ui/ErrorBoundary'
 
 const bookingSchema = z
   .object({
@@ -266,7 +258,7 @@ export function EventDetailPage() {
   const eventServices = services.data ?? []
 
   return (
-    <>
+    <ErrorBoundary module="EventDetailPage">
       <div className="space-y-4 animate-fade-in">
         <header className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
           <div>
@@ -674,184 +666,11 @@ export function EventDetailPage() {
           }}
         />
       )}
-    </>
+    </ErrorBoundary>
   )
 }
 
-function DraftOrdersModal({
-  needs,
-  missingServices,
-  aliases,
-  supplierItems,
-  onClose,
-  onCreated,
-  onSaveAlias,
-  createDraftOrders,
-  loading,
-}: {
-  needs: Need[]
-  missingServices: string[]
-  aliases: MenuItemAlias[]
-  supplierItems: SupplierItem[]
-  onClose: () => void
-  onCreated: (ids: string[]) => void
-  onSaveAlias: (aliasText: string, supplierItemId: string) => Promise<void>
-  createDraftOrders: ReturnType<typeof useCreateEventDraftOrders>
-  loading: boolean
-}) {
-  const [pendingAliases, setPendingAliases] = useState<Record<string, string>>({})
-  const [localError, setLocalError] = useState<string | null>(null)
-  const savedAliasList = useMemo(
-    () => aliases.map((a) => ({ normalized: a.normalized, supplierItemId: a.supplierItemId })),
-    [aliases],
-  )
-  const { mapped, unknown } = useMemo(
-    () => mapNeedsToSupplierItems(needs, savedAliasList, supplierItems),
-    [needs, savedAliasList, supplierItems],
-  )
-  const preview = useMemo(() => applyRoundingToLines(groupMappedNeeds(mapped)), [mapped])
 
-  const supplierItemOptions = supplierItems.map((si) => ({
-    value: si.id,
-    label: `${si.name} (${si.purchaseUnit})`,
-  }))
-
-  const handleCreate = async () => {
-    if (unknown.length) {
-      setLocalError('Mapea todos los items antes de generar.')
-      return
-    }
-    setLocalError(null)
-    const result = await createDraftOrders.mutateAsync({
-      needs,
-      aliases: savedAliasList,
-      supplierItems,
-    })
-    if (result.unknown?.length) {
-      setLocalError('Quedan items sin mapear.')
-      return
-    }
-    onCreated(result.createdOrderIds ?? [])
-  }
-
-  const saveAlias = async (label: string) => {
-    const supplierItemId = pendingAliases[label]
-    if (!supplierItemId) return
-    setLocalError(null)
-    await onSaveAlias(label, supplierItemId)
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" role="dialog" aria-modal="true">
-      <div className="w-full max-w-4xl rounded-xl bg-nano-navy-900 border border-white/10 p-4 shadow-2xl">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white">Generar pedidos borrador</h3>
-          <button className="text-sm text-slate-400 hover:text-white transition-colors" onClick={onClose}>
-            Cerrar
-          </button>
-        </div>
-        <div className="mt-2 space-y-4">
-          {loading && <p className="text-sm text-slate-400">Cargando datos...</p>}
-          {missingServices.length > 0 && (
-            <div className="rounded border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-300">
-              {missingServices.length} servicios sin plantilla se omitirán.
-            </div>
-          )}
-          {unknown.length > 0 && (
-            <div className="rounded border border-amber-500/30 bg-amber-500/10 p-3">
-              <p className="text-sm font-semibold text-amber-300">Items sin mapping</p>
-              <p className="text-xs text-amber-400/80">
-                Asigna un artículo de proveedor para cada item antes de generar el pedido.
-              </p>
-              <div className="mt-2 space-y-2 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-                {unknown.map((n, idx) => (
-                  <div key={`${n.label}-${idx}`} className="flex flex-col gap-2 rounded border border-white/10 bg-white/5 p-2 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-200">{n.label}</p>
-                      <p className="text-xs text-slate-400">
-                        Cantidad: {n.qty.toFixed(2)} {n.unit}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                      <select
-                        className="rounded-md border border-white/10 bg-nano-navy-800 px-2 py-1 text-sm text-white focus:border-nano-blue-500 outline-none"
-                        aria-label={`Mapear ${n.label}`}
-                        value={pendingAliases[n.label] ?? ''}
-                        onChange={(e) =>
-                          setPendingAliases((prev) => ({ ...prev, [n.label]: e.target.value }))
-                        }
-                      >
-                        <option value="">Selecciona item proveedor</option>
-                        {supplierItemOptions.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="button"
-                        className="rounded-md border border-nano-blue-500/30 bg-nano-blue-500/10 px-3 py-1 text-xs font-semibold text-nano-blue-300 hover:bg-nano-blue-500/20 hover:border-nano-blue-500/50 transition-all"
-                        disabled={!pendingAliases[n.label] || createDraftOrders.isPending}
-                        onClick={() => saveAlias(n.label)}
-                      >
-                        Guardar alias
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="rounded border border-white/10 bg-white/5">
-            <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-              <h4 className="text-sm font-semibold text-white">Previsualización por proveedor</h4>
-              <span className="text-xs text-slate-400">{preview.length} proveedores</span>
-            </div>
-            <div className="divide-y divide-white/10 max-h-[30vh] overflow-y-auto custom-scrollbar">
-              {preview.length ? (
-                preview.map((group, idx) => (
-                  <div key={idx} className="px-3 py-2">
-                    <p className="text-xs font-semibold text-nano-blue-300">Proveedor: {group.supplierId}</p>
-                    <div className="mt-1 space-y-1">
-                      {group.lines.map((line, lineIdx) => (
-                        <div key={lineIdx} className="flex items-center justify-between text-sm text-slate-300">
-                          <span>{line.label}</span>
-                          <span className="font-mono text-slate-400">
-                            {line.qty.toFixed(2)} {line.unit}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="px-3 py-2 text-sm text-slate-400 italic">Sin items para previsualizar.</p>
-              )}
-            </div>
-          </div>
-
-          {localError && <p className="text-sm text-red-400">{localError}</p>}
-        </div>
-        <div className="mt-4 flex justify-end gap-2 border-t border-white/10 pt-3">
-          <button
-            className="rounded-md border border-white/10 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/5 transition-colors"
-            onClick={onClose}
-          >
-            Cancelar
-          </button>
-          <button
-            className="rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50 shadow-lg shadow-nano-blue-500/20"
-            disabled={createDraftOrders.isPending || unknown.length > 0 || loading || !needs.length}
-            onClick={handleCreate}
-          >
-            {createDraftOrders.isPending ? 'Generando...' : 'Crear borradores'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function ServiceMenuCard({
   serviceId,

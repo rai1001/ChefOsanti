@@ -2,10 +2,27 @@ import { useEffect, useMemo, useState } from 'react'
 import { useUserMemberships } from './memberships'
 
 const STORAGE_KEY = 'activeOrgId'
+const SYNC_CHANNEL = 'chefos_org_sync'
 
 export function useActiveOrgId() {
   const memberships = useUserMemberships()
   const [activeOrgId, setActiveOrgId] = useState<string | null>(null)
+
+  // BroadcastChannel para sincronizaci n entre pestañas
+  const syncChannel = useMemo(() => new BroadcastChannel(SYNC_CHANNEL), [])
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === 'ORG_CHANGED' && event.data.orgId) {
+        setActiveOrgId(event.data.orgId)
+      }
+    }
+    syncChannel.addEventListener('message', handler)
+    return () => {
+      syncChannel.removeEventListener('message', handler)
+      syncChannel.close()
+    }
+  }, [syncChannel])
 
   // Cargar posible selección previa
   useEffect(() => {
@@ -47,10 +64,11 @@ export function useActiveOrgId() {
       setOrg: (id: string) => {
         setActiveOrgId(id)
         localStorage.setItem(STORAGE_KEY, id)
+        syncChannel.postMessage({ type: 'ORG_CHANGED', orgId: id })
       },
       memberships: memberships.data ?? [],
     }),
-    [memberships.data],
+    [memberships.data, syncChannel],
   )
 
   return { activeOrgId, loading, error, ...selector }

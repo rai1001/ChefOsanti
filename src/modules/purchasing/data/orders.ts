@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError, AppError } from '@/lib/shared/errors'
+import { logger } from '@/lib/shared/logger'
 import type { PurchaseOrderStatus } from '../domain/purchaseOrder'
-import type { PurchaseUnit, RoundingRule, Supplier, SupplierItem } from '../domain/types'
+import { type PurchaseUnit, type RoundingRule, type Supplier, type SupplierItem } from '../domain/types'
 
 export type Hotel = { id: string; name: string; orgId: string }
 export type Ingredient = {
@@ -84,26 +86,50 @@ function mapPurchaseOrderLine(row: any): PurchaseOrderLine {
   }
 }
 
-export async function listHotels(): Promise<Hotel[]> {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase.from('hotels').select('id, name, org_id').order('name')
-  if (error) throw error
+export async function listHotels(orgId: string): Promise<Hotel[]> {
+  if (!orgId) {
+    throw new AppError('ValidationError', 'org_id es obligatorio para listar hoteles', {
+      module: 'purchasing',
+      operation: 'listHotels',
+    })
+  }
+
+  logger.info('Listando hoteles', { module: 'purchasing', operation: 'listHotels', orgId })
+  const { data, error } = await getSupabaseClient()
+    .from('hotels')
+    .select('*')
+    .eq('org_id', orgId)
+    .order('name')
+  if (error) {
+    throw mapSupabaseError(error, { module: 'purchasing', operation: 'listHotels' })
+  }
   return data?.map(mapHotel) ?? []
 }
 
-export async function listIngredients(hotelId?: string): Promise<Ingredient[]> {
-  const supabase = getSupabaseClient()
-  let query = supabase.from('ingredients').select('*').order('name')
+export async function listIngredients(orgId: string, hotelId?: string): Promise<Ingredient[]> {
+  if (!orgId) {
+    throw new AppError('ValidationError', 'org_id es obligatorio para listar ingredientes', {
+      module: 'purchasing',
+      operation: 'listIngredients',
+    })
+  }
+
+  logger.info('Listando ingredientes', { module: 'purchasing', operation: 'listIngredients', orgId, hotelId })
+  let query = getSupabaseClient().from('ingredients').select('*').eq('org_id', orgId).order('name')
   if (hotelId) query = query.eq('hotel_id', hotelId)
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, { module: 'purchasing', operation: 'listIngredients', hotelId })
+  }
   return data?.map(mapIngredient) ?? []
 }
 
 export async function listSuppliers(): Promise<Supplier[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.from('suppliers').select('*').order('name')
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, { module: 'purchasing', operation: 'listSuppliers' })
+  }
   return (
     data?.map((row) => ({
       id: row.id,
@@ -115,19 +141,24 @@ export async function listSuppliers(): Promise<Supplier[]> {
 }
 
 export async function listSupplierItems(supplierId: string): Promise<SupplierItem[]> {
+  if (!supplierId) {
+    throw new AppError('ValidationError', 'supplierId es obligatorio', { module: 'purchasing', operation: 'listSupplierItems' })
+  }
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('supplier_items')
     .select('*')
     .eq('supplier_id', supplierId)
     .order('name')
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, { module: 'purchasing', operation: 'listSupplierItems', supplierId })
+  }
   return (
     data?.map((row) => ({
       id: row.id,
       supplierId: row.supplier_id,
       name: row.name,
-      orgId: '',
+      orgId: row.org_id || '',
       purchaseUnit: row.purchase_unit,
       packSize: row.pack_size,
       roundingRule: row.rounding_rule,
@@ -158,7 +189,17 @@ export async function createPurchaseOrder(params: {
     })
     .select('*')
     .single()
-  if (error) throw error
+
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'createPurchaseOrder',
+      orgId: params.orgId,
+      hotelId: params.hotelId
+    })
+  }
+
+  logger.info('Pedido creado exitosamente', { operation: 'createPurchaseOrder', orderId: data.id, orgId: params.orgId })
   return mapPurchaseOrder(data)
 }
 
@@ -209,20 +250,34 @@ export async function listPurchaseOrders(filters?: {
 export async function getPurchaseOrderWithLines(
   id: string,
 ): Promise<{ order: PurchaseOrder; lines: PurchaseOrderLine[] }> {
+  if (!id) {
+    throw new AppError('ValidationError', 'ID de pedido es obligatorio', { module: 'purchasing', operation: 'getPurchaseOrderWithLines' })
+  }
   const supabase = getSupabaseClient()
   const { data: order, error: orderError } = await supabase
     .from('purchase_orders')
     .select('*')
     .eq('id', id)
     .single()
-  if (orderError || !order) throw orderError || new Error('Pedido no encontrado')
+
+  if (orderError) {
+    throw mapSupabaseError(orderError, { module: 'purchasing', operation: 'getPurchaseOrderWithLines', id })
+  }
+
+  if (!order) {
+    throw new AppError('NotFoundError', 'Pedido no encontrado', { module: 'purchasing', operation: 'getPurchaseOrderWithLines', id })
+  }
 
   const { data: lines, error: linesError } = await supabase
     .from('purchase_order_lines')
     .select('*')
     .eq('purchase_order_id', id)
     .order('created_at', { ascending: true })
-  if (linesError) throw linesError
+
+  if (linesError) {
+    throw mapSupabaseError(linesError, { module: 'purchasing', operation: 'getPurchaseOrderWithLines', id })
+  }
+
   return { order: mapPurchaseOrder(order), lines: lines?.map(mapPurchaseOrderLine) ?? [] }
 }
 
@@ -302,12 +357,28 @@ export function useAddPurchaseOrderLine(orderId: string | undefined) {
     mutationFn: async (
       params: Omit<Parameters<typeof addPurchaseOrderLine>[0], 'purchaseOrderId' | 'orgId'>,
     ) => {
-      const { data: po } = await supabase
+      const { data: po, error: poError } = await supabase
         .from('purchase_orders')
         .select('org_id')
         .eq('id', orderId ?? '')
         .single()
-      const orgId = po?.org_id ?? ''
+
+      if (poError || !po) {
+        throw mapSupabaseError(poError || { code: 'PGRST116', message: 'Pedido no encontrado para obtener orgId' }, {
+          module: 'purchasing',
+          operation: 'useAddPurchaseOrderLine',
+          orderId
+        })
+      }
+
+      const orgId = po.org_id
+      if (!orgId) {
+        throw new AppError('ValidationError', 'El pedido no tiene org_id asociado', {
+          module: 'purchasing',
+          operation: 'useAddPurchaseOrderLine',
+          orderId
+        })
+      }
       return addPurchaseOrderLine({ ...params, purchaseOrderId: orderId ?? '', orgId })
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['purchase_order', orderId] }),
