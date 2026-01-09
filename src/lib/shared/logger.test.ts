@@ -12,11 +12,11 @@ vi.mock('@/lib/supabaseClient', () => ({
 
 describe('logger', () => {
     let consoleLogSpy: any
-    let consoleWarnSpy: any
+    // let consoleWarnSpy: any
 
     beforeEach(() => {
         consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => { })
-        consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
+        // consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
         vi.resetModules()
     })
 
@@ -61,12 +61,14 @@ describe('logger', () => {
         })
 
         it('debe manejar AppErrors con metadata extra', () => {
-            const appError = {
+            /*
+            const _appError = {
                 type: 'TestType',
                 message: 'Custom app error',
                 context: { userId: '123' },
                 isAppError: true
             }
+            */
 
             // Mocking AppError.is behavior physically or type-wise
             // Since we rely on the implementation, let's assume standard Error fallback if not strictly typed
