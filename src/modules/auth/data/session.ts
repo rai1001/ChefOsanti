@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 
 type SessionState = {
   session: Session | null
@@ -36,7 +37,7 @@ export function useSupabaseSession(): SessionState {
               access_token: parsed.currentSession.access_token,
               refresh_token: parsed.currentSession.refresh_token,
             })
-            .catch(() => {})
+            .catch(() => { })
           return
         }
       } catch (_e) {
@@ -56,7 +57,11 @@ export function useSupabaseSession(): SessionState {
         }
       })
       .catch((error) => {
-        setState({ session: null, loading: false, error })
+        const mapped = mapSupabaseError(error as any, {
+          module: 'auth',
+          operation: 'getSession',
+        })
+        setState({ session: null, loading: false, error: mapped })
       })
 
     const { data: listener } = client.auth.onAuthStateChange((_event, session) => {
