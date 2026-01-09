@@ -19,6 +19,7 @@ async function retry<T>(fn: () => Promise<T>, opts: RetryOptions = {}): Promise<
     } catch (err) {
       lastError = err
       const delay = Math.min(base * Math.pow(2, i), max)
+      console.warn(`[RETRY] Attempt ${i + 1}/${retries} failed. Retrying in ${delay}ms...`, err)
       await new Promise((r) => setTimeout(r, delay))
     }
   }
@@ -80,7 +81,7 @@ export async function injectSession(
           expiresAt: sessionData?.expires_at,
         }),
       )
-      ;(window as any).__E2E_SESSION__ = sessionData
+        ; (window as any).__E2E_SESSION__ = sessionData
     },
     { key: storageKey, sessionData: session },
   )
@@ -95,7 +96,7 @@ export async function injectSession(
           expiresAt: sessionData?.expires_at,
         }),
       )
-      ;(window as any).__E2E_SESSION__ = sessionData
+        ; (window as any).__E2E_SESSION__ = sessionData
       if (url && anon) {
         const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
         const client = createClient(url, anon)

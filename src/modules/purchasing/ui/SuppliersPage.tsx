@@ -4,13 +4,15 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
-import { useCreateSupplier, useSuppliers } from '../data/suppliers'
+import { useCreateSupplier, useSuppliersInfinite } from '../data/suppliers'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
+import { logger } from '@/lib/shared/logger'
+import type { Supplier } from '../domain/types'
 
 const supplierSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
@@ -21,7 +23,7 @@ type SupplierForm = z.infer<typeof supplierSchema>
 export default function SuppliersPage() {
   const { session, loading, error } = useSupabaseSession()
   const { activeOrgId } = useActiveOrgId()
-  const suppliers = useSuppliers(activeOrgId ?? undefined, !!session && !!activeOrgId && !loading)
+  const suppliers = useSuppliersInfinite(activeOrgId ?? undefined, !!session && !!activeOrgId && !loading)
   const createSupplier = useCreateSupplier(activeOrgId ?? undefined)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'purchasing:write')
@@ -38,8 +40,12 @@ export default function SuppliersPage() {
   })
 
   const onSubmit = async (values: SupplierForm) => {
-    await createSupplier.mutateAsync(values)
-    reset()
+    try {
+      await createSupplier.mutateAsync(values)
+      reset()
+    } catch (e) {
+      logger.error('Error al crear proveedor', e, { orgId: activeOrgId ?? undefined })
+    }
   }
 
   const [isImporterOpen, setIsImporterOpen] = useState(false)
@@ -105,28 +111,45 @@ export default function SuppliersPage() {
             )}
           </div>
           <div className="divide-y divide-white/10">
-            {suppliers.data?.length ? (
-              suppliers.data.map((supplier) => (
-                <Link
-                  key={supplier.id}
-                  to={`/purchasing/suppliers/${supplier.id}`}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors group"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">{supplier.name}</p>
-                    <p className="text-xs text-slate-500 group-hover:text-slate-400">
-                      Creado el {new Date(supplier.createdAt).toLocaleDateString('es-ES')}
-                    </p>
-                  </div>
-                  <span className="text-xs font-semibold text-nano-blue-400 group-hover:text-nano-blue-300 transition-colors">Ver detalle</span>
-                </Link>
-              ))
+            {suppliers.data?.pages.flatMap((page: Supplier[]) => page).length ? (
+              suppliers.data.pages
+                .flatMap((page: Supplier[]) => page)
+                .map((supplier: Supplier) => (
+                  <Link
+                    key={supplier.id}
+                    to={`/purchasing/suppliers/${supplier.id}`}
+                    className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors group"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
+                        {supplier.name}
+                      </p>
+                      <p className="text-xs text-slate-500 group-hover:text-slate-400">
+                        Creado el {new Date(supplier.createdAt).toLocaleDateString('es-ES')}
+                      </p>
+                    </div>
+                    <span className="text-xs font-semibold text-nano-blue-400 group-hover:text-nano-blue-300 transition-colors">
+                      Ver detalle
+                    </span>
+                  </Link>
+                ))
             ) : (
               <p className="px-4 py-6 text-sm text-slate-400 italic">
                 No hay proveedores registrados todavía.
               </p>
             )}
           </div>
+          {suppliers.hasNextPage && (
+            <div className="p-4 border-t border-white/10 text-center">
+              <button
+                onClick={() => suppliers.fetchNextPage()}
+                disabled={suppliers.isFetchingNextPage}
+                className="text-sm font-medium text-nano-blue-400 hover:text-nano-blue-300 disabled:opacity-50 transition-colors"
+              >
+                {suppliers.isFetchingNextPage ? 'Cargando más...' : 'Cargar más'}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm h-fit">

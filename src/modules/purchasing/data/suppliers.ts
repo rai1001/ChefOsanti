@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
 import type {
@@ -46,23 +46,40 @@ function mapSupplierItem(row: any): SupplierItem {
   }
 }
 
-async function fetchSuppliers(orgId: string): Promise<Supplier[]> {
+const PAGE_SIZE = 20
+
+async function fetchSuppliersInfinite({
+  orgId,
+  pageParam = 0,
+}: {
+  orgId: string
+  pageParam: number
+}): Promise<Supplier[]> {
   const supabase = getSupabaseClient()
+  const from = pageParam * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+
   const { data, error } = await supabase
     .from('suppliers')
     .select('id, org_id, name, created_at')
     .eq('org_id', orgId)
     .order('created_at', { ascending: false })
+    .range(from, to)
 
   if (error) {
     throw mapSupabaseError(error, {
       module: 'purchasing',
-      operation: 'fetchSuppliers',
+      operation: 'fetchSuppliersInfinite',
       orgId,
     })
   }
 
   return data?.map(mapSupplier) ?? []
+}
+
+// Keep original for back-compat if needed, or deprecate.
+async function fetchSuppliers(orgId: string): Promise<Supplier[]> {
+  return fetchSuppliersInfinite({ orgId, pageParam: 0 }) // Default to first page if called directly
 }
 
 async function fetchSupplier(id: string): Promise<Supplier | null> {
@@ -159,6 +176,19 @@ export function useSuppliers(orgId: string | undefined, enabled = true) {
   return useQuery({
     queryKey: ['suppliers', orgId],
     queryFn: () => fetchSuppliers(orgId!),
+    enabled: enabled && Boolean(orgId),
+  })
+}
+
+export function useSuppliersInfinite(orgId: string | undefined, enabled = true) {
+  return useInfiniteQuery({
+    queryKey: ['suppliers', 'infinite', orgId],
+    queryFn: ({ pageParam }: { pageParam: number }) =>
+      fetchSuppliersInfinite({ orgId: orgId!, pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: Supplier[], allPages: Supplier[][]) => {
+      return lastPage.length === PAGE_SIZE ? allPages.length : undefined
+    },
     enabled: enabled && Boolean(orgId),
   })
 }

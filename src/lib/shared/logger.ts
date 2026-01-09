@@ -1,3 +1,4 @@
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import { AppError } from './errors';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -47,10 +48,32 @@ class Logger {
         }
     }
 
+    private async pushToSupabase(level: LogLevel, message: string, metadata: LogMetadata) {
+        if (!metadata.orgId) return;
+
+        try {
+            const supabase = getSupabaseClient();
+            await supabase.rpc('log_event', {
+                p_org_id: metadata.orgId,
+                p_level: level,
+                p_event: message.substring(0, 100),
+                p_metadata: { ...metadata, full_message: message }
+            });
+        } catch (e) {
+            // No hacer log infinito si falla Supabase
+            if (!this.isProd) console.warn('Failed to push log to Supabase', e);
+        }
+    }
+
     private log(level: LogLevel, message: string, metadata: LogMetadata) {
         const timestamp = new Date().toISOString();
 
-        // En producción: JSON estructurado
+        // Push to DB for serious issues or prod tracking
+        if (level === 'error' || level === 'warn' || this.isProd) {
+            this.pushToSupabase(level, message, metadata);
+        }
+
+        // Production: structured JSON for cloud logging
         if (this.isProd) {
             console.log(JSON.stringify({
                 timestamp,
@@ -61,19 +84,17 @@ class Logger {
             return;
         }
 
-        // En desarrollo: Formato legible para consola de navegador
+        // Development: readable console format
         const styles = this.getStyles(level);
         const prefix = `[${level.toUpperCase()}]`;
-
-        // Usamos %c para estilos, y pasamos la metadata como último argumento para que el navegador la formatee como objeto expandible
         console.log(`%c${prefix} ${message}`, styles, metadata);
     }
 
     private getStyles(level: LogLevel): string {
         switch (level) {
-            case 'info': return 'color: #10B981; font-weight: bold;'; // Emerald-500
-            case 'warn': return 'color: #F59E0B; font-weight: bold;'; // Amber-500
-            case 'error': return 'color: #EF4444; font-weight: bold;'; // Red-500
+            case 'info': return 'color: #10B981; font-weight: bold;';
+            case 'warn': return 'color: #F59E0B; font-weight: bold;';
+            case 'error': return 'color: #EF4444; font-weight: bold;';
             default: return 'color: inherit;';
         }
     }
