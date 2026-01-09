@@ -6,7 +6,6 @@ import type { EmploymentType, StaffRole } from '../domain/staff'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
-import { useQueryClient } from '@tanstack/react-query'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 const roles: StaffRole[] = ['jefe_cocina', 'cocinero', 'ayudante', 'pasteleria', 'office', 'otros']
