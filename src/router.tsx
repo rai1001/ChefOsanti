@@ -1,28 +1,42 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import App from './App'
 import { LoginPage } from './modules/auth/ui/LoginPage'
 import { RequireActiveOrg, RequireAuth, RequirePermission } from './modules/auth/ui/RequirePermission'
-import { SuppliersPage } from './modules/purchasing/ui/SuppliersPage'
-import { SupplierDetailPage } from './modules/purchasing/ui/SupplierDetailPage'
-import { PurchaseOrdersPage } from './modules/purchasing/ui/PurchaseOrdersPage'
-import { NewPurchaseOrderPage } from './modules/purchasing/ui/NewPurchaseOrderPage'
-import { PurchaseOrderDetailPage } from './modules/purchasing/ui/PurchaseOrderDetailPage'
-import { StockPage } from './modules/purchasing/ui/StockPage'
-import { DashboardPage } from './modules/dashboard/ui/DashboardPage'
-import { EventOrdersPage } from './modules/purchasing/ui/EventOrdersPage'
-import { EventOrderDetailPage } from './modules/purchasing/ui/EventOrderDetailPage'
-import { EventsBoardPage } from './modules/events/ui/EventsBoardPage'
-import { NewEventPage } from './modules/events/ui/NewEventPage'
-import { EventDetailPage } from './modules/events/ui/EventDetailPage'
-import { MenuTemplatesPage } from './modules/events/ui/MenuTemplatesPage'
-import { MenuTemplateDetailPage } from './modules/events/ui/MenuTemplateDetailPage'
-import { ProductsPage } from './modules/recipes/ui/ProductsPage'
-import { RecipesPage } from './modules/recipes/ui/RecipesPage'
-import { RecipeDetailPage } from './modules/recipes/ui/RecipeDetailPage'
-import { SchedulingPage } from './modules/scheduling/ui/SchedulingPage'
-import { RosterGeneratorPage } from './modules/scheduling/ui/RosterGeneratorPage'
-import { StaffPage } from './modules/staff/ui/StaffPage'
-import { ImporterPage } from './modules/importer/ui/ImporterPage'
+
+// ✅ NUEVO: Lazy loading para todos los componentes de página
+const DashboardPage = lazy(() => import('./modules/dashboard/ui/DashboardPage'))
+const SuppliersPage = lazy(() => import('./modules/purchasing/ui/SuppliersPage'))
+const SupplierDetailPage = lazy(() => import('./modules/purchasing/ui/SupplierDetailPage'))
+const PurchaseOrdersPage = lazy(() => import('./modules/purchasing/ui/PurchaseOrdersPage'))
+const NewPurchaseOrderPage = lazy(() => import('./modules/purchasing/ui/NewPurchaseOrderPage'))
+const PurchaseOrderDetailPage = lazy(() => import('./modules/purchasing/ui/PurchaseOrderDetailPage'))
+const StockPage = lazy(() => import('./modules/purchasing/ui/StockPage'))
+const EventOrdersPage = lazy(() => import('./modules/purchasing/ui/EventOrdersPage'))
+const EventOrderDetailPage = lazy(() => import('./modules/purchasing/ui/EventOrderDetailPage'))
+const EventsBoardPage = lazy(() => import('./modules/events/ui/EventsBoardPage'))
+const NewEventPage = lazy(() => import('./modules/events/ui/NewEventPage'))
+const EventDetailPage = lazy(() => import('./modules/events/ui/EventDetailPage'))
+const MenuTemplatesPage = lazy(() => import('./modules/events/ui/MenuTemplatesPage'))
+const MenuTemplateDetailPage = lazy(() => import('./modules/events/ui/MenuTemplateDetailPage'))
+const ProductsPage = lazy(() => import('./modules/recipes/ui/ProductsPage'))
+const RecipesPage = lazy(() => import('./modules/recipes/ui/RecipesPage'))
+const RecipeDetailPage = lazy(() => import('./modules/recipes/ui/RecipeDetailPage'))
+const SchedulingPage = lazy(() => import('./modules/scheduling/ui/SchedulingPage'))
+const RosterGeneratorPage = lazy(() => import('./modules/scheduling/ui/RosterGeneratorPage'))
+const StaffPage = lazy(() => import('./modules/staff/ui/StaffPage'))
+const ImporterPage = lazy(() => import('./modules/importer/ui/ImporterPage'))
+
+function PageLoader() {
+  return (
+    <div className="flex h-screen items-center justify-center bg-nano-navy-900">
+      <div className="text-center space-y-4">
+        <div className="animate-spin h-12 w-12 border-4 border-nano-blue-500 border-t-transparent rounded-full mx-auto"></div>
+        <p className="text-slate-400 text-sm animate-pulse">Cargando...</p>
+      </div>
+    </div>
+  )
+}
 
 export const appRouter = createBrowserRouter([
   {
@@ -40,7 +54,9 @@ export const appRouter = createBrowserRouter([
         path: 'dashboard',
         element: (
           <RequirePermission perm="dashboard:read">
-            <DashboardPage />
+            <Suspense fallback={<PageLoader />}>
+              <DashboardPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -48,7 +64,9 @@ export const appRouter = createBrowserRouter([
         path: 'events',
         element: (
           <RequirePermission perm="events:read">
-            <EventsBoardPage />
+            <Suspense fallback={<PageLoader />}>
+              <EventsBoardPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -56,7 +74,9 @@ export const appRouter = createBrowserRouter([
         path: 'events/new',
         element: (
           <RequirePermission perm="events:write">
-            <NewEventPage />
+            <Suspense fallback={<PageLoader />}>
+              <NewEventPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -64,7 +84,9 @@ export const appRouter = createBrowserRouter([
         path: 'events/:id',
         element: (
           <RequirePermission perm="events:read">
-            <EventDetailPage />
+            <Suspense fallback={<PageLoader />}>
+              <EventDetailPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -72,7 +94,9 @@ export const appRouter = createBrowserRouter([
         path: 'menus',
         element: (
           <RequirePermission perm="menus:read">
-            <MenuTemplatesPage />
+            <Suspense fallback={<PageLoader />}>
+              <MenuTemplatesPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -80,7 +104,9 @@ export const appRouter = createBrowserRouter([
         path: 'menus/:id',
         element: (
           <RequirePermission perm="menus:read">
-            <MenuTemplateDetailPage />
+            <Suspense fallback={<PageLoader />}>
+              <MenuTemplateDetailPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -88,7 +114,9 @@ export const appRouter = createBrowserRouter([
         path: 'products',
         element: (
           <RequirePermission perm="recipes:read">
-            <ProductsPage />
+            <Suspense fallback={<PageLoader />}>
+              <ProductsPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -96,7 +124,9 @@ export const appRouter = createBrowserRouter([
         path: 'recipes',
         element: (
           <RequirePermission perm="recipes:read">
-            <RecipesPage />
+            <Suspense fallback={<PageLoader />}>
+              <RecipesPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -104,7 +134,9 @@ export const appRouter = createBrowserRouter([
         path: 'recipes/:id',
         element: (
           <RequirePermission perm="recipes:read">
-            <RecipeDetailPage />
+            <Suspense fallback={<PageLoader />}>
+              <RecipeDetailPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -112,7 +144,9 @@ export const appRouter = createBrowserRouter([
         path: 'staff',
         element: (
           <RequirePermission perm="staff:read">
-            <StaffPage />
+            <Suspense fallback={<PageLoader />}>
+              <StaffPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -120,7 +154,9 @@ export const appRouter = createBrowserRouter([
         path: 'scheduling',
         element: (
           <RequirePermission perm="scheduling:read">
-            <SchedulingPage />
+            <Suspense fallback={<PageLoader />}>
+              <SchedulingPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -128,7 +164,9 @@ export const appRouter = createBrowserRouter([
         path: 'scheduling/generate',
         element: (
           <RequirePermission perm="scheduling:write">
-            <RosterGeneratorPage />
+            <Suspense fallback={<PageLoader />}>
+              <RosterGeneratorPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -136,7 +174,9 @@ export const appRouter = createBrowserRouter([
         path: 'purchasing/suppliers',
         element: (
           <RequirePermission perm="purchasing:read">
-            <SuppliersPage />
+            <Suspense fallback={<PageLoader />}>
+              <SuppliersPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -144,7 +184,9 @@ export const appRouter = createBrowserRouter([
         path: 'purchasing/suppliers/:id',
         element: (
           <RequirePermission perm="purchasing:read">
-            <SupplierDetailPage />
+            <Suspense fallback={<PageLoader />}>
+              <SupplierDetailPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -152,7 +194,9 @@ export const appRouter = createBrowserRouter([
         path: 'purchasing/orders',
         element: (
           <RequirePermission perm="purchasing:read">
-            <PurchaseOrdersPage />
+            <Suspense fallback={<PageLoader />}>
+              <PurchaseOrdersPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -160,7 +204,9 @@ export const appRouter = createBrowserRouter([
         path: 'purchasing/orders/new',
         element: (
           <RequirePermission perm="purchasing:write">
-            <NewPurchaseOrderPage />
+            <Suspense fallback={<PageLoader />}>
+              <NewPurchaseOrderPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -168,7 +214,9 @@ export const appRouter = createBrowserRouter([
         path: 'purchasing/orders/:id',
         element: (
           <RequirePermission perm="purchasing:read">
-            <PurchaseOrderDetailPage />
+            <Suspense fallback={<PageLoader />}>
+              <PurchaseOrderDetailPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -176,7 +224,9 @@ export const appRouter = createBrowserRouter([
         path: 'purchasing/event-orders',
         element: (
           <RequirePermission perm="purchasing:read">
-            <EventOrdersPage />
+            <Suspense fallback={<PageLoader />}>
+              <EventOrdersPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -184,7 +234,9 @@ export const appRouter = createBrowserRouter([
         path: 'purchasing/event-orders/:id',
         element: (
           <RequirePermission perm="purchasing:read">
-            <EventOrderDetailPage />
+            <Suspense fallback={<PageLoader />}>
+              <EventOrderDetailPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -192,7 +244,9 @@ export const appRouter = createBrowserRouter([
         path: 'purchasing/stock',
         element: (
           <RequirePermission perm="purchasing:read">
-            <StockPage />
+            <Suspense fallback={<PageLoader />}>
+              <StockPage />
+            </Suspense>
           </RequirePermission>
         ),
       },
@@ -200,7 +254,9 @@ export const appRouter = createBrowserRouter([
         path: 'importer',
         element: (
           <RequirePermission perm="dashboard:read">
-            <ImporterPage />
+            <Suspense fallback={<PageLoader />}>
+              <ImporterPage />
+            </Suspense>
           </RequirePermission>
         ),
       },

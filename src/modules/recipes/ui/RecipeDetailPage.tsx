@@ -6,9 +6,9 @@ import { useAddRecipeLine, useRecipe, useRemoveRecipeLine } from '../data/recipe
 import { computeRecipeNeeds } from '../domain/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
-export function RecipeDetailPage() {
+export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { activeOrgId, loading, error } = useActiveOrgId()
   const recipe = useRecipe(id)
@@ -17,7 +17,8 @@ export function RecipeDetailPage() {
   const removeLine = useRemoveRecipeLine(id)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'recipes:write')
-  const { formatError } = useFormattedError()
+  const formattedError = useFormattedError(error)
+  const recipeError = useFormattedError(recipe.error)
 
   const [productId, setProductId] = useState<string>('')
   const [qty, setQty] = useState<number>(0)
@@ -44,21 +45,19 @@ export function RecipeDetailPage() {
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (error || !activeOrgId) {
-    const formatted = error ? formatError(error) : null
     return (
       <div className="p-4 rounded-lg border border-red-500/10 bg-red-500/5">
         <p className="text-sm text-red-500">Selecciona organización.</p>
-        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
+        {formattedError && <p className="text-xs text-red-400 mt-1">{formattedError}</p>}
       </div>
     )
   }
   if (recipe.isLoading) return <p className="p-4 text-sm text-slate-400">Cargando receta...</p>
   if (recipe.isError || !recipe.data) {
-    const formatted = recipe.error ? formatError(recipe.error) : null
     return (
       <div className="p-4 rounded-lg border border-red-500/10 bg-red-500/5">
         <p className="text-sm text-red-400">No se pudo cargar la receta.</p>
-        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
+        {recipeError && <p className="text-xs text-red-400 mt-1">{recipeError}</p>}
       </div>
     )
   }

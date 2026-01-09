@@ -7,7 +7,7 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateMenuTemplate, useMenuTemplates } from '../data/menus'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 const schema = z.object({
   name: z.string().min(1, 'Nombre obligatorio'),
@@ -16,14 +16,15 @@ const schema = z.object({
 })
 type Form = z.infer<typeof schema>
 
-export function MenuTemplatesPage() {
+export default function MenuTemplatesPage() {
   const { session, loading, error } = useSupabaseSession()
   const { activeOrgId, loading: orgLoading } = useActiveOrgId()
   const templates = useMenuTemplates(activeOrgId ?? undefined)
   const create = useCreateMenuTemplate()
   const { role } = useCurrentRole()
   const canWrite = can(role, 'menus:write')
-  const { formatError } = useFormattedError()
+  const sessionError = useFormattedError(error)
+  const createError = useFormattedError(create.error)
 
   const {
     register,
@@ -39,16 +40,15 @@ export function MenuTemplatesPage() {
 
   if (loading || orgLoading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (!session || error) {
-    const formatted = error ? formatError(error) : null
     return (
       <div className="rounded-xl glass-panel p-4 border-red-500/20 bg-red-500/5">
         <p className="text-sm text-red-400">Inicia sesión para ver plantillas.</p>
-        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
+        <p className="text-xs text-red-400 mt-1">{sessionError}</p>
       </div>
     )
   }
 
-  const createError = create.error ? formatError(create.error) : null
+
 
   return (
     <div className="space-y-6">
@@ -108,7 +108,7 @@ export function MenuTemplatesPage() {
             </button>
             {createError && (
               <p className="mt-2 text-sm text-red-400">
-                <span className="font-semibold">{createError.title}:</span> {createError.description}
+                <span className="font-semibold">Error:</span> {createError}
               </p>
             )}
           </div>

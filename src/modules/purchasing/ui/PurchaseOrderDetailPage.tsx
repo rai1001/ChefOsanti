@@ -14,7 +14,7 @@ import {
   useUpdatePurchaseOrderStatus,
 } from '../data/orders'
 import type { PurchaseUnit, RoundingRule } from '../domain/types'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 const lineSchema = z
   .object({
@@ -38,7 +38,7 @@ const lineSchema = z
 
 type LineForm = z.infer<typeof lineSchema>
 
-export function PurchaseOrderDetailPage() {
+export default function PurchaseOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { session, loading, error } = useSupabaseSession()
   const purchaseOrder = usePurchaseOrder(id)
@@ -50,7 +50,10 @@ export function PurchaseOrderDetailPage() {
   const updateStatus = useUpdatePurchaseOrderStatus(id)
   const receivePo = useReceivePurchaseOrder(id)
   const [received, setReceived] = useState<Record<string, number>>({})
-  const { formatError } = useFormattedError()
+  const sessionError = useFormattedError(error)
+  const addLineError = useFormattedError(addLine.error)
+  const poError = useFormattedError(purchaseOrder.error)
+  const receiveError = useFormattedError(receivePo.error)
 
   const {
     register,
@@ -118,22 +121,20 @@ export function PurchaseOrderDetailPage() {
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   if (!session || error) {
-    const { title, description } = formatError(error || new Error('Inicia sesión para ver pedidos.'))
     return (
       <div className="rounded border border-red-500/20 bg-red-500/10 p-4">
-        <p className="text-sm font-semibold text-red-500">{title}</p>
-        <p className="text-xs text-red-400 opacity-90">{description}</p>
+        <p className="text-sm font-semibold text-red-500">Error</p>
+        <p className="text-xs text-red-400 opacity-90">{sessionError || 'Inicia sesión para ver pedidos.'}</p>
       </div>
     )
   }
 
   if (purchaseOrder.isLoading) return <p className="p-4 text-sm text-slate-400">Cargando pedido...</p>
   if (purchaseOrder.isError) {
-    const { title, description } = formatError(purchaseOrder.error)
     return (
       <div className="p-4 text-sm text-red-500">
-        <span className="font-semibold block">{title}</span>
-        <span className="text-xs opacity-90">{description}</span>
+        <span className="font-semibold block">Error al cargar pedido</span>
+        <span className="text-xs opacity-90">{poError}</span>
       </div>
     )
   }
@@ -313,15 +314,8 @@ export function PurchaseOrderDetailPage() {
 
             {addLine.isError && (
               <div className="md:col-span-2 text-sm text-red-500">
-                {(() => {
-                  const { title, description } = formatError(addLine.error)
-                  return (
-                    <>
-                      <span className="font-semibold block">{title}</span>
-                      <span className="text-xs opacity-90">{description}</span>
-                    </>
-                  )
-                })()}
+                <span className="font-semibold block">Error:</span>
+                <span className="text-xs opacity-90">{addLineError}</span>
               </div>
             )}
 
@@ -352,15 +346,8 @@ export function PurchaseOrderDetailPage() {
           </div>
           {receivePo.isError && (
             <div className="mt-2 text-sm text-red-500">
-              {(() => {
-                const { title, description } = formatError(receivePo.error)
-                return (
-                  <>
-                    <span className="font-semibold block">{title}</span>
-                    <span className="text-xs opacity-90">{description}</span>
-                  </>
-                )
-              })()}
+              <span className="font-semibold block">Error:</span>
+              <span className="text-xs opacity-90">{receiveError}</span>
             </div>
           )}
         </section>

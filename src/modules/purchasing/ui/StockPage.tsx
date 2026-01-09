@@ -1,24 +1,23 @@
 import { useState } from 'react'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useHotels, useIngredients } from '../data/orders'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 
-export function StockPage() {
+export default function StockPage() {
   const { session, loading, error } = useSupabaseSession()
   const { activeOrgId } = useActiveOrgId()
   const hotels = useHotels(activeOrgId ?? undefined)
   const [hotelId, setHotelId] = useState<string>('')
   const ingredients = useIngredients(activeOrgId ?? undefined, hotelId || undefined)
-  const { formatError } = useFormattedError()
+  const sessionError = useFormattedError(error)
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   if (!session || error) {
-    const { title, description } = formatError(error || new Error('Inicia sesión para ver stock.'))
     return (
       <div className="rounded border border-red-500/20 bg-red-500/10 p-4">
-        <p className="text-sm font-semibold text-red-500">{title}</p>
-        <p className="text-xs text-red-400 opacity-90">{description}</p>
+        <p className="text-sm font-semibold text-red-500">Error</p>
+        <p className="text-xs text-red-400 opacity-90">{sessionError || 'Inicia sesión para ver stock.'}</p>
       </div>
     )
   }

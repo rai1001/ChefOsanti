@@ -102,7 +102,7 @@ async function fetchSupplierItems(supplierId: string): Promise<SupplierItem[]> {
   return data?.map(mapSupplierItem) ?? []
 }
 
-async function insertSupplier(input: CreateSupplierInput): Promise<Supplier> {
+export async function insertSupplier(input: CreateSupplierInput): Promise<Supplier> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('suppliers')
@@ -124,7 +124,7 @@ async function insertSupplier(input: CreateSupplierInput): Promise<Supplier> {
   return mapSupplier(data)
 }
 
-async function insertSupplierItem(input: CreateSupplierItemInput): Promise<SupplierItem> {
+export async function insertSupplierItem(input: CreateSupplierItemInput): Promise<SupplierItem> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('supplier_items')

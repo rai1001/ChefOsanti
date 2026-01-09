@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useHotels, useSuppliersLite, useCreatePurchaseOrder } from '../data/orders'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 const schema = z.object({
   hotelId: z.string().min(1, 'Hotel obligatorio'),
@@ -16,14 +16,16 @@ const schema = z.object({
 
 type Form = z.infer<typeof schema>
 
-export function NewPurchaseOrderPage() {
+export default function NewPurchaseOrderPage() {
   const { session, loading, error } = useSupabaseSession()
   const { activeOrgId } = useActiveOrgId()
   const hotels = useHotels(activeOrgId ?? undefined)
   const suppliers = useSuppliersLite()
   const createOrder = useCreatePurchaseOrder()
   const navigate = useNavigate()
-  const { formatError } = useFormattedError()
+
+  const sessionError = useFormattedError(error)
+  const createError = useFormattedError(createOrder.error)
 
   const {
     register,
@@ -44,11 +46,10 @@ export function NewPurchaseOrderPage() {
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   if (!session || error) {
-    const { title, description } = formatError(error || new Error('Inicia sesión para crear pedidos.'))
     return (
       <div className="rounded border border-red-500/20 bg-red-500/10 p-4">
-        <p className="text-sm font-semibold text-red-500">{title}</p>
-        <p className="text-xs text-red-400 opacity-90">{description}</p>
+        <p className="text-sm font-semibold text-red-500">Error</p>
+        <p className="text-xs text-red-400 opacity-90">{sessionError || 'Inicia sesión para crear pedidos.'}</p>
       </div>
     )
   }
@@ -119,15 +120,8 @@ export function NewPurchaseOrderPage() {
 
           {createOrder.isError && (
             <div className="text-sm text-red-500">
-              {(() => {
-                const { title, description } = formatError(createOrder.error)
-                return (
-                  <>
-                    <span className="font-semibold block">{title}</span>
-                    <span className="text-xs opacity-90">{description}</span>
-                  </>
-                )
-              })()}
+              <span className="font-semibold block">Error:</span>
+              <span className="text-xs opacity-90">{createError}</span>
             </div>
           )}
 

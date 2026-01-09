@@ -3,7 +3,7 @@ import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useEventOrder } from '../data/eventOrders'
 import { useSuppliers } from '../data/suppliers'
 
-export function EventOrderDetailPage() {
+export default function EventOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { session, loading, error } = useSupabaseSession()
   const order = useEventOrder(id)

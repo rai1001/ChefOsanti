@@ -10,7 +10,7 @@ import { can } from '@/modules/auth/domain/roles'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 const supplierSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
@@ -18,7 +18,7 @@ const supplierSchema = z.object({
 
 type SupplierForm = z.infer<typeof supplierSchema>
 
-export function SuppliersPage() {
+export default function SuppliersPage() {
   const { session, loading, error } = useSupabaseSession()
   const { data: memberships } = useUserMemberships(!!session && !loading)
   const orgId = memberships?.[0]?.orgId
@@ -26,7 +26,7 @@ export function SuppliersPage() {
   const createSupplier = useCreateSupplier(orgId)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'purchasing:write')
-  const { formatError } = useFormattedError()
+  const sessionError = useFormattedError(error)
 
   const {
     register,
@@ -51,16 +51,13 @@ export function SuppliersPage() {
   }
 
   if (!session || error) {
-    const formatted = error ? formatError(error) : null
     return (
       <div className="rounded-lg border border-white/10 bg-white/5 p-4">
         <p className="text-sm text-red-500">Inicia sesión para gestionar proveedores.</p>
-        {formatted && (
-          <div className="mt-2 text-xs text-slate-400">
-            <p className="font-semibold text-red-400">{formatted.title}</p>
-            <p>{formatted.description}</p>
-          </div>
-        )}
+        <div className="mt-2 text-xs text-slate-400">
+          <p className="font-semibold text-red-400">Error</p>
+          <p>{sessionError}</p>
+        </div>
       </div>
     )
   }
@@ -75,7 +72,7 @@ export function SuppliersPage() {
     )
   }
 
-  const createError = createSupplier.error ? formatError(createSupplier.error) : null
+  const createError = useFormattedError(createSupplier.error)
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -149,8 +146,8 @@ export function SuppliersPage() {
             </label>
             {createError && (
               <div className="rounded-md bg-red-500/10 p-2">
-                <p className="text-xs font-medium text-red-400">{createError.title}</p>
-                <p className="text-[10px] text-red-400/80">{createError.description}</p>
+                <p className="text-xs font-medium text-red-400">Error</p>
+                <p className="text-[10px] text-red-400/80">{createError}</p>
               </div>
             )}
             <button

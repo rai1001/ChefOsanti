@@ -5,7 +5,7 @@ import { useImportJobs, useImportStage, useImportValidate, useImportCommit, useI
 import { parseCSV } from '../logic/csvParser'
 import type { ImportEntity } from '../domain/types'
 
-export function ImporterPage() {
+export default function ImporterPage() {
     // State
     const { activeOrgId } = useActiveOrgId()
     const [entity, setEntity] = useState<ImportEntity>('suppliers')

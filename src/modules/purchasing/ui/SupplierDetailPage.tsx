@@ -10,7 +10,7 @@ import {
   useSupplierItems,
 } from '@/modules/purchasing/data/suppliers'
 import type { PurchaseUnit, RoundingRule } from '@/modules/purchasing/domain/types'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 const itemSchema = z
   .object({
@@ -33,13 +33,15 @@ const itemSchema = z
 
 type ItemForm = z.infer<typeof itemSchema>
 
-export function SupplierDetailPage() {
+export default function SupplierDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { session, loading, error } = useSupabaseSession()
   const supplier = useSupplier(id, !!session && !loading)
   const items = useSupplierItems(id, !!session && !loading)
   const createItem = useCreateSupplierItem(id)
-  const { formatError } = useFormattedError()
+  const sessionError = useFormattedError(error)
+  const createError = useFormattedError(createItem.error)
+  const supplierError = useFormattedError(supplier.error)
 
   const {
     register,
@@ -96,31 +98,27 @@ export function SupplierDetailPage() {
   }
 
   if (!session || error) {
-    const formatted = error ? formatError(error) : null
     return (
       <div className="rounded-lg border border-white/10 bg-white/5 p-4">
         <p className="text-sm text-red-500">Inicia sesión para gestionar proveedores.</p>
-        {formatted && (
-          <div className="mt-2 text-xs text-slate-400">
-            <p className="font-semibold text-red-400">{formatted.title}</p>
-            <p>{formatted.description}</p>
-          </div>
-        )}
+        <div className="mt-2 text-xs text-slate-400">
+          <p className="font-semibold text-red-400">Error</p>
+          <p>{sessionError}</p>
+        </div>
       </div>
     )
   }
 
   if (supplier.isError) {
-    const formatted = formatError(supplier.error)
     return (
       <div className="rounded-lg border border-red-500/10 bg-red-500/5 p-4 m-4">
-        <p className="font-semibold text-red-400">{formatted.title}</p>
-        <p className="text-sm text-red-400/80">{formatted.description}</p>
+        <p className="font-semibold text-red-400">Error al cargar proveedor</p>
+        <p className="text-sm text-red-400/80">{supplierError}</p>
       </div>
     )
   }
 
-  const createError = createItem.error ? formatError(createItem.error) : null
+
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -248,10 +246,10 @@ export function SupplierDetailPage() {
             />
           </label>
 
-          {createError && (
+          {createItem.isError && (
             <div className="md:col-span-2 rounded-md bg-red-500/10 p-2">
-              <p className="text-xs font-medium text-red-400">{createError.title}</p>
-              <p className="text-[10px] text-red-400/80">{createError.description}</p>
+              <p className="text-xs font-medium text-red-400">Error</p>
+              <p className="text-[10px] text-red-400/80">{createError}</p>
             </div>
           )}
 

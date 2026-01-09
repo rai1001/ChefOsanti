@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useHotels } from '@/modules/events/data/events'
 import { useGenerateRoster, useSchedulingRules, useSaveSchedulingRules } from '../data/h2'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
-export function RosterGeneratorPage() {
+export default function RosterGeneratorPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
   const hotels = useHotels()
-  const { formatError } = useFormattedError()
+  const sessionError = useFormattedError(error)
   const [hotelId, setHotelId] = useState('')
   const [weekStart, setWeekStart] = useState(() => {
     const d = new Date()
@@ -23,11 +23,10 @@ export function RosterGeneratorPage() {
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (error || !activeOrgId) {
-    const { title, description } = formatError(error || new Error('Selecciona una organización válida.'))
     return (
       <div className="p-4 rounded-md bg-red-500/10 border border-red-500/20">
-        <p className="text-sm font-semibold text-red-500">{title}</p>
-        <p className="text-xs text-red-400 opacity-90">{description}</p>
+        <p className="text-sm font-semibold text-red-500">Error</p>
+        <p className="text-xs text-red-400 opacity-90">{sessionError || 'Selecciona una organización válida.'}</p>
       </div>
     )
   }

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useCreateEvent, useHotels } from '../data/events'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 const schema = z.object({
   hotelId: z.string().min(1, 'Hotel obligatorio'),
@@ -25,12 +25,13 @@ function toISOStringOrNull(value?: string) {
   return Number.isFinite(d.getTime()) ? d.toISOString() : null
 }
 
-export function NewEventPage() {
+export default function NewEventPage() {
   const { session, loading, error } = useSupabaseSession()
   const hotels = useHotels()
   const createEvent = useCreateEvent()
   const navigate = useNavigate()
-  const { formatError } = useFormattedError()
+  const sessionError = useFormattedError(error)
+  const createError = useFormattedError(createEvent.error)
 
   const {
     register,
@@ -68,16 +69,15 @@ export function NewEventPage() {
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   if (!session || error) {
-    const formatted = error ? formatError(error) : null
     return (
       <div className="rounded-xl glass-panel p-4 border-red-500/20 bg-red-500/5">
         <p className="text-sm text-red-400">Inicia sesión para crear eventos.</p>
-        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
+        <p className="text-xs text-red-400 mt-1">{sessionError}</p>
       </div>
     )
   }
 
-  const createError = createEvent.error ? formatError(createEvent.error) : null
+
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -170,8 +170,8 @@ export function NewEventPage() {
 
           {createError && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-xs font-bold text-red-400">{createError.title}</p>
-              <p className="text-xs text-red-300">{createError.description}</p>
+              <p className="text-xs font-bold text-red-400">Error</p>
+              <p className="text-xs text-red-300">{createError}</p>
             </div>
           )}
 

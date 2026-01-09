@@ -19,7 +19,7 @@ function isoWeekStart(date = new Date()) {
   return startOfWeek(date).toISOString().slice(0, 10)
 }
 
-export function DashboardPage() {
+export default function DashboardPage() {
   const { activeOrgId, loading: orgLoading, memberships, setOrg } = useActiveOrgId()
   const hotels = useHotels()
   const [hotelId, setHotelId] = useState<string | undefined>(undefined)

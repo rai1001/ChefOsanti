@@ -7,7 +7,7 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateMenuTemplateItem, useMenuTemplateItems, useMenuTemplates } from '../data/menus'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 const schema = z
   .object({
@@ -32,7 +32,7 @@ const schema = z
 
 type Form = z.infer<typeof schema>
 
-export function MenuTemplateDetailPage() {
+export default function MenuTemplateDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { session, loading, error } = useSupabaseSession()
   const { activeOrgId, loading: orgLoading } = useActiveOrgId()
@@ -42,7 +42,8 @@ export function MenuTemplateDetailPage() {
   const createItem = useCreateMenuTemplateItem(id, activeOrgId ?? template?.orgId ?? undefined)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'menus:write')
-  const { formatError } = useFormattedError()
+  const sessionError = useFormattedError(error)
+  const createError = useFormattedError(createItem.error)
 
   const {
     register,
@@ -82,18 +83,17 @@ export function MenuTemplateDetailPage() {
   if (loading || orgLoading || templates.isLoading)
     return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (!session || error) {
-    const formatted = error ? formatError(error) : null
     return (
       <div className="rounded border border-white/10 bg-white/5 p-4">
         <p className="text-sm text-red-500">Inicia sesión para ver plantillas.</p>
-        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
+        <p className="text-xs text-red-400 mt-1">{sessionError}</p>
       </div>
     )
   }
 
   if (!template) return <p className="p-4 text-sm text-red-400">Plantilla no encontrada.</p>
 
-  const createError = createItem.error ? formatError(createItem.error) : null
+
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -221,8 +221,8 @@ export function MenuTemplateDetailPage() {
           </label>
           {createError && (
             <div className="md:col-span-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-xs font-bold text-red-400">{createError.title}</p>
-              <p className="text-xs text-red-300">{createError.description}</p>
+              <p className="text-xs font-bold text-red-400">Error</p>
+              <p className="text-xs text-red-300">{createError}</p>
             </div>
           )}
           <div className="md:col-span-3">

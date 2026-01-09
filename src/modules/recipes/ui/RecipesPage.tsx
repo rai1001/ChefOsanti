@@ -4,9 +4,9 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateRecipe, useRecipes } from '../data/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
-export function RecipesPage() {
+export default function RecipesPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
   const recipes = useRecipes(activeOrgId ?? undefined)
   const createRecipe = useCreateRecipe(activeOrgId ?? undefined)
@@ -14,15 +14,15 @@ export function RecipesPage() {
   const [servings, setServings] = useState(10)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'recipes:write')
-  const { formatError } = useFormattedError()
+  const formattedError = useFormattedError(error)
+  const createError = useFormattedError(createRecipe.error)
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (error || !activeOrgId) {
-    const formatted = error ? formatError(error) : null
     return (
       <div className="p-4 rounded-lg border border-red-500/10 bg-red-500/5">
         <p className="text-sm text-red-500">Selecciona una organización válida.</p>
-        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
+        {formattedError && <p className="text-xs text-red-400 mt-1">{formattedError}</p>}
       </div>
     )
   }
@@ -34,8 +34,6 @@ export function RecipesPage() {
     setName('')
     setServings(10)
   }
-
-  const createError = createRecipe.error ? formatError(createRecipe.error) : null
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -82,7 +80,7 @@ export function RecipesPage() {
         </form>
         {createError && (
           <div className="mt-2 text-xs text-red-400">
-            <span className="font-semibold">{createError.title}:</span> {createError.description}
+            <span className="font-semibold">Error:</span> {createError}
           </div>
         )}
       </div>

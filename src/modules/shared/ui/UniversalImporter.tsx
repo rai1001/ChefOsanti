@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
-import { useFormattedError } from '@/lib/shared/useFormattedError'
+import Papa from 'papaparse'
+import { formatErrorMessage } from '@/modules/shared/hooks/useFormattedError'
 
 interface UniversalImporterProps {
     isOpen: boolean
@@ -13,23 +14,21 @@ export function UniversalImporter({ isOpen, onClose, onImport, title, fields }: 
     const [file, setFile] = useState<File | null>(null)
     const [preview, setPreview] = useState<any[]>([])
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<{ title: string; description: string } | null>(null)
+    const [error, setError] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
-    const { formatError } = useFormattedError()
 
     if (!isOpen) return null
 
-    const parseCSV = (text: string) => {
-        const lines = text.split('\n').filter(l => l.trim())
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
-
-        return lines.slice(1).map(line => {
-            const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''))
+    const processData = (data: any[]) => {
+        return data.map((row) => {
             const obj: any = {}
-            headers.forEach((h, i) => {
-                const field = fields.find(f => f.label.toLowerCase() === h.toLowerCase() || f.key === h) || fields[i] // Try to match by label, key, or index
-                if (field) {
-                    const val = values[i]
+            fields.forEach((field) => {
+                // Try to find a matching key in the row (case-insensitive label or exact key)
+                const rowKey = Object.keys(row).find(
+                    (k) => k.toLowerCase() === field.label.toLowerCase() || k === field.key
+                )
+                if (rowKey) {
+                    const val = row[rowKey]
                     obj[field.key] = field.transform ? field.transform(val) : val
                 }
             })
@@ -43,18 +42,22 @@ export function UniversalImporter({ isOpen, onClose, onImport, title, fields }: 
         setFile(selectedFile)
         setError(null)
 
-        const reader = new FileReader()
-        reader.onload = (event) => {
-            try {
-                const text = event.target?.result as string
-                const data = parseCSV(text)
-                setPreview(data.slice(0, 5))
-            } catch (err) {
-                const { title, description } = formatError(err || new Error('Error al leer el archivo. Asegúrate de que sea un CSV válido.'))
-                setError({ title, description })
-            }
-        }
-        reader.readAsText(selectedFile)
+        Papa.parse(selectedFile, {
+            header: true,
+            skipEmptyLines: true,
+            preview: 5,
+            complete: (results) => {
+                try {
+                    const mapped = processData(results.data)
+                    setPreview(mapped)
+                } catch (err) {
+                    setError(formatErrorMessage(err))
+                }
+            },
+            error: (err) => {
+                setError(formatErrorMessage(err))
+            },
+        })
     }
 
     const handleImport = async () => {
@@ -62,22 +65,25 @@ export function UniversalImporter({ isOpen, onClose, onImport, title, fields }: 
         setLoading(true)
         setError(null)
 
-        const reader = new FileReader()
-        reader.onload = async (event) => {
-            try {
-                const text = event.target?.result as string
-                const data = parseCSV(text)
-                await onImport(data)
-                onClose()
-                onClose()
-            } catch (err: any) {
-                const { title, description } = formatError(err)
-                setError({ title, description })
-            } finally {
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: async (results) => {
+                try {
+                    const mapped = processData(results.data)
+                    await onImport(mapped)
+                    onClose()
+                } catch (err) {
+                    setError(formatErrorMessage(err))
+                } finally {
+                    setLoading(false)
+                }
+            },
+            error: (err) => {
+                setError(formatErrorMessage(err))
                 setLoading(false)
-            }
-        }
-        reader.readAsText(file)
+            },
+        })
     }
 
     return (
@@ -139,8 +145,8 @@ export function UniversalImporter({ isOpen, onClose, onImport, title, fields }: 
 
                     {error && (
                         <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-                            <span className="font-bold block">{error.title}</span>
-                            <span>{error.description}</span>
+                            <span className="font-bold block">Error</span>
+                            <span>{error}</span>
                         </div>
                     )}
 

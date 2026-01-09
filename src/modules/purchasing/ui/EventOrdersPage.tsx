@@ -3,7 +3,7 @@ import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useEventOrders } from '../data/eventOrders'
 import { useSuppliers } from '../data/suppliers'
 
-export function EventOrdersPage() {
+export default function EventOrdersPage() {
   const { session, loading, error } = useSupabaseSession()
   const orders = useEventOrders()
   const suppliers = useSuppliers()
