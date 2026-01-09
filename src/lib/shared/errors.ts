@@ -45,8 +45,13 @@ export class AppError extends Error {
 export function mapSupabaseError(error: any, context: AppErrorContext = {}): AppError {
     if (!error) return new AppError('UnknownError', 'Error desconocido', context);
 
-    const { code, message, details, hint } = error;
+    const { code, message, details, hint, status } = error;
     const fullContext = { ...context, code, details, hint, originalError: error };
+
+    // Detección de errores de Auth por status code
+    if (status === 401 || status === 403) {
+        return new AppError('AuthError', 'No autorizado o sesión expirada', fullContext);
+    }
 
     // Códigos comunes de Postgrest: https://postgrest.org/en/stable/errors.html
     // Códigos comunes de Postgres: https://www.postgresql.org/docs/current/errcodes-appendix.html
@@ -64,8 +69,7 @@ export function mapSupabaseError(error: any, context: AppErrorContext = {}): App
         case '42P01': // Undefined table
             return new AppError('UnknownError', 'Error de configuración de base de datos', fullContext);
 
-        case 'PGRST301': // JWT expired (often AuthError)
-        case '401':
+        case 'PGRST301': // JWT expired (often AuthError) - aunque el status debería capturarlo
             return new AppError('AuthError', 'No autorizado o sesión expirada', fullContext);
 
         case 'PGRST102': // Invalid search criteria
@@ -73,8 +77,8 @@ export function mapSupabaseError(error: any, context: AppErrorContext = {}): App
             return new AppError('ValidationError', 'Datos de búsqueda inválidos', fullContext);
 
         default:
-            // Si el status es 404 pero no tiene código específico
-            if (error.status === 404) {
+            // Si el status es 404 pero no tiene código específico (y no es PGRST116)
+            if (status === 404) {
                 return new AppError('NotFoundError', message || 'No encontrado', fullContext);
             }
 

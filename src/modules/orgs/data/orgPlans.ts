@@ -1,12 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type { PlanTier } from '@/modules/auth/domain/aiAccess'
 
 export async function fetchOrgPlan(orgId: string | undefined): Promise<PlanTier> {
   if (!orgId) return 'basic'
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.from('org_plans').select('plan').eq('org_id', orgId).maybeSingle()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'orgs',
+      operation: 'fetchOrgPlan',
+      orgId,
+    })
+  }
   const plan = (data?.plan as PlanTier | undefined) ?? 'basic'
   return plan
 }

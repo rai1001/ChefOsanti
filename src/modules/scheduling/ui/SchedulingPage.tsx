@@ -6,6 +6,7 @@ import { computeMissing, getWeekDays, type ShiftType } from '../domain/shifts'
 import { useAssignStaff, useShifts, useUnassignStaff, useUpsertShift, type ShiftRow } from '../data/shifts'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 const shiftDefaults: Record<ShiftType, { starts: string; ends: string }> = {
   desayuno: { starts: '07:00', ends: '15:00' },
@@ -28,6 +29,7 @@ function getMonday(): string {
 export function SchedulingPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
   const hotels = useHotels()
+  const { formatError } = useFormattedError()
   const [selectedHotel, setSelectedHotel] = useState<string>('')
   const [weekStart, setWeekStart] = useState<string>(getMonday())
   const shifts = useShifts(selectedHotel, weekStart)
@@ -53,8 +55,15 @@ export function SchedulingPage() {
   }, [shifts.data])
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
-  if (error || !activeOrgId)
-    return <p className="p-4 text-sm text-red-500">Selecciona una organización válida.</p>
+  if (error || !activeOrgId) {
+    const { title, description } = formatError(error || new Error('Selecciona una organización válida.'))
+    return (
+      <div className="p-4 rounded-md bg-red-500/10 border border-red-500/20">
+        <p className="text-sm font-semibold text-red-500">{title}</p>
+        <p className="text-xs text-red-400 opacity-90">{description}</p>
+      </div>
+    )
+  }
 
   const handleCreate = async (day: string, type: ShiftType) => {
     if (!selectedHotel || !canWrite) return

@@ -1,12 +1,17 @@
 import type { Hotel, OrgId } from '@/modules/orgs/domain/types'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 
 export async function listHotelsByOrg(orgId: OrgId): Promise<Hotel[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.from('hotels').select('*').eq('org_id', orgId)
 
   if (error) {
-    throw error
+    throw mapSupabaseError(error, {
+      module: 'orgs',
+      operation: 'listHotelsByOrg',
+      orgId,
+    })
   }
 
   return (

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type { Recipe, RecipeLine } from '../domain/recipes'
 
 export type RecipeWithLines = Recipe & { category?: string | null; notes?: string | null; lines: (RecipeLine & { productName?: string })[] }
@@ -28,7 +29,13 @@ export async function listRecipes(orgId?: string): Promise<Recipe[]> {
   let query = supabase.from('recipes').select('*').order('created_at', { ascending: false })
   if (orgId) query = query.eq('org_id', orgId)
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'listRecipes',
+      orgId,
+    })
+  }
   return data?.map(mapRecipe) ?? []
 }
 
@@ -51,7 +58,13 @@ export async function createRecipe(params: {
     })
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'createRecipe',
+      orgId: params.orgId,
+    })
+  }
   return mapRecipe(data)
 }
 
@@ -62,7 +75,13 @@ export async function getRecipeWithLines(id: string): Promise<RecipeWithLines> {
     .select('*, recipe_lines (*, products (name, base_unit))')
     .eq('id', id)
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'getRecipeWithLines',
+      id,
+    })
+  }
   return {
     ...mapRecipe(data),
     category: data.category,
@@ -86,13 +105,26 @@ export async function addRecipeLine(params: {
     qty: params.qty,
     unit: params.unit,
   })
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'addRecipeLine',
+      orgId: params.orgId,
+      recipeId: params.recipeId,
+    })
+  }
 }
 
 export async function removeRecipeLine(lineId: string): Promise<void> {
   const supabase = getSupabaseClient()
   const { error } = await supabase.from('recipe_lines').delete().eq('id', lineId)
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'removeRecipeLine',
+      lineId,
+    })
+  }
 }
 
 export async function linkIngredientToProduct(ingredientId: string, productId: string): Promise<void> {
@@ -101,7 +133,14 @@ export async function linkIngredientToProduct(ingredientId: string, productId: s
     .from('ingredients')
     .update({ product_id: productId })
     .eq('id', ingredientId)
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'linkIngredientToProduct',
+      ingredientId,
+      productId,
+    })
+  }
 }
 
 // Hooks

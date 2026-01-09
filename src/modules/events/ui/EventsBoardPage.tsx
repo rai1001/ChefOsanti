@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { detectOverlaps } from '../domain/event'
 import { useBookingsByHotel, useCreateSpace, useHotels, useSpaces } from '../data/events'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 function toISO(dateStr: string, daysToAdd = 0) {
   if (!dateStr) return undefined
@@ -28,6 +29,7 @@ export function EventsBoardPage() {
   const [spaceName, setSpaceName] = useState('')
   const [spaceCapacity, setSpaceCapacity] = useState('')
   const createSpace = useCreateSpace()
+  const { formatError } = useFormattedError()
 
   useEffect(() => {
     if (!hotelId && hotels.data?.length) {
@@ -51,12 +53,17 @@ export function EventsBoardPage() {
   }, [bookings.data])
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
-  if (!session || error)
+  if (!session || error) {
+    const formatted = error ? formatError(error) : null
     return (
       <div className="rounded-xl glass-panel p-4 border-red-500/20 bg-red-500/5">
         <p className="text-sm text-red-400">Inicia sesión para ver eventos.</p>
+        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
       </div>
     )
+  }
+
+  const createSpaceError = createSpace.error ? formatError(createSpace.error) : null
 
   return (
     <div className="space-y-6">
@@ -132,9 +139,9 @@ export function EventsBoardPage() {
         >
           {createSpace.isPending ? 'Guardando...' : 'Crear salón'}
         </button>
-        {createSpace.isError && (
+        {createSpaceError && (
           <span className="text-xs text-red-400">
-            {(createSpace.error as Error).message || 'No se pudo crear el salón'}
+            {createSpaceError.title}
           </span>
         )}
       </form>

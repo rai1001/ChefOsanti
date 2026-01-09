@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type {
   EventService,
   EventStatus,
@@ -89,7 +90,12 @@ function mapEventService(row: any): EventService {
 export async function listHotels(): Promise<Hotel[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.from('hotels').select('id, org_id, name').order('name')
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'listHotels',
+    })
+  }
   return data?.map((row) => ({ id: row.id, orgId: row.org_id, name: row.name })) ?? []
 }
 
@@ -98,7 +104,13 @@ export async function listSpaces(hotelId?: string): Promise<Space[]> {
   let query = supabase.from('spaces').select('*').order('name')
   if (hotelId) query = query.eq('hotel_id', hotelId)
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'listSpaces',
+      hotelId,
+    })
+  }
   return data?.map(mapSpace) ?? []
 }
 
@@ -121,7 +133,14 @@ export async function createSpace(params: {
     })
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'createSpace',
+      orgId: params.orgId,
+      hotelId: params.hotelId,
+    })
+  }
   return mapSpace(data)
 }
 
@@ -136,7 +155,13 @@ export async function listEvents(filters?: {
   if (filters?.startsAt) query = query.gte('starts_at', filters.startsAt)
   if (filters?.endsAt) query = query.lte('ends_at', filters.endsAt)
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'listEvents',
+      hotelId: filters?.hotelId,
+    })
+  }
   return data?.map(mapEvent) ?? []
 }
 
@@ -165,7 +190,14 @@ export async function createEvent(params: {
     })
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'createEvent',
+      orgId: params.orgId,
+      hotelId: params.hotelId,
+    })
+  }
   return mapEvent(data)
 }
 
@@ -174,14 +206,27 @@ export async function getEventWithBookings(
 ): Promise<{ event: Event; bookings: BookingWithDetails[] }> {
   const supabase = getSupabaseClient()
   const { data: event, error: eventErr } = await supabase.from('events').select('*').eq('id', id).single()
-  if (eventErr || !event) throw eventErr || new Error('Evento no encontrado')
+  if (eventErr || !event) {
+    throw mapSupabaseError(eventErr || { code: 'PGRST116', message: 'Evento no encontrado' }, {
+      module: 'events',
+      operation: 'getEventWithBookings',
+      id,
+    })
+  }
 
   const { data: bookings, error: bookingsErr } = await supabase
     .from('space_bookings')
     .select('*, spaces (name), events (title)')
     .eq('event_id', id)
     .order('starts_at')
-  if (bookingsErr) throw bookingsErr
+  if (bookingsErr) {
+    throw mapSupabaseError(bookingsErr, {
+      module: 'events',
+      operation: 'getEventWithBookings',
+      step: 'bookings',
+      id,
+    })
+  }
   return { event: mapEvent(event), bookings: bookings?.map(mapBooking) ?? [] }
 }
 
@@ -192,7 +237,13 @@ export async function listEventServices(eventId: string): Promise<EventService[]
     .select('*')
     .eq('event_id', eventId)
     .order('starts_at')
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'listEventServices',
+      eventId,
+    })
+  }
   return data?.map(mapEventService) ?? []
 }
 
@@ -221,7 +272,14 @@ export async function createEventService(params: {
     })
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'createEventService',
+      orgId: params.orgId,
+      eventId: params.eventId,
+    })
+  }
   return mapEventService(data)
 }
 
@@ -238,13 +296,25 @@ export async function updateEventService(serviceId: string, payload: Partial<Eve
       notes: payload.notes ?? null,
     })
     .eq('id', serviceId)
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'updateEventService',
+      serviceId,
+    })
+  }
 }
 
 export async function deleteEventService(serviceId: string) {
   const supabase = getSupabaseClient()
   const { error } = await supabase.from('event_services').delete().eq('id', serviceId)
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'deleteEventService',
+      serviceId,
+    })
+  }
 }
 
 export async function listBookingsByHotel(params: {
@@ -263,7 +333,13 @@ export async function listBookingsByHotel(params: {
   if (params.endsAt) query = query.lte('ends_at', params.endsAt)
 
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'listBookingsByHotel',
+      hotelId: params.hotelId,
+    })
+  }
   return data?.map(mapBooking) ?? []
 }
 
@@ -290,14 +366,27 @@ export async function createBooking(params: {
     })
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'createBooking',
+      orgId: params.orgId,
+      eventId: params.eventId,
+    })
+  }
   return mapBooking(data)
 }
 
 export async function deleteBooking(id: string) {
   const supabase = getSupabaseClient()
   const { error } = await supabase.from('space_bookings').delete().eq('id', id)
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'deleteBooking',
+      id,
+    })
+  }
 }
 
 // Hooks

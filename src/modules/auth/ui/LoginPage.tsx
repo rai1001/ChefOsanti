@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { useSupabaseSession } from '../data/session'
 import type { LoginInput } from '../domain/types'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 const loginSchema = z.object({
   email: z.string().email('Introduce un correo v\xa0lido'),
@@ -24,7 +25,8 @@ export function LoginPage() {
   )
 
   const [status, setStatus] = useState<string | null>(null)
-  const [authError, setAuthError] = useState<string | null>(null)
+  const [authError, setAuthError] = useState<{ title: string; description: string } | null>(null)
+  const { formatError } = useFormattedError()
   const {
     register,
     handleSubmit,
@@ -52,8 +54,8 @@ export function LoginPage() {
       setStatus('Sesi\xa2n iniciada, redirigiendo...')
       navigate(redirectPath, { replace: true })
     } catch (err: any) {
-      const message = err?.message || 'No se pudo iniciar sesi\xa2n. Revisa tus credenciales.'
-      setAuthError(message)
+      const { title, description } = formatError(err)
+      setAuthError({ title, description })
     }
   }
 
@@ -98,7 +100,10 @@ export function LoginPage() {
       </form>
 
       {authError && (
-        <p className="mt-4 rounded-md bg-rose-500/20 border border-rose-500/30 px-3 py-2 text-sm text-rose-300">{authError}</p>
+        <div className="mt-4 rounded-md bg-rose-500/20 border border-rose-500/30 px-3 py-2 text-sm text-rose-300">
+          <p className="font-bold">{authError.title}</p>
+          <p>{authError.description}</p>
+        </div>
       )}
       {status && (
         <p className="mt-4 rounded-md bg-nano-blue-500/20 border border-nano-blue-500/30 px-3 py-2 text-sm text-nano-blue-300">{status}</p>

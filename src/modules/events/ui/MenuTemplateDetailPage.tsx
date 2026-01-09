@@ -7,6 +7,7 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateMenuTemplateItem, useMenuTemplateItems, useMenuTemplates } from '../data/menus'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 const schema = z
   .object({
@@ -41,6 +42,7 @@ export function MenuTemplateDetailPage() {
   const createItem = useCreateMenuTemplateItem(id, activeOrgId ?? template?.orgId ?? undefined)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'menus:write')
+  const { formatError } = useFormattedError()
 
   const {
     register,
@@ -79,14 +81,19 @@ export function MenuTemplateDetailPage() {
 
   if (loading || orgLoading || templates.isLoading)
     return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
-  if (!session || error)
+  if (!session || error) {
+    const formatted = error ? formatError(error) : null
     return (
       <div className="rounded border border-white/10 bg-white/5 p-4">
         <p className="text-sm text-red-500">Inicia sesión para ver plantillas.</p>
+        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
       </div>
     )
+  }
 
   if (!template) return <p className="p-4 text-sm text-red-400">Plantilla no encontrada.</p>
+
+  const createError = createItem.error ? formatError(createItem.error) : null
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -212,10 +219,11 @@ export function MenuTemplateDetailPage() {
               disabled={!canWrite}
             />
           </label>
-          {createItem.isError && (
-            <p className="md:col-span-3 text-sm text-red-400">
-              {(createItem.error as Error).message || 'Error al crear item'}
-            </p>
+          {createError && (
+            <div className="md:col-span-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+              <p className="text-xs font-bold text-red-400">{createError.title}</p>
+              <p className="text-xs text-red-300">{createError.description}</p>
+            </div>
           )}
           <div className="md:col-span-3">
             <button

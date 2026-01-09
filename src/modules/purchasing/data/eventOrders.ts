@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type { MenuTemplateItem } from '@/modules/events/domain/menu'
 import type { ServiceFormat } from '@/modules/events/domain/event'
 import { computeServiceNeedsWithOverrides, type ServiceOverrides } from '@/modules/events/domain/overrides'
@@ -68,7 +69,12 @@ export async function listEventOrders(): Promise<EventPurchaseOrder[]> {
     .from('event_purchase_orders')
     .select('*')
     .order('created_at', { ascending: false })
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'listEventOrders',
+    })
+  }
   return data?.map(mapOrder) ?? []
 }
 
@@ -79,7 +85,13 @@ export async function getEventOrder(orderId: string): Promise<{ order: EventPurc
     .select('*, event_purchase_order_lines (*)')
     .eq('id', orderId)
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'getEventOrder',
+      orderId,
+    })
+  }
   return { order: mapOrder(data), lines: (data.event_purchase_order_lines ?? []).map(mapLine) }
 }
 
@@ -103,7 +115,14 @@ export async function fetchEventNeeds(
     .from('event_services')
     .select('id, format, pax')
     .eq('event_id', eventId)
-  if (svcError) throw svcError
+  if (svcError) {
+    throw mapSupabaseError(svcError, {
+      module: 'purchasing',
+      operation: 'fetchEventNeeds',
+      step: 'services',
+      eventId,
+    })
+  }
   const serviceIds = services?.map((s) => s.id) ?? []
   if (!serviceIds.length) return { needs: [], missingServices: [] }
 
@@ -111,7 +130,14 @@ export async function fetchEventNeeds(
     .from('event_service_menus')
     .select('event_service_id, template_id')
     .in('event_service_id', serviceIds)
-  if (menuError) throw menuError
+  if (menuError) {
+    throw mapSupabaseError(menuError, {
+      module: 'purchasing',
+      operation: 'fetchEventNeeds',
+      step: 'menus',
+      eventId,
+    })
+  }
 
   const templateIds = menus?.map((m) => m.template_id).filter(Boolean) ?? []
   const itemsByTemplate = new Map<string, MenuTemplateItem[]>()
@@ -120,7 +146,14 @@ export async function fetchEventNeeds(
       .from('menu_template_items')
       .select('*')
       .in('template_id', templateIds)
-    if (itemsError) throw itemsError
+    if (itemsError) {
+      throw mapSupabaseError(itemsError, {
+        module: 'purchasing',
+        operation: 'fetchEventNeeds',
+        step: 'templateItems',
+        eventId,
+      })
+    }
     items?.forEach((row: any) => {
       const mapped: MenuTemplateItem = {
         id: row.id,
@@ -146,9 +179,30 @@ export async function fetchEventNeeds(
     supabase.from('event_service_added_items').select('*').in('event_service_id', serviceIds),
     supabase.from('event_service_replaced_items').select('*').in('event_service_id', serviceIds),
   ])
-  if (excluded.error) throw excluded.error
-  if (added.error) throw added.error
-  if (replaced.error) throw replaced.error
+  if (excluded.error) {
+    throw mapSupabaseError(excluded.error, {
+      module: 'purchasing',
+      operation: 'fetchEventNeeds',
+      step: 'excluded',
+      eventId,
+    })
+  }
+  if (added.error) {
+    throw mapSupabaseError(added.error, {
+      module: 'purchasing',
+      operation: 'fetchEventNeeds',
+      step: 'added',
+      eventId,
+    })
+  }
+  if (replaced.error) {
+    throw mapSupabaseError(replaced.error, {
+      module: 'purchasing',
+      operation: 'fetchEventNeeds',
+      step: 'replaced',
+      eventId,
+    })
+  }
 
   const needs: Need[] = []
   const missing: string[] = []
@@ -252,7 +306,14 @@ export async function createDraftOrders(params: {
       .eq('supplier_id', group.supplierId)
       .eq('status', 'draft')
       .maybeSingle()
-    if (existingErr) throw existingErr
+    if (existingErr) {
+      throw mapSupabaseError(existingErr, {
+        module: 'purchasing',
+        operation: 'createDraftOrders',
+        step: 'checkExisting',
+        eventId: params.eventId,
+      })
+    }
     let orderId = existing?.id as string | undefined
     const orderNumber = existing?.order_number ?? `EV-${params.eventId.slice(0, 6)}-${idx + 1}`
     const { data: orderRow, error: orderErr } = await supabase
@@ -271,7 +332,14 @@ export async function createDraftOrders(params: {
       )
       .select('id')
       .single()
-    if (orderErr) throw orderErr
+    if (orderErr) {
+      throw mapSupabaseError(orderErr, {
+        module: 'purchasing',
+        operation: 'createDraftOrders',
+        step: 'upsertOrder',
+        eventId: params.eventId,
+      })
+    }
     orderId = orderRow.id as string
     createdOrderIds.push(orderId)
     await supabase.from('event_purchase_order_lines').delete().eq('event_purchase_order_id', orderId)
@@ -288,7 +356,14 @@ export async function createDraftOrders(params: {
         unit_price: price,
         line_total: lineTotal,
       })
-      if (lineErr) throw lineErr
+      if (lineErr) {
+        throw mapSupabaseError(lineErr, {
+          module: 'purchasing',
+          operation: 'createDraftOrders',
+          step: 'insertLine',
+          eventId: params.eventId,
+        })
+      }
     }
   }
   return { createdOrderIds, unknown: [] }

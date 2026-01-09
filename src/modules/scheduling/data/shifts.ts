@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type { ShiftType } from '../domain/shifts'
 
 export type ShiftRow = {
@@ -54,7 +55,14 @@ export async function listShifts(params: { hotelId?: string; weekStart?: string 
     query = query.gte('shift_date', start).lte('shift_date', end.toISOString().slice(0, 10))
   }
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'scheduling',
+      operation: 'listShifts',
+      hotelId: params.hotelId,
+      weekStart: params.weekStart,
+    })
+  }
   return data?.map(mapShift) ?? []
 }
 
@@ -86,7 +94,14 @@ export async function upsertShift(params: {
     )
     .select('*, staff_assignments(id, staff_member_id, staff_members(full_name))')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'scheduling',
+      operation: 'upsertShift',
+      orgId: params.orgId,
+      hotelId: params.hotelId,
+    })
+  }
   return mapShift(data)
 }
 
@@ -99,13 +114,26 @@ export async function assignStaff(params: { orgId: string; shiftId: string; staf
       shift_id: params.shiftId,
       staff_member_id: params.staffMemberId,
     })
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'scheduling',
+      operation: 'assignStaff',
+      orgId: params.orgId,
+      shiftId: params.shiftId,
+    })
+  }
 }
 
 export async function unassignStaff(assignmentId: string) {
   const supabase = getSupabaseClient()
   const { error } = await supabase.from('staff_assignments').delete().eq('id', assignmentId)
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'scheduling',
+      operation: 'unassignStaff',
+      assignmentId,
+    })
+  }
 }
 
 export function useShifts(hotelId?: string, weekStart?: string) {

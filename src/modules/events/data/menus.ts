@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type { MenuCategory, MenuTemplateItem } from '../domain/menu'
 
 export type MenuTemplate = {
@@ -44,7 +45,13 @@ export async function listMenuTemplates(orgId?: string): Promise<MenuTemplate[]>
   const supabase = getSupabaseClient()
   const query = supabase.from('menu_templates').select('*').order('created_at', { ascending: false })
   const { data, error } = orgId ? await query.eq('org_id', orgId) : await query
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'listMenuTemplates',
+      orgId,
+    })
+  }
   return data?.map(mapTemplate) ?? []
 }
 
@@ -65,7 +72,13 @@ export async function createMenuTemplate(params: {
     })
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'createMenuTemplate',
+      orgId: params.orgId,
+    })
+  }
   return mapTemplate(data)
 }
 
@@ -76,7 +89,13 @@ export async function listMenuTemplateItems(templateId: string): Promise<MenuTem
     .select('*')
     .eq('template_id', templateId)
     .order('created_at')
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'listMenuTemplateItems',
+      templateId,
+    })
+  }
   return data?.map(mapItem) ?? []
 }
 
@@ -104,7 +123,14 @@ export async function createMenuTemplateItem(
     })
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'createMenuTemplateItem',
+      orgId,
+      templateId,
+    })
+  }
   return mapItem(data)
 }
 
@@ -120,7 +146,14 @@ export async function applyTemplateToService(eventServiceId: string, templateId:
       },
       { onConflict: 'event_service_id' },
     )
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'applyTemplateToService',
+      eventServiceId,
+      templateId,
+    })
+  }
 }
 
 export async function getServiceMenu(eventServiceId: string): Promise<ServiceMenu | null> {
@@ -130,14 +163,27 @@ export async function getServiceMenu(eventServiceId: string): Promise<ServiceMen
     .select('template_id, menu_templates (*)')
     .eq('event_service_id', eventServiceId)
     .maybeSingle()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'getServiceMenu',
+      eventServiceId,
+    })
+  }
   if (!data) return null
   const { template_id, menu_templates } = data as any
   const { data: items, error: itemsErr } = await supabase
     .from('menu_template_items')
     .select('*')
     .eq('template_id', template_id)
-  if (itemsErr) throw itemsErr
+  if (itemsErr) {
+    throw mapSupabaseError(itemsErr, {
+      module: 'events',
+      operation: 'getServiceMenu',
+      step: 'items',
+      templateId: template_id,
+    })
+  }
   return {
     template: mapTemplate(menu_templates),
     items: items?.map(mapItem) ?? [],

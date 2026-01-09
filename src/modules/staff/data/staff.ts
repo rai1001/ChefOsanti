@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type { EmploymentType, StaffMember, StaffRole } from '../domain/staff'
 
 function mapStaff(row: any): StaffMember {
@@ -29,7 +30,13 @@ export async function listStaff(orgId: string, onlyActive?: boolean): Promise<St
     .order('created_at', { ascending: false })
   if (onlyActive) query = query.eq('active', true)
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'staff',
+      operation: 'listStaff',
+      orgId,
+    })
+  }
   return data?.map(mapStaff) ?? []
 }
 
@@ -58,7 +65,13 @@ export async function createStaffMember(params: {
     })
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'staff',
+      operation: 'createStaffMember',
+      orgId: params.orgId,
+    })
+  }
   return mapStaff(data)
 }
 
@@ -78,14 +91,26 @@ export async function updateStaffMember(
     .eq('id', id)
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'staff',
+      operation: 'updateStaffMember',
+      id,
+    })
+  }
   return mapStaff(data)
 }
 
 export async function toggleStaffActive(id: string, active: boolean) {
   const supabase = getSupabaseClient()
   const { error } = await supabase.from('staff_members').update({ active }).eq('id', id)
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'staff',
+      operation: 'toggleStaffActive',
+      id,
+    })
+  }
 }
 
 // Hooks

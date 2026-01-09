@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { getEnv } from '@/config/env'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import { parseOcrText, type OcrDraft } from '../domain/ocrParser'
 
 const { supabaseUrl } = getEnv()
@@ -68,7 +69,13 @@ export async function listEventAttachments(eventId: string): Promise<EventAttach
     .order('created_at', { ascending: false })
     .order('created_at', { ascending: false, referencedTable: 'ocr_jobs' })
     .order('created_at', { ascending: false })
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'listEventAttachments',
+      eventId,
+    })
+  }
   return data?.map(mapAttachment) ?? []
 }
 
@@ -79,7 +86,14 @@ export async function uploadEventAttachment(eventId: string, orgId: string, file
     cacheControl: '3600',
     upsert: false,
   })
-  if (uploadRes.error) throw uploadRes.error
+  if (uploadRes.error) {
+    throw mapSupabaseError(uploadRes.error, {
+      module: 'events',
+      operation: 'uploadEventAttachment',
+      step: 'upload',
+      eventId,
+    })
+  }
 
   const { data, error } = await supabase
     .from('event_attachments')
@@ -93,7 +107,14 @@ export async function uploadEventAttachment(eventId: string, orgId: string, file
     })
     .select('*, ocr_jobs(*)')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'uploadEventAttachment',
+      step: 'insert',
+      eventId,
+    })
+  }
   return mapAttachment(data)
 }
 
@@ -164,7 +185,13 @@ export async function processOcrLocally(attachmentId: string, orgId: string) {
     })
     .select('id')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'processOcrLocally',
+      attachmentId,
+    })
+  }
   return { jobId: data.id as string }
 }
 
@@ -204,7 +231,14 @@ export async function applyOcrDraft(params: {
       })
       .select('id')
       .single()
-    if (svcErr) throw svcErr
+    if (svcErr) {
+      throw mapSupabaseError(svcErr, {
+        module: 'events',
+        operation: 'applyOcrDraft',
+        step: 'createService',
+        eventId: params.eventId,
+      })
+    }
     const serviceId = svcRow.id as string
     createdServiceIds.push(serviceId)
 
@@ -219,7 +253,15 @@ export async function applyOcrDraft(params: {
         })
         .select('id')
         .single()
-      if (secErr) throw secErr
+      if (secErr) {
+        throw mapSupabaseError(secErr, {
+          module: 'events',
+          operation: 'applyOcrDraft',
+          step: 'createSection',
+          eventId: params.eventId,
+          serviceId,
+        })
+      }
       const sectionId = secRow.id as string
       for (const [itemIdx, item] of section.items.entries()) {
         const { error: itemErr } = await supabase.from('event_service_menu_items').insert({
@@ -228,7 +270,16 @@ export async function applyOcrDraft(params: {
           text: item,
           sort_order: itemIdx,
         })
-        if (itemErr) throw itemErr
+        if (itemErr) {
+          throw mapSupabaseError(itemErr, {
+            module: 'events',
+            operation: 'applyOcrDraft',
+            step: 'createItem',
+            eventId: params.eventId,
+            serviceId,
+            sectionId,
+          })
+        }
       }
     }
   }
@@ -254,7 +305,13 @@ export async function getServiceMenuContent(serviceId: string): Promise<MenuCont
     .select('id, title, sort_order, event_service_menu_items (id, text, sort_order)')
     .eq('event_service_id', serviceId)
     .order('sort_order')
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'getServiceMenuContent',
+      serviceId,
+    })
+  }
   return (
     data?.map((row: any) => ({
       id: row.id,

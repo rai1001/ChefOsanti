@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import { endOfWeek, startOfWeek } from '../domain/week'
 
 export type WeekEvent = {
@@ -30,35 +31,42 @@ async function fetchWeekEvents(hotelId: string, weekStart: string): Promise<Week
     .gte('starts_at', start.toISOString())
     .lte('starts_at', end.toISOString())
     .order('starts_at')
-  if (error) throw error
-  const grouped = new Map<string, WeekEvent[]>()
-  ;(data ?? []).forEach((row: any) => {
-    const dateKey = row.starts_at ? row.starts_at.slice(0, 10) : toIsoDate(start)
-    if (!grouped.has(dateKey)) grouped.set(dateKey, [])
-    grouped.get(dateKey)!.push({
-      id: row.id,
-      title: row.title,
-      status: row.status,
-      startsAt: row.starts_at,
-      endsAt: row.ends_at,
-      clientName: row.client_name,
-      services:
-        row.event_services?.map((s: any) => ({
-          id: s.id,
-          serviceType: s.service_type,
-          startsAt: s.starts_at,
-          pax: s.pax,
-        })) ?? [],
-      bookings:
-        row.space_bookings?.map((b: any) => ({
-          id: b.id,
-          spaceId: b.space_id,
-          startsAt: b.starts_at,
-          endsAt: b.ends_at,
-          spaceName: b.spaces?.name,
-        })) ?? [],
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'dashboard',
+      operation: 'fetchWeekEvents',
+      hotelId,
+      weekStart,
     })
-  })
+  }
+  const grouped = new Map<string, WeekEvent[]>()
+    ; (data ?? []).forEach((row: any) => {
+      const dateKey = row.starts_at ? row.starts_at.slice(0, 10) : toIsoDate(start)
+      if (!grouped.has(dateKey)) grouped.set(dateKey, [])
+      grouped.get(dateKey)!.push({
+        id: row.id,
+        title: row.title,
+        status: row.status,
+        startsAt: row.starts_at,
+        endsAt: row.ends_at,
+        clientName: row.client_name,
+        services:
+          row.event_services?.map((s: any) => ({
+            id: s.id,
+            serviceType: s.service_type,
+            startsAt: s.starts_at,
+            pax: s.pax,
+          })) ?? [],
+        bookings:
+          row.space_bookings?.map((b: any) => ({
+            id: b.id,
+            spaceId: b.space_id,
+            startsAt: b.starts_at,
+            endsAt: b.ends_at,
+            spaceName: b.spaces?.name,
+          })) ?? [],
+      })
+    })
   const days: WeekEventsByDay = []
   for (let i = 0; i < 7; i++) {
     const day = new Date(start)
@@ -92,8 +100,22 @@ async function fetchOrdersSummary(orgId: string, weekStart: string): Promise<Ord
       .gte('created_at', start)
       .lte('created_at', end),
   ])
-  if (purchase.error) throw purchase.error
-  if (eventOrders.error) throw eventOrders.error
+  if (purchase.error) {
+    throw mapSupabaseError(purchase.error, {
+      module: 'dashboard',
+      operation: 'fetchOrdersSummary_purchase',
+      orgId,
+      weekStart,
+    })
+  }
+  if (eventOrders.error) {
+    throw mapSupabaseError(eventOrders.error, {
+      module: 'dashboard',
+      operation: 'fetchOrdersSummary_eventOrders',
+      orgId,
+      weekStart,
+    })
+  }
 
   const reduce = (rows: any[]) =>
     rows.reduce(
@@ -143,8 +165,20 @@ async function fetchOrdersToDeliver(orgId: string, weekStart: string, scope: 'we
     eventQuery.gte('created_at', start).lte('created_at', end)
   }
   const [purchase, eventOrders] = await Promise.all([purchaseQuery, eventQuery])
-  if (purchase.error) throw purchase.error
-  if (eventOrders.error) throw eventOrders.error
+  if (purchase.error) {
+    throw mapSupabaseError(purchase.error, {
+      module: 'dashboard',
+      operation: 'fetchOrdersToDeliver_purchase',
+      orgId,
+    })
+  }
+  if (eventOrders.error) {
+    throw mapSupabaseError(eventOrders.error, {
+      module: 'dashboard',
+      operation: 'fetchOrdersToDeliver_eventOrders',
+      orgId,
+    })
+  }
 
   const mapped: OrderToDeliver[] = [
     ...(purchase.data ?? []).map((row: any) => ({
@@ -183,7 +217,15 @@ async function fetchDashboardNote(orgId: string, userId: string, weekStart: stri
     .eq('user_id', userId)
     .eq('week_start', weekStart)
     .maybeSingle()
-  if (error && error.code !== 'PGRST116') throw error
+  if (error) {
+    if (error.code === 'PGRST116') return { orgId, userId, weekStart, content: '' }
+    throw mapSupabaseError(error, {
+      module: 'dashboard',
+      operation: 'fetchDashboardNote',
+      orgId,
+      userId,
+    })
+  }
   if (!data) return { orgId, userId, weekStart, content: '' }
   return {
     id: data.id,
@@ -211,7 +253,14 @@ async function upsertDashboardNote(note: DashboardNote) {
     )
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'dashboard',
+      operation: 'upsertDashboardNote',
+      orgId: note.orgId,
+      userId: note.userId,
+    })
+  }
   return {
     id: data.id,
     orgId: data.org_id,

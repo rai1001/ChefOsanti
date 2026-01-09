@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 
 export type OrgMembership = {
   orgId: string
@@ -16,7 +17,10 @@ async function fetchMemberships(): Promise<OrgMembership[]> {
     .order('created_at', { ascending: true })
 
   if (error) {
-    throw error
+    throw mapSupabaseError(error, {
+      module: 'orgs',
+      operation: 'fetchMemberships',
+    })
   }
 
   return (

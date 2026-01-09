@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type { Product } from '../domain/recipes'
 
 function mapProduct(row: any): Product & { category?: string | null; active: boolean; createdAt?: string } {
@@ -18,7 +19,13 @@ export async function listProducts(orgId?: string): Promise<(Product & { categor
   let query = supabase.from('products').select('*').order('created_at', { ascending: false })
   if (orgId) query = query.eq('org_id', orgId)
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'listProducts',
+      orgId,
+    })
+  }
   return data?.map(mapProduct) ?? []
 }
 
@@ -39,7 +46,13 @@ export async function createProduct(params: {
     })
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'createProduct',
+      orgId: params.orgId,
+    })
+  }
   return mapProduct(data)
 }
 
@@ -59,7 +72,13 @@ export async function updateProduct(
     .eq('id', id)
     .select('*')
     .single()
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'updateProduct',
+      id,
+    })
+  }
   return mapProduct(data)
 }
 

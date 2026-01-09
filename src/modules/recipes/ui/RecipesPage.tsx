@@ -4,6 +4,7 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateRecipe, useRecipes } from '../data/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 export function RecipesPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
@@ -13,10 +14,18 @@ export function RecipesPage() {
   const [servings, setServings] = useState(10)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'recipes:write')
+  const { formatError } = useFormattedError()
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
-  if (error || !activeOrgId)
-    return <p className="p-4 text-sm text-red-400">Selecciona una organización válida.</p>
+  if (error || !activeOrgId) {
+    const formatted = error ? formatError(error) : null
+    return (
+      <div className="p-4 rounded-lg border border-red-500/10 bg-red-500/5">
+        <p className="text-sm text-red-500">Selecciona una organización válida.</p>
+        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
+      </div>
+    )
+  }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,6 +34,8 @@ export function RecipesPage() {
     setName('')
     setServings(10)
   }
+
+  const createError = createRecipe.error ? formatError(createRecipe.error) : null
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -69,6 +80,11 @@ export function RecipesPage() {
             {createRecipe.isPending ? 'Guardando...' : 'Crear'}
           </button>
         </form>
+        {createError && (
+          <div className="mt-2 text-xs text-red-400">
+            <span className="font-semibold">{createError.title}:</span> {createError.description}
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">

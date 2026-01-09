@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type {
   PurchaseUnit,
   RoundingRule,
@@ -49,11 +50,14 @@ async function fetchSuppliers(): Promise<Supplier[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('suppliers')
-    .select('*')
+    .select('id, org_id, name, created_at')
     .order('created_at', { ascending: false })
 
   if (error) {
-    throw error
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'fetchSuppliers',
+    })
   }
 
   return data?.map(mapSupplier) ?? []
@@ -63,12 +67,15 @@ async function fetchSupplier(id: string): Promise<Supplier | null> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('suppliers')
-    .select('*')
+    .select('id, org_id, name, created_at')
     .eq('id', id)
     .single()
 
   if (error) {
-    throw error
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'fetchSupplier',
+    })
   }
 
   return data ? mapSupplier(data) : null
@@ -78,12 +85,18 @@ async function fetchSupplierItems(supplierId: string): Promise<SupplierItem[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('supplier_items')
-    .select('*')
+    .select(
+      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, created_at',
+    )
     .eq('supplier_id', supplierId)
     .order('created_at', { ascending: false })
 
   if (error) {
-    throw error
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'fetchSupplierItems',
+      supplierId,
+    })
   }
 
   return data?.map(mapSupplierItem) ?? []
@@ -97,11 +110,15 @@ async function insertSupplier(input: CreateSupplierInput): Promise<Supplier> {
       org_id: input.orgId,
       name: input.name,
     })
-    .select('*')
+    .select('id, org_id, name, created_at')
     .single()
 
   if (error) {
-    throw error
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'insertSupplier',
+      orgId: input.orgId,
+    })
   }
 
   return mapSupplier(data)
@@ -120,11 +137,17 @@ async function insertSupplierItem(input: CreateSupplierItemInput): Promise<Suppl
       price_per_unit: input.pricePerUnit ?? null,
       notes: input.notes ?? null,
     })
-    .select('*')
+    .select(
+      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, created_at',
+    )
     .single()
 
   if (error) {
-    throw error
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'insertSupplierItem',
+      supplierId: input.supplierId,
+    })
   }
 
   return mapSupplierItem(data)
@@ -141,7 +164,7 @@ export function useSuppliers(enabled = true) {
 export function useSupplier(supplierId: string | undefined, enabled = true) {
   return useQuery({
     queryKey: ['suppliers', supplierId],
-    queryFn: () => fetchSupplier(supplierId ?? ''),
+    queryFn: () => fetchSupplier(supplierId!),
     enabled: enabled && Boolean(supplierId),
   })
 }
@@ -149,7 +172,7 @@ export function useSupplier(supplierId: string | undefined, enabled = true) {
 export function useSupplierItems(supplierId: string | undefined, enabled = true) {
   return useQuery({
     queryKey: ['supplier_items', supplierId],
-    queryFn: () => fetchSupplierItems(supplierId ?? ''),
+    queryFn: () => fetchSupplierItems(supplierId!),
     enabled: enabled && Boolean(supplierId),
   })
 }
@@ -186,21 +209,34 @@ export function useCreateSupplierItem(supplierId: string | undefined) {
     },
   })
 }
+
 export async function listSupplierItemsByOrg(orgId: string): Promise<SupplierItem[]> {
   const supabase = getSupabaseClient()
-  const { data, error } = await supabase.from('supplier_items').select('*, suppliers(org_id)').order('created_at')
-  if (error) throw error
+  const { data, error } = await supabase
+    .from('supplier_items')
+    .select(
+      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, created_at, suppliers!inner(org_id)',
+    )
+    .eq('suppliers.org_id', orgId)
+    .order('created_at')
+
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'listSupplierItemsByOrg',
+      orgId,
+    })
+  }
+
   return (
-    data
-      ?.filter((row: any) => row.suppliers?.org_id === orgId)
-      .map(mapSupplierItem) ?? []
+    data?.map(mapSupplierItem) ?? []
   )
 }
 
 export function useSupplierItemsByOrg(orgId: string | undefined) {
   return useQuery({
     queryKey: ['supplier_items_by_org', orgId],
-    queryFn: () => listSupplierItemsByOrg(orgId ?? ''),
+    queryFn: () => listSupplierItemsByOrg(orgId!),
     enabled: Boolean(orgId),
   })
 }

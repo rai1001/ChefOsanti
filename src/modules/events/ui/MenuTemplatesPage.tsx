@@ -7,6 +7,7 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateMenuTemplate, useMenuTemplates } from '../data/menus'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 const schema = z.object({
   name: z.string().min(1, 'Nombre obligatorio'),
@@ -22,6 +23,7 @@ export function MenuTemplatesPage() {
   const create = useCreateMenuTemplate()
   const { role } = useCurrentRole()
   const canWrite = can(role, 'menus:write')
+  const { formatError } = useFormattedError()
 
   const {
     register,
@@ -30,19 +32,23 @@ export function MenuTemplatesPage() {
   } = useForm<Form>({ resolver: zodResolver(schema) })
 
 
-
   const onSubmit = async (values: Form) => {
     if (!activeOrgId) return
     await create.mutateAsync({ ...values, orgId: activeOrgId })
   }
 
   if (loading || orgLoading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
-  if (!session || error)
+  if (!session || error) {
+    const formatted = error ? formatError(error) : null
     return (
       <div className="rounded-xl glass-panel p-4 border-red-500/20 bg-red-500/5">
         <p className="text-sm text-red-400">Inicia sesión para ver plantillas.</p>
+        {formatted && <p className="text-xs text-red-400 mt-1">{formatted.title}: {formatted.description}</p>}
       </div>
     )
+  }
+
+  const createError = create.error ? formatError(create.error) : null
 
   return (
     <div className="space-y-6">
@@ -100,9 +106,9 @@ export function MenuTemplatesPage() {
             >
               {isSubmitting ? 'Creando...' : 'Crear Plantilla'}
             </button>
-            {create.isError && (
+            {createError && (
               <p className="mt-2 text-sm text-red-400">
-                {(create.error as Error).message || 'Error al crear plantilla'}
+                <span className="font-semibold">{createError.title}:</span> {createError.description}
               </p>
             )}
           </div>

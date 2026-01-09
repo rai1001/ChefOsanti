@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import { normalizeAlias } from '../domain/eventDraftOrder'
 
 export type MenuItemAlias = {
@@ -12,7 +13,13 @@ export type MenuItemAlias = {
 export async function listMenuItemAliases(orgId: string): Promise<MenuItemAlias[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.from('menu_item_aliases').select('*').eq('org_id', orgId)
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'listMenuItemAliases',
+      orgId,
+    })
+  }
   return (
     data?.map((row) => ({
       id: row.id,
@@ -43,7 +50,13 @@ export function useUpsertAlias(orgId: string | undefined) {
         normalized,
         supplier_item_id: params.supplierItemId,
       })
-      if (error) throw error
+      if (error) {
+        throw mapSupabaseError(error, {
+          module: 'purchasing',
+          operation: 'upsertAlias',
+          orgId,
+        })
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['menu_item_aliases', orgId] })

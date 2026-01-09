@@ -49,30 +49,32 @@ class Logger {
 
     private log(level: LogLevel, message: string, metadata: LogMetadata) {
         const timestamp = new Date().toISOString();
-        const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
 
-        // En desarrollo usamos colores y formato legible
-        if (!this.isProd) {
-            const color = this.getLevelColor(level);
-            console.log(`${color}${prefix} ${message}%c`, 'color: inherit', metadata);
+        // En producción: JSON estructurado
+        if (this.isProd) {
+            console.log(JSON.stringify({
+                timestamp,
+                level,
+                message,
+                ...metadata
+            }));
             return;
         }
 
-        // En producción (log estructurado JSON para sistemas de observabilidad)
-        console.log(JSON.stringify({
-            timestamp,
-            level,
-            message,
-            ...metadata
-        }));
+        // En desarrollo: Formato legible para consola de navegador
+        const styles = this.getStyles(level);
+        const prefix = `[${level.toUpperCase()}]`;
+
+        // Usamos %c para estilos, y pasamos la metadata como último argumento para que el navegador la formatee como objeto expandible
+        console.log(`%c${prefix} ${message}`, styles, metadata);
     }
 
-    private getLevelColor(level: LogLevel): string {
+    private getStyles(level: LogLevel): string {
         switch (level) {
-            case 'info': return '\x1b[32m'; // Verde
-            case 'warn': return '\x1b[33m'; // Amarillo
-            case 'error': return '\x1b[31m'; // Rojo
-            default: return '\x1b[0m';    // Reset
+            case 'info': return 'color: #10B981; font-weight: bold;'; // Emerald-500
+            case 'warn': return 'color: #F59E0B; font-weight: bold;'; // Amber-500
+            case 'error': return 'color: #EF4444; font-weight: bold;'; // Red-500
+            default: return 'color: inherit;';
         }
     }
 }

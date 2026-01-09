@@ -14,6 +14,7 @@ import {
   useUpdatePurchaseOrderStatus,
 } from '../data/orders'
 import type { PurchaseUnit, RoundingRule } from '../domain/types'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 const lineSchema = z
   .object({
@@ -49,6 +50,7 @@ export function PurchaseOrderDetailPage() {
   const updateStatus = useUpdatePurchaseOrderStatus(id)
   const receivePo = useReceivePurchaseOrder(id)
   const [received, setReceived] = useState<Record<string, number>>({})
+  const { formatError } = useFormattedError()
 
   const {
     register,
@@ -115,20 +117,26 @@ export function PurchaseOrderDetailPage() {
   }
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
-  if (!session || error)
+  if (!session || error) {
+    const { title, description } = formatError(error || new Error('Inicia sesión para ver pedidos.'))
     return (
-      <div className="rounded border border-white/10 bg-white/5 p-4">
-        <p className="text-sm text-red-500">Inicia sesión para ver pedidos.</p>
+      <div className="rounded border border-red-500/20 bg-red-500/10 p-4">
+        <p className="text-sm font-semibold text-red-500">{title}</p>
+        <p className="text-xs text-red-400 opacity-90">{description}</p>
       </div>
     )
+  }
 
   if (purchaseOrder.isLoading) return <p className="p-4 text-sm text-slate-400">Cargando pedido...</p>
-  if (purchaseOrder.isError)
+  if (purchaseOrder.isError) {
+    const { title, description } = formatError(purchaseOrder.error)
     return (
-      <p className="p-4 text-sm text-red-500">
-        Error al cargar: {(purchaseOrder.error as Error).message}
-      </p>
+      <div className="p-4 text-sm text-red-500">
+        <span className="font-semibold block">{title}</span>
+        <span className="text-xs opacity-90">{description}</span>
+      </div>
     )
+  }
 
   const order = purchaseOrder.data?.order
   const lines = purchaseOrder.data?.lines ?? []
@@ -304,9 +312,17 @@ export function PurchaseOrderDetailPage() {
             </label>
 
             {addLine.isError && (
-              <p className="md:col-span-2 text-sm text-red-500">
-                {(addLine.error as Error).message || 'Error al añadir línea'}
-              </p>
+              <div className="md:col-span-2 text-sm text-red-500">
+                {(() => {
+                  const { title, description } = formatError(addLine.error)
+                  return (
+                    <>
+                      <span className="font-semibold block">{title}</span>
+                      <span className="text-xs opacity-90">{description}</span>
+                    </>
+                  )
+                })()}
+              </div>
             )}
 
             <div className="md:col-span-2">
@@ -335,9 +351,17 @@ export function PurchaseOrderDetailPage() {
             </button>
           </div>
           {receivePo.isError && (
-            <p className="mt-2 text-sm text-red-500">
-              {(receivePo.error as Error).message || 'Error al recibir'}
-            </p>
+            <div className="mt-2 text-sm text-red-500">
+              {(() => {
+                const { title, description } = formatError(receivePo.error)
+                return (
+                  <>
+                    <span className="font-semibold block">{title}</span>
+                    <span className="text-xs opacity-90">{description}</span>
+                  </>
+                )
+              })()}
+            </div>
           )}
         </section>
       )}

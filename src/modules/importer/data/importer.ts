@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type { ImportEntity, ImportJob, ImportRow } from '../domain/types'
 
 export function useImportJobs(orgId: string | undefined) {
@@ -15,7 +16,13 @@ export function useImportJobs(orgId: string | undefined) {
                 .order('created_at', { ascending: false })
                 .limit(10)
 
-            if (error) throw error
+            if (error) {
+                throw mapSupabaseError(error, {
+                    module: 'importer',
+                    operation: 'useImportJobs',
+                    orgId,
+                })
+            }
             return data as ImportJob[]
         },
         enabled: Boolean(orgId),
@@ -34,7 +41,13 @@ export function useImportJobRows(jobId: string | undefined) {
                 .eq('job_id', jobId)
                 .order('row_number', { ascending: true })
                 .limit(20) // Only preview first 20 for UI perf
-            if (error) throw error
+            if (error) {
+                throw mapSupabaseError(error, {
+                    module: 'importer',
+                    operation: 'useImportJobRows',
+                    jobId,
+                })
+            }
             return data as ImportRow[]
         },
         enabled: Boolean(jobId)
@@ -52,7 +65,14 @@ export function useImportStage() {
                 p_filename: filename,
                 p_rows: rows
             })
-            if (error) throw error
+            if (error) {
+                throw mapSupabaseError(error, {
+                    module: 'importer',
+                    operation: 'useImportStage',
+                    orgId,
+                    entity,
+                })
+            }
             return data as string // job_id
         },
         onSuccess: () => {
@@ -69,7 +89,13 @@ export function useImportValidate() {
             const { data, error } = await supabase.rpc('import_validate', {
                 p_job_id: jobId
             })
-            if (error) throw error
+            if (error) {
+                throw mapSupabaseError(error, {
+                    module: 'importer',
+                    operation: 'useImportValidate',
+                    jobId,
+                })
+            }
             return data // summary
         },
         onSuccess: (_, jobId) => {
@@ -87,7 +113,13 @@ export function useImportCommit() {
             const { data, error } = await supabase.rpc('import_commit', {
                 p_job_id: jobId
             })
-            if (error) throw error
+            if (error) {
+                throw mapSupabaseError(error, {
+                    module: 'importer',
+                    operation: 'useImportCommit',
+                    jobId,
+                })
+            }
             return data // summary
         },
         onSuccess: (_, jobId) => {

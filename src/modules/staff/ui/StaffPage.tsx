@@ -7,6 +7,7 @@ import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
 import { useQueryClient } from '@tanstack/react-query'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 const roles: StaffRole[] = ['jefe_cocina', 'cocinero', 'ayudante', 'pasteleria', 'office', 'otros']
 const types: EmploymentType[] = ['fijo', 'eventual', 'extra']
@@ -22,6 +23,7 @@ export function StaffPage() {
   const canWrite = can(role, 'staff:write')
   const [isImporterOpen, setIsImporterOpen] = useState(false)
   const queryClient = useQueryClient()
+  const { formatError } = useFormattedError()
 
   const [fullName, setFullName] = useState('')
   const [roleInput, setRoleInput] = useState<StaffRole>('cocinero')
@@ -32,8 +34,15 @@ export function StaffPage() {
   const [maxShifts, setMaxShifts] = useState<number>(5)
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
-  if (error || !activeOrgId)
-    return <p className="p-4 text-sm text-red-500">Selecciona una organización válida.</p>
+  if (error || !activeOrgId) {
+    const { title, description } = formatError(error || new Error('No organization selected'))
+    return (
+      <div className="p-4 rounded-md bg-red-500/10 border border-red-500/20">
+        <p className="text-sm font-semibold text-red-400">{title}</p>
+        <p className="text-xs text-red-300/80">{description}</p>
+      </div>
+    )
+  }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -195,9 +204,17 @@ export function StaffPage() {
               {createStaff.isPending ? 'Guardando...' : 'Crear empleado'}
             </button>
             {createStaff.isError && (
-              <p className="mt-2 text-sm text-red-500">
-                {(createStaff.error as Error).message || 'Error al crear empleado.'}
-              </p>
+              <div className="mt-2 text-sm text-red-500">
+                {(() => {
+                  const { title, description } = formatError(createStaff.error)
+                  return (
+                    <>
+                      <span className="font-semibold block">{title}</span>
+                      <span className="text-xs opacity-90">{description}</span>
+                    </>
+                  )
+                })()}
+              </div>
             )}
           </div>
         </form>

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 import type { AddedItem, ExcludedItem, ReplacedItem } from '../domain/overrides'
 
 export type ServiceOverridesData = {
@@ -18,10 +19,38 @@ export async function fetchOverrides(eventServiceId: string): Promise<ServiceOve
     supabase.from('event_service_notes').select('*').eq('event_service_id', eventServiceId).order('created_at', { ascending: false }),
   ])
 
-  if (excluded.error) throw excluded.error
-  if (added.error) throw added.error
-  if (replaced.error) throw replaced.error
-  if (notes.error) throw notes.error
+  if (excluded.error) {
+    throw mapSupabaseError(excluded.error, {
+      module: 'events',
+      operation: 'fetchOverrides',
+      step: 'excluded',
+      eventServiceId,
+    })
+  }
+  if (added.error) {
+    throw mapSupabaseError(added.error, {
+      module: 'events',
+      operation: 'fetchOverrides',
+      step: 'added',
+      eventServiceId,
+    })
+  }
+  if (replaced.error) {
+    throw mapSupabaseError(replaced.error, {
+      module: 'events',
+      operation: 'fetchOverrides',
+      step: 'replaced',
+      eventServiceId,
+    })
+  }
+  if (notes.error) {
+    throw mapSupabaseError(notes.error, {
+      module: 'events',
+      operation: 'fetchOverrides',
+      step: 'notes',
+      eventServiceId,
+    })
+  }
 
   return {
     excluded: excluded.data?.map((row) => ({ templateItemId: row.template_item_id })) ?? [],
@@ -81,14 +110,28 @@ export function useExcludeTemplateItem(eventServiceId: string | undefined) {
           event_service_id: eventServiceId,
           template_item_id: params.templateItemId,
         })
-        if (error) throw error
+        if (error) {
+          throw mapSupabaseError(error, {
+            module: 'events',
+            operation: 'excludeTemplateItem',
+            eventServiceId,
+            templateItemId: params.templateItemId,
+          })
+        }
       } else {
         const { error } = await supabase
           .from('event_service_excluded_items')
           .delete()
           .eq('event_service_id', eventServiceId)
           .eq('template_item_id', params.templateItemId)
-        if (error) throw error
+        if (error) {
+          throw mapSupabaseError(error, {
+            module: 'events',
+            operation: 'unexcludeTemplateItem',
+            eventServiceId,
+            templateItemId: params.templateItemId,
+          })
+        }
       }
     },
     onSuccess: () => {
@@ -115,7 +158,13 @@ export function useAddServiceItem(eventServiceId: string | undefined) {
         pack_size: params.packSize ?? null,
         notes: params.notes ?? null,
       })
-      if (error) throw error
+      if (error) {
+        throw mapSupabaseError(error, {
+          module: 'events',
+          operation: 'addServiceItem',
+          eventServiceId,
+        })
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })
@@ -134,7 +183,14 @@ export function useDeleteAddedItem(eventServiceId: string | undefined) {
         .delete()
         .eq('event_service_id', eventServiceId)
         .eq('id', params.id)
-      if (error) throw error
+      if (error) {
+        throw mapSupabaseError(error, {
+          module: 'events',
+          operation: 'deleteAddedItem',
+          eventServiceId,
+          itemId: params.id,
+        })
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })
@@ -164,7 +220,14 @@ export function useReplaceTemplateItem(eventServiceId: string | undefined) {
         },
         { onConflict: 'event_service_id,template_item_id' },
       )
-      if (error) throw error
+      if (error) {
+        throw mapSupabaseError(error, {
+          module: 'events',
+          operation: 'replaceTemplateItem',
+          eventServiceId,
+          templateItemId: params.templateItemId,
+        })
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })
@@ -183,7 +246,14 @@ export function useRemoveReplacement(eventServiceId: string | undefined) {
         .delete()
         .eq('event_service_id', eventServiceId)
         .eq('template_item_id', templateItemId)
-      if (error) throw error
+      if (error) {
+        throw mapSupabaseError(error, {
+          module: 'events',
+          operation: 'removeReplacement',
+          eventServiceId,
+          templateItemId,
+        })
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })
@@ -202,7 +272,13 @@ export function useAddServiceNote(eventServiceId: string | undefined) {
         event_service_id: eventServiceId,
         note: params.note,
       })
-      if (error) throw error
+      if (error) {
+        throw mapSupabaseError(error, {
+          module: 'events',
+          operation: 'addServiceNote',
+          eventServiceId,
+        })
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })

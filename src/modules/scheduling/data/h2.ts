@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
+import { mapSupabaseError } from '@/lib/shared/errors'
 
 export type SchedulingRules = {
   orgId: string
@@ -15,7 +16,14 @@ export async function getSchedulingRules(hotelId?: string): Promise<SchedulingRu
   if (!hotelId) return null
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.from('scheduling_rules').select('*').eq('hotel_id', hotelId).single()
-  if (error && error.code !== 'PGRST116') throw error
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    throw mapSupabaseError(error, {
+      module: 'scheduling',
+      operation: 'getSchedulingRules',
+      hotelId,
+    })
+  }
   if (!data) return null
   return {
     orgId: data.org_id,
@@ -41,7 +49,13 @@ export async function saveSchedulingRules(params: SchedulingRules) {
       enforce_two_consecutive_days_off: params.enforceTwoConsecutiveDaysOff,
       enforce_one_weekend_off_per_30d: params.enforceOneWeekendOffPer30d,
     })
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'scheduling',
+      operation: 'saveSchedulingRules',
+      hotelId: params.hotelId,
+    })
+  }
 }
 
 export async function createTimeOff(params: {
@@ -64,7 +78,14 @@ export async function createTimeOff(params: {
       notes: params.notes ?? null,
       approved: true,
     })
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'scheduling',
+      operation: 'createTimeOff',
+      orgId: params.orgId,
+      staffMemberId: params.staffMemberId,
+    })
+  }
 }
 
 export async function generateRoster(params: { hotelId: string; weekStart: string; apply?: boolean }) {
@@ -74,7 +95,14 @@ export async function generateRoster(params: { hotelId: string; weekStart: strin
     week_start: params.weekStart,
     dry_run: !(params.apply ?? false),
   })
-  if (error) throw error
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'scheduling',
+      operation: 'generateRoster',
+      hotelId: params.hotelId,
+      weekStart: params.weekStart,
+    })
+  }
   return data
 }
 

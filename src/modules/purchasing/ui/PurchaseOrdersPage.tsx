@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSupabaseSession } from '@/modules/auth/data/session'
+import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useHotels, usePurchaseOrders } from '../data/orders'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 import type { PurchaseOrderStatus } from '../domain/purchaseOrder'
 
 export function PurchaseOrdersPage() {
   const { session, loading, error } = useSupabaseSession()
-  const hotels = useHotels()
+  const { activeOrgId } = useActiveOrgId()
+  const hotels = useHotels(activeOrgId ?? undefined)
+  const { formatError } = useFormattedError()
   const [status, setStatus] = useState<PurchaseOrderStatus | ''>('')
   const [hotelId, setHotelId] = useState<string>('')
   const orders = usePurchaseOrders({
@@ -24,12 +28,15 @@ export function PurchaseOrdersPage() {
   )
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
-  if (!session || error)
+  if (!session || error) {
+    const { title, description } = formatError(error || new Error('Inicia sesión para ver pedidos.'))
     return (
-      <div className="rounded border border-white/10 bg-white/5 p-4">
-        <p className="text-sm text-red-500">Inicia sesión para ver pedidos.</p>
+      <div className="rounded border border-red-500/20 bg-red-500/10 p-4">
+        <p className="text-sm font-semibold text-red-500">{title}</p>
+        <p className="text-xs text-red-400 opacity-90">{description}</p>
       </div>
     )
+  }
 
   return (
     <div className="space-y-4 animate-fade-in">

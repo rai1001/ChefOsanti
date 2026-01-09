@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 interface UniversalImporterProps {
     isOpen: boolean
@@ -12,8 +13,9 @@ export function UniversalImporter({ isOpen, onClose, onImport, title, fields }: 
     const [file, setFile] = useState<File | null>(null)
     const [preview, setPreview] = useState<any[]>([])
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState<{ title: string; description: string } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const { formatError } = useFormattedError()
 
     if (!isOpen) return null
 
@@ -48,7 +50,8 @@ export function UniversalImporter({ isOpen, onClose, onImport, title, fields }: 
                 const data = parseCSV(text)
                 setPreview(data.slice(0, 5))
             } catch (err) {
-                setError('Error al leer el archivo. Asegúrate de que sea un CSV válido.')
+                const { title, description } = formatError(err || new Error('Error al leer el archivo. Asegúrate de que sea un CSV válido.'))
+                setError({ title, description })
             }
         }
         reader.readAsText(selectedFile)
@@ -66,8 +69,10 @@ export function UniversalImporter({ isOpen, onClose, onImport, title, fields }: 
                 const data = parseCSV(text)
                 await onImport(data)
                 onClose()
+                onClose()
             } catch (err: any) {
-                setError(err.message || 'Error al importar datos.')
+                const { title, description } = formatError(err)
+                setError({ title, description })
             } finally {
                 setLoading(false)
             }
@@ -134,7 +139,8 @@ export function UniversalImporter({ isOpen, onClose, onImport, title, fields }: 
 
                     {error && (
                         <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-                            {error}
+                            <span className="font-bold block">{error.title}</span>
+                            <span>{error.description}</span>
                         </div>
                     )}
 
