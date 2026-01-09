@@ -4,7 +4,6 @@ import { useCreateProduct, useProducts } from '../data/products'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
-import { useQueryClient } from '@tanstack/react-query'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 export default function ProductsPage() {
@@ -16,7 +15,7 @@ export default function ProductsPage() {
   const { role } = useCurrentRole()
   const canWrite = can(role, 'recipes:write')
   const [isImporterOpen, setIsImporterOpen] = useState(false)
-  const queryClient = useQueryClient()
+  // queryClient removed
   const formattedError = useFormattedError(error)
   const createError = useFormattedError(createProduct.error)
 
@@ -132,21 +131,11 @@ export default function ProductsPage() {
         isOpen={isImporterOpen}
         onClose={() => setIsImporterOpen(false)}
         title="Productos"
+        entity="products"
         fields={[
           { key: 'name', label: 'Nombre' },
           { key: 'baseUnit', label: 'Unidad (kg/ud)', transform: (val) => (val === 'kg' ? 'kg' : 'ud') },
         ]}
-        onImport={async (data) => {
-          for (const item of data) {
-            if (item.name) {
-              await createProduct.mutateAsync({
-                name: item.name,
-                baseUnit: item.baseUnit === 'kg' ? 'kg' : 'ud',
-              })
-            }
-          }
-          queryClient.invalidateQueries({ queryKey: ['products', activeOrgId] })
-        }}
       />
     </div>
   )

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Printer, Mail } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -14,6 +15,7 @@ import {
   useSuppliersLite,
   useUpdatePurchaseOrderStatus,
 } from '../data/orders'
+import { ApprovalActions } from './ApprovalActions'
 import type { PurchaseUnit, RoundingRule } from '../domain/types'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
@@ -121,6 +123,21 @@ export default function PurchaseOrderDetailPage() {
     await purchaseOrder.refetch()
   }
 
+  const handleEmailExport = () => {
+    if (!purchaseOrder.data) return
+    const order = purchaseOrder.data.order
+    const lines = purchaseOrder.data.lines
+    const subject = `Pedido ${order.orderNumber} - ${supplierName}`
+    const body = `Resumen del pedido:\n\n` +
+      `Número: ${order.orderNumber}\n` +
+      `Proveedor: ${supplierName}\n` +
+      `Total estimado: €${order.totalEstimated?.toFixed(2)}\n\n` +
+      `Líneas:\n` +
+      lines.map(l => `- ${ingredientMap[l.ingredientId] || l.ingredientId}: ${l.requestedQty} ${l.purchaseUnit}`).join('\n')
+
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  }
+
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
   if (!session || error) {
     return (
@@ -154,7 +171,7 @@ export default function PurchaseOrderDetailPage() {
           </h1>
           <p className="text-sm text-slate-400">Estado: {order?.status}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 print:hidden">
           {isDraft && (
             <button
               className="rounded-md bg-nano-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 hover:bg-nano-blue-500 transition-colors"
@@ -165,8 +182,30 @@ export default function PurchaseOrderDetailPage() {
               Confirmar
             </button>
           )}
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            <span className="hidden md:inline">PDF</span>
+          </button>
+          <button
+            onClick={handleEmailExport}
+            className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
+          >
+            <Mail className="w-4 h-4" />
+            <span className="hidden md:inline">Enviar</span>
+          </button>
         </div>
       </header>
+
+      {order && (
+        <ApprovalActions
+          entityType="purchase_order"
+          entityId={order.id}
+          currentStatus={order.approvalStatus}
+        />
+      )}
 
       <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
@@ -206,7 +245,7 @@ export default function PurchaseOrderDetailPage() {
       </section>
 
       {isDraft && (
-        <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+        <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm print:hidden">
           <h3 className="text-sm font-semibold text-white">Añadir línea</h3>
           <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmitLine)}>
             <label className="space-y-1">
@@ -335,7 +374,7 @@ export default function PurchaseOrderDetailPage() {
       )}
 
       {isConfirmed && (
-        <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+        <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm print:hidden">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-white">Recepción</h3>
             <button
@@ -354,8 +393,20 @@ export default function PurchaseOrderDetailPage() {
           )}
         </section>
       )}
+
+      <style>{`
+        @media print {
+          .print\\:hidden { display: none !important; }
+          body { background: white !important; color: black !important; padding: 0 !important; }
+          .animate-fade-in { animation: none !important; }
+          section { border: 1px solid #ddd !important; box-shadow: none !important; background: white !important; }
+          h1, h2, h3, p, span, div { color: black !important; }
+          .divide-white\\/10 > * { border-color: #eee !important; }
+          .border-white\\/10 { border-color: #eee !important; }
+          .bg-nano-navy-800\\/50 { background: white !important; }
+          .bg-nano-navy-900 { background: white !important; }
+        }
+      `}</style>
     </div>
   )
 }
-
-

@@ -7,6 +7,7 @@ import {
   useDashboardNote,
   useOrdersSummary,
   useOrdersToDeliver,
+  useStaffAvailability,
   useWeekEvents,
 } from '../data/dashboard'
 import { startOfWeek } from '../domain/week'
@@ -45,6 +46,7 @@ export default function DashboardPage() {
   const weekEvents = useWeekEvents(hotelId, weekStart)
   const ordersSummary = useOrdersSummary(activeOrgId ?? undefined, weekStart)
   const ordersToDeliver = useOrdersToDeliver(activeOrgId ?? undefined, weekStart)
+  const availability = useStaffAvailability(hotelId, isoWeekStart())
   const note = useDashboardNote(activeOrgId ?? undefined, userId ?? undefined, weekStart)
 
   useEffect(() => {
@@ -206,6 +208,15 @@ export default function DashboardPage() {
               <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Gasto Est.</div>
               <div className="text-2xl font-bold text-white mt-1">€{ordersSummary.data?.purchaseOrders.totalEstimado.toFixed(0) ?? '0'}</div>
               <div className="text-nano-orange-400 text-xs mt-1">Proyectado</div>
+            </div>
+            <div className="p-4 rounded-xl bg-nano-navy-700/50 border border-white/5 backdrop-blur-sm col-span-2 md:col-span-1">
+              <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Personal Hoy</div>
+              <div className="text-2xl font-bold text-white mt-1">
+                {availability.data?.assigned ?? 0} / {availability.data?.required ?? 0}
+              </div>
+              <div className={`text-xs mt-1 ${availability.data && availability.data.percent < 90 ? 'text-red-400' : 'text-nano-blue-400'}`}>
+                {availability.data?.percent.toFixed(0) ?? 0}% Cobertura
+              </div>
             </div>
           </div>
         </div>

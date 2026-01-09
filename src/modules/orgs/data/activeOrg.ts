@@ -103,5 +103,9 @@ export function useActiveOrgId() {
     }
   }, [memberships.data])
 
-  return { activeOrgId, loading, error, ...selector }
+  const activeOrgName = useMemo(() => {
+    return memberships.data?.find((m) => m.orgId === activeOrgId)?.orgName ?? null
+  }, [memberships.data, activeOrgId])
+
+  return { activeOrgId, activeOrgName, loading, error, ...selector }
 }

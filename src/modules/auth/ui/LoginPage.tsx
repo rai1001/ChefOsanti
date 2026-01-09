@@ -58,9 +58,9 @@ export function LoginPage() {
   return (
     <div className="mx-auto max-w-lg rounded-xl border border-white/10 bg-nano-navy-800/50 p-6 shadow-xl backdrop-blur-sm animate-fade-in">
       <div className="mb-4 space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Acceso</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Acceso Seguro</p>
         <h1 className="text-2xl font-bold text-white">Inicia sesión en ChefOS</h1>
-        <p className="text-sm text-slate-400">Autenticación con Supabase Auth (email y password).</p>
+        <p className="text-sm text-slate-400">Gestión operativa premium para hostelería.</p>
       </div>
 
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -68,22 +68,26 @@ export function LoginPage() {
           <span className="text-sm font-medium text-slate-300">Correo electrónico</span>
           <input
             type="email"
+            id="login-email"
+            autoComplete="email"
             className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white shadow-sm focus:border-nano-blue-500 focus:outline-none focus:ring-2 focus:ring-nano-blue-500/20 placeholder-slate-500 transition-colors"
             placeholder="operaciones@hotel.com"
             {...register('email')}
           />
-          {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+          {errors.email && <p id="email-error" className="text-sm text-red-500">{errors.email.message}</p>}
         </label>
 
         <label className="block space-y-1">
           <span className="text-sm font-medium text-slate-300">Contraseña</span>
           <input
             type="password"
+            id="login-password"
+            autoComplete="current-password"
             className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white shadow-sm focus:border-nano-blue-500 focus:outline-none focus:ring-2 focus:ring-nano-blue-500/20 placeholder-slate-500 transition-colors"
             placeholder="********"
             {...register('password')}
           />
-          {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+          {errors.password && <p id="password-error" className="text-sm text-red-500">{errors.password.message}</p>}
         </label>
 
         <button

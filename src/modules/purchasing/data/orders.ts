@@ -15,6 +15,8 @@ export type Ingredient = {
   stock: number
 }
 
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
+
 export type PurchaseOrder = {
   id: string
   orgId: string
@@ -24,6 +26,7 @@ export type PurchaseOrder = {
   orderNumber: string
   notes?: string | null
   totalEstimated: number
+  approvalStatus: ApprovalStatus
   createdAt: string
 }
 
@@ -66,6 +69,7 @@ function mapPurchaseOrder(row: any): PurchaseOrder {
     orderNumber: row.order_number,
     notes: row.notes,
     totalEstimated: row.total_estimated ?? 0,
+    approvalStatus: row.approval_status ?? 'pending',
     createdAt: row.created_at,
   }
 }
@@ -210,7 +214,7 @@ export async function createPurchaseOrder(params: {
       notes: params.notes ?? null,
     })
     .select(
-      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, created_at',
+      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, approval_status, created_at',
     )
     .single()
 
@@ -283,7 +287,7 @@ export async function listPurchaseOrders(
   let query = supabase
     .from('purchase_orders')
     .select(
-      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, created_at',
+      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, approval_status, created_at',
     )
     .eq('org_id', orgId)
     .order('created_at', { ascending: false })
@@ -310,7 +314,7 @@ export async function getPurchaseOrderWithLines(
   const { data: order, error: orderError } = await supabase
     .from('purchase_orders')
     .select(
-      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, created_at',
+      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, approval_status, created_at',
     )
     .eq('id', id)
     .single()

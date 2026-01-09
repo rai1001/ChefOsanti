@@ -22,7 +22,7 @@ export default function StaffPage() {
   const { role } = useCurrentRole()
   const canWrite = can(role, 'staff:write')
   const [isImporterOpen, setIsImporterOpen] = useState(false)
-  const queryClient = useQueryClient()
+  // queryClient removed
   const formattedError = useFormattedError(error)
   const createError = useFormattedError(createStaff.error)
 
@@ -258,28 +258,13 @@ export default function StaffPage() {
         isOpen={isImporterOpen}
         onClose={() => setIsImporterOpen(false)}
         title="Personal"
+        entity="staff"
         fields={[
           { key: 'fullName', label: 'Nombre Completo' },
           { key: 'role', label: 'Rol', transform: (val) => roles.includes(val as any) ? val : 'cocinero' },
           { key: 'employmentType', label: 'Tipo (fijo/eventual)', transform: (val) => types.includes(val as any) ? val : 'fijo' },
           { key: 'maxShifts', label: 'Max Turnos', transform: (val) => Number(val) || 5 },
         ]}
-        onImport={async (data) => {
-          for (const item of data) {
-            if (item.fullName) {
-              await createStaff.mutateAsync({
-                fullName: item.fullName,
-                role: item.role as StaffRole,
-                employmentType: item.employmentType as EmploymentType,
-                homeHotelId: null,
-                notes: null,
-                shiftPattern: 'rotativo',
-                maxShiftsPerWeek: item.maxShifts,
-              })
-            }
-          }
-          queryClient.invalidateQueries({ queryKey: ['staff', activeOrgId] })
-        }}
       />
     </div>
   )

@@ -9,7 +9,6 @@ import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
 import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { logger } from '@/lib/shared/logger'
 import type { Supplier } from '../domain/types'
@@ -49,7 +48,7 @@ export default function SuppliersPage() {
   }
 
   const [isImporterOpen, setIsImporterOpen] = useState(false)
-  const queryClient = useQueryClient()
+  // queryClient removed
 
   if (loading) {
     return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
@@ -188,15 +187,8 @@ export default function SuppliersPage() {
         isOpen={isImporterOpen}
         onClose={() => setIsImporterOpen(false)}
         title="Proveedores"
+        entity="suppliers"
         fields={[{ key: 'name', label: 'Nombre' }]}
-        onImport={async (data) => {
-          for (const item of data) {
-            if (item.name) {
-              await createSupplier.mutateAsync({ name: item.name })
-            }
-          }
-          queryClient.invalidateQueries({ queryKey: ['suppliers', activeOrgId] })
-        }}
       />
     </div>
   )

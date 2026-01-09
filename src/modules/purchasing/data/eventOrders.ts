@@ -20,6 +20,7 @@ export type EventPurchaseOrder = {
   eventId: string
   supplierId: string
   status: 'draft' | 'sent' | 'cancelled'
+  approvalStatus: 'pending' | 'approved' | 'rejected'
   orderNumber: string
   totalEstimated: number
   createdAt: string
@@ -44,6 +45,7 @@ function mapOrder(row: any): EventPurchaseOrder {
     eventId: row.event_id,
     supplierId: row.supplier_id,
     status: row.status,
+    approvalStatus: row.approval_status ?? 'pending',
     orderNumber: row.order_number,
     totalEstimated: row.total_estimated ?? 0,
     createdAt: row.created_at,

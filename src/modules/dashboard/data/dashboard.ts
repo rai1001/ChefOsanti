@@ -82,6 +82,12 @@ type OrdersSummary = {
   eventOrders: { total: number; totalEstimado: number; porEstado: Record<string, number> }
 }
 
+export type StaffAvailability = {
+  required: number
+  assigned: number
+  percent: number
+}
+
 async function fetchOrdersSummary(orgId: string, weekStart: string): Promise<OrdersSummary> {
   const supabase = getSupabaseClient()
   const start = startOfWeek(weekStart).toISOString()
@@ -199,6 +205,38 @@ async function fetchOrdersToDeliver(orgId: string, weekStart: string, scope: 'we
   return mapped
 }
 
+async function fetchStaffAvailability(hotelId: string, date: string): Promise<StaffAvailability> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('shifts')
+    .select('required_count, staff_assignments(count)')
+    .eq('hotel_id', hotelId)
+    .eq('shift_date', date)
+
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'dashboard',
+      operation: 'fetchStaffAvailability',
+      hotelId,
+      date,
+    })
+  }
+
+  let required = 0
+  let assigned = 0
+
+    ; (data ?? []).forEach((row: any) => {
+      required += row.required_count || 0
+      assigned += row.staff_assignments?.[0]?.count || 0
+    })
+
+  return {
+    required,
+    assigned,
+    percent: required > 0 ? (assigned / required) * 100 : 100,
+  }
+}
+
 export type DashboardNote = {
   id?: string
   orgId: string
@@ -314,4 +352,12 @@ export function useDashboardNote(orgId?: string, userId?: string, weekStart?: st
     onSuccess: (data) => qc.setQueryData(key, data),
   })
   return { ...query, save: mutation.mutateAsync, saving: mutation.isPending }
+}
+
+export function useStaffAvailability(hotelId?: string, date?: string) {
+  return useQuery({
+    queryKey: ['dashboard', 'staffAvailability', hotelId, date],
+    queryFn: () => fetchStaffAvailability(hotelId ?? '', date ?? toIsoDate(new Date())),
+    enabled: Boolean(hotelId && date),
+  })
 }

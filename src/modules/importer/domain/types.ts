@@ -1,4 +1,4 @@
-export type ImportEntity = 'suppliers' | 'supplier_items' | 'events'
+export type ImportEntity = 'suppliers' | 'supplier_items' | 'events' | 'products' | 'staff'
 export type ImportStatus = 'staged' | 'validated' | 'committed' | 'failed'
 
 export interface ImportJob {

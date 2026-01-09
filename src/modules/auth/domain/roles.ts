@@ -14,6 +14,7 @@ export type Permission =
   | 'recipes:write'
   | 'staff:read'
   | 'staff:write'
+  | 'purchasing:approve'
   | 'admin:org'
 
 const rolePermissions: Record<Role, Permission[]> = {
@@ -31,6 +32,7 @@ const rolePermissions: Record<Role, Permission[]> = {
     'recipes:write',
     'staff:read',
     'staff:write',
+    'purchasing:approve',
     'admin:org',
   ],
   manager: [

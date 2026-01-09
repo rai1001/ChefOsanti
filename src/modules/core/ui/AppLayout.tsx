@@ -4,6 +4,7 @@ import { can } from '@/modules/auth/domain/roles'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { queryClient } from '@/lib/queryClient'
+import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 
 type Props = {
   children: ReactNode
@@ -18,8 +19,11 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
   ].join(' ')
 
 export function AppLayout({ children }: Props) {
-  const { role, loading } = useCurrentRole()
+  const { role, loading: roleLoading } = useCurrentRole()
+  const { activeOrgName, loading: orgLoading } = useActiveOrgId()
   const navigate = useNavigate()
+
+  const loading = roleLoading || orgLoading
 
   const navItems: { label: string; to: string; perm?: any }[] = [
     { label: 'Dashboard', to: '/dashboard', perm: 'dashboard:read' },
@@ -70,6 +74,11 @@ export function AppLayout({ children }: Props) {
               </div>
             </div>
             <span className="text-xs text-slate-500 font-medium tracking-wider uppercase hidden sm:block">Premium</span>
+            {activeOrgName && (
+              <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-nano-blue-500/10 text-nano-blue-400 border border-nano-blue-500/20">
+                {activeOrgName}
+              </span>
+            )}
           </div>
 
           <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 mask-linear-fade">
@@ -89,7 +98,8 @@ export function AppLayout({ children }: Props) {
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-400 hover:text-red-400 transition-colors hover:bg-red-500/10"
+              aria-label="Cerrar sesión"
+              className="rounded-md px-3 py-2 text-sm font-medium text-slate-400 hover:text-red-400 transition-colors hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-500/20"
             >
               Salir
             </button>
