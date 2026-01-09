@@ -63,16 +63,19 @@ function mapLine(row: any): EventPurchaseOrderLine {
   }
 }
 
-export async function listEventOrders(): Promise<EventPurchaseOrder[]> {
+export async function listEventOrders(orgId: string): Promise<EventPurchaseOrder[]> {
+  if (!orgId) throw new Error('OrgId requerido')
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('event_purchase_orders')
     .select('*')
+    .eq('org_id', orgId)
     .order('created_at', { ascending: false })
   if (error) {
     throw mapSupabaseError(error, {
       module: 'purchasing',
       operation: 'listEventOrders',
+      orgId,
     })
   }
   return data?.map(mapOrder) ?? []
@@ -95,8 +98,12 @@ export async function getEventOrder(orderId: string): Promise<{ order: EventPurc
   return { order: mapOrder(data), lines: (data.event_purchase_order_lines ?? []).map(mapLine) }
 }
 
-export function useEventOrders() {
-  return useQuery({ queryKey: ['event_orders'], queryFn: listEventOrders })
+export function useEventOrders(orgId: string | undefined) {
+  return useQuery({
+    queryKey: ['event_orders', orgId],
+    queryFn: () => listEventOrders(orgId!),
+    enabled: Boolean(orgId),
+  })
 }
 
 export function useEventOrder(orderId: string | undefined) {

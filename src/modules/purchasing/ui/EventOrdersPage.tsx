@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useSupabaseSession } from '@/modules/auth/data/session'
+import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useEventOrders } from '../data/eventOrders'
 import { useSuppliers } from '../data/suppliers'
 
 export default function EventOrdersPage() {
   const { session, loading, error } = useSupabaseSession()
-  const orders = useEventOrders()
-  const suppliers = useSuppliers()
+  const { activeOrgId } = useActiveOrgId()
+  const orders = useEventOrders(activeOrgId ?? undefined)
+  const suppliers = useSuppliers(activeOrgId ?? undefined)
 
   const supplierMap =
     suppliers.data?.reduce<Record<string, string>>((acc, s) => {

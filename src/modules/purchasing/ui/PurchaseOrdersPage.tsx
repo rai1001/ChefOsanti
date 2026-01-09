@@ -13,7 +13,7 @@ export default function PurchaseOrdersPage() {
   const sessionError = useFormattedError(error)
   const [status, setStatus] = useState<PurchaseOrderStatus | ''>('')
   const [hotelId, setHotelId] = useState<string>('')
-  const orders = usePurchaseOrders({
+  const orders = usePurchaseOrders(activeOrgId ?? undefined, {
     status: status || undefined,
     hotelId: hotelId || undefined,
   })

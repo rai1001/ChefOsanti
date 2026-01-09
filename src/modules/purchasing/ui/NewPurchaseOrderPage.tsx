@@ -20,7 +20,7 @@ export default function NewPurchaseOrderPage() {
   const { session, loading, error } = useSupabaseSession()
   const { activeOrgId } = useActiveOrgId()
   const hotels = useHotels(activeOrgId ?? undefined)
-  const suppliers = useSuppliersLite()
+  const suppliers = useSuppliersLite(activeOrgId ?? undefined)
   const createOrder = useCreatePurchaseOrder()
   const navigate = useNavigate()
 

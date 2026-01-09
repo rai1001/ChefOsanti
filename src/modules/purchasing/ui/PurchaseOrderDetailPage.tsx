@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useSupabaseSession } from '@/modules/auth/data/session'
+import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import {
   useAddPurchaseOrderLine,
   useIngredients,
@@ -41,8 +42,9 @@ type LineForm = z.infer<typeof lineSchema>
 export default function PurchaseOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { session, loading, error } = useSupabaseSession()
+  const { activeOrgId } = useActiveOrgId()
   const purchaseOrder = usePurchaseOrder(id)
-  const suppliers = useSuppliersLite()
+  const suppliers = useSuppliersLite(activeOrgId ?? undefined)
   const supplierId = purchaseOrder.data?.order.supplierId
   const supplierItems = useSupplierItemsList(supplierId)
   const ingredients = useIngredients(purchaseOrder.data?.order.hotelId)

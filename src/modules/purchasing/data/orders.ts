@@ -133,14 +133,16 @@ export async function listIngredients(orgId: string, hotelId?: string): Promise<
   return data?.map(mapIngredient) ?? []
 }
 
-export async function listSuppliers(): Promise<Supplier[]> {
+export async function listSuppliers(orgId: string): Promise<Supplier[]> {
+  if (!orgId) throw new Error('OrgId requerido')
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('suppliers')
     .select('id, org_id, name, created_at')
+    .eq('org_id', orgId)
     .order('name')
   if (error) {
-    throw mapSupabaseError(error, { module: 'purchasing', operation: 'listSuppliers' })
+    throw mapSupabaseError(error, { module: 'purchasing', operation: 'listSuppliers', orgId })
   }
   return (
     data?.map((row) => ({
@@ -269,23 +271,28 @@ export async function addPurchaseOrderLine(params: {
   return mapPurchaseOrderLine(data)
 }
 
-export async function listPurchaseOrders(filters?: {
-  status?: PurchaseOrderStatus
-  hotelId?: string
-}): Promise<PurchaseOrder[]> {
+export async function listPurchaseOrders(
+  orgId: string,
+  filters?: {
+    status?: PurchaseOrderStatus
+    hotelId?: string
+  },
+): Promise<PurchaseOrder[]> {
+  if (!orgId) throw new Error('OrgId requerido')
   const supabase = getSupabaseClient()
   let query = supabase
     .from('purchase_orders')
     .select(
       'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, created_at',
     )
+    .eq('org_id', orgId)
     .order('created_at', { ascending: false })
   if (filters?.status) query = query.eq('status', filters.status)
   if (filters?.hotelId) query = query.eq('hotel_id', filters.hotelId)
   const { data, error } = await query
 
   if (error) {
-    throw mapSupabaseError(error, { module: 'purchasing', operation: 'listPurchaseOrders' })
+    throw mapSupabaseError(error, { module: 'purchasing', operation: 'listPurchaseOrders', orgId })
   }
   return data?.map(mapPurchaseOrder) ?? []
 }
@@ -402,8 +409,12 @@ export function useIngredients(orgId: string | undefined, hotelId?: string) {
   })
 }
 
-export function useSuppliersLite() {
-  return useQuery({ queryKey: ['suppliers-lite'], queryFn: listSuppliers })
+export function useSuppliersLite(orgId: string | undefined) {
+  return useQuery({
+    queryKey: ['suppliers-lite', orgId],
+    queryFn: () => listSuppliers(orgId!),
+    enabled: Boolean(orgId),
+  })
 }
 
 export function useSupplierItemsList(supplierId: string | undefined) {
@@ -417,10 +428,14 @@ export function useSupplierItemsList(supplierId: string | undefined) {
   })
 }
 
-export function usePurchaseOrders(filters?: { status?: PurchaseOrderStatus; hotelId?: string }) {
+export function usePurchaseOrders(
+  orgId: string | undefined,
+  filters?: { status?: PurchaseOrderStatus; hotelId?: string },
+) {
   return useQuery({
-    queryKey: ['purchase_orders', filters],
-    queryFn: () => listPurchaseOrders(filters),
+    queryKey: ['purchase_orders', orgId, filters],
+    queryFn: () => listPurchaseOrders(orgId!, filters),
+    enabled: Boolean(orgId),
   })
 }
 
