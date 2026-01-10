@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider } from 'react-router-dom'
 import './index.css'
 import { ErrorBoundary } from './modules/shared/ui/ErrorBoundary'
+import { Toaster } from './modules/shared/ui/Toast'
 import { queryClient } from './lib/queryClient'
 import { supabaseClient } from './lib/supabaseClient'
 import { appRouter } from './router'
@@ -19,6 +20,7 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary module="Main">
         <RouterProvider router={appRouter} />
+        <Toaster />
       </ErrorBoundary>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ClipboardList } from 'lucide-react'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useHotels, usePurchaseOrders } from '../data/orders'
@@ -103,7 +105,21 @@ export default function PurchaseOrdersPage() {
               </Link>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-400 italic">No hay pedidos.</p>
+            <div className="py-8">
+              <EmptyState
+                icon={ClipboardList}
+                title="Sin pedidos"
+                description="Crea pedidos de compra para reponer tu stock."
+                action={
+                  <Link
+                    to="/purchasing/orders/new"
+                    className="text-sm font-semibold text-nano-blue-400 hover:text-nano-blue-300 underline"
+                  >
+                    Crear pedido
+                  </Link>
+                }
+              />
+            </div>
           )}
         </div>
       </div>

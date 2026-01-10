@@ -4,6 +4,10 @@ import { useCreateProduct, useProducts } from '../data/products'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
+import { Package } from 'lucide-react'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
+import { FormField } from '@/modules/shared/ui/FormField'
+import { toast } from '@/modules/shared/ui/Toast'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 export default function ProductsPage() {
@@ -32,9 +36,14 @@ export default function ProductsPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !canWrite) return
-    await createProduct.mutateAsync({ name: name.trim(), baseUnit })
-    setName('')
-    setBaseUnit('ud')
+    try {
+      await createProduct.mutateAsync({ name: name.trim(), baseUnit })
+      toast.success('Producto creado')
+      setName('')
+      setBaseUnit('ud')
+    } catch (e) {
+      toast.error('Error al crear producto')
+    }
   }
 
 
@@ -65,21 +74,21 @@ export default function ProductsPage() {
         {!canWrite && <p className="text-xs text-slate-500">Sin permisos para crear.</p>}
         <form className="mt-3 flex flex-col gap-2 md:flex-row md:items-end" onSubmit={onSubmit}>
           <div className="flex flex-col flex-1">
-            <label className="text-xs font-semibold text-slate-300" htmlFor="product-name">Nombre</label>
-            <input
+            <FormField
               id="product-name"
-              className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              label="Nombre"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={!canWrite}
               placeholder="Nombre del producto"
+              className="bg-nano-navy-900 border-white/10 focus:border-nano-blue-500 text-white"
             />
           </div>
           <div className="flex flex-col w-32">
-            <label className="text-xs font-semibold text-slate-300" htmlFor="product-unit">Unidad base</label>
+            <label className="text-xs font-semibold text-slate-300 mb-1.5" htmlFor="product-unit">Unidad base</label>
             <select
               id="product-unit"
-              className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              className="h-10 w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               value={baseUnit}
               onChange={(e) => setBaseUnit(e.target.value as 'kg' | 'ud')}
               disabled={!canWrite}
@@ -90,7 +99,7 @@ export default function ProductsPage() {
           </div>
           <button
             type="submit"
-            className="rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={createProduct.isPending || !canWrite}
             title={!canWrite ? 'Sin permisos' : undefined}
           >
@@ -122,7 +131,21 @@ export default function ProductsPage() {
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-400 italic">Sin productos.</p>
+            <div className="py-8">
+              <EmptyState
+                icon={Package}
+                title="Sin productos"
+                description="Crea productos base o impórtalos para usarlos en tus recetas."
+                action={
+                  <button
+                    onClick={() => setIsImporterOpen(true)}
+                    className="text-sm font-semibold text-nano-blue-400 hover:text-nano-blue-300 underline"
+                  >
+                    Importar productos
+                  </button>
+                }
+              />
+            </div>
           )}
         </div>
       </div>

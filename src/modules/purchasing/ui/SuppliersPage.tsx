@@ -7,6 +7,10 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateSupplier, useSuppliersInfinite } from '../data/suppliers'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
+import { Truck } from 'lucide-react'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
+import { FormField } from '@/modules/shared/ui/FormField'
+import { toast } from '@/modules/shared/ui/Toast' // Ensure this path is correct
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
 import { useState } from 'react'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
@@ -42,9 +46,11 @@ export default function SuppliersPage() {
   const onSubmit = async (values: SupplierForm) => {
     try {
       await createSupplier.mutateAsync(values)
+      toast.success('Proveedor creado correctamente')
       reset()
     } catch (e) {
       logger.error('Error al crear proveedor', e, { orgId: activeOrgId ?? undefined })
+      toast.error('Error al crear proveedor')
     }
   }
 
@@ -132,9 +138,23 @@ export default function SuppliersPage() {
                   </Link>
                 ))
             ) : (
-              <p className="px-4 py-6 text-sm text-slate-400 italic">
-                No hay proveedores registrados todavía.
-              </p>
+              <div className="py-8">
+                <EmptyState
+                  icon={Truck}
+                  title="Sin proveedores"
+                  description="Registra tus proveedores para gestionar pedidos y stock."
+                  action={
+                    canWrite ? (
+                      <button
+                        onClick={() => setIsImporterOpen(true)}
+                        className="text-sm font-semibold text-nano-blue-400 hover:text-nano-blue-300 underline"
+                      >
+                        Importar proveedores
+                      </button>
+                    ) : undefined
+                  }
+                />
+              </div>
             )}
           </div>
           {suppliers.hasNextPage && (
@@ -154,16 +174,17 @@ export default function SuppliersPage() {
           <h3 className="text-sm font-semibold text-white">Nuevo proveedor</h3>
           {!canWrite && <p className="text-xs text-slate-500">Sin permisos para crear.</p>}
           <form className="mt-3 space-y-3" onSubmit={handleSubmit(onSubmit)}>
-            <label className="block space-y-1">
-              <span className="text-sm font-medium text-slate-300">Nombre</span>
-              <input
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+            <div className="space-y-1">
+              <FormField
+                id="supplier-name"
+                label="Nombre"
                 placeholder="Proveedor mayorista"
+                className="bg-nano-navy-900 border-white/10 focus:border-nano-blue-500 text-white"
+                error={errors.name}
                 {...register('name')}
                 disabled={!canWrite}
               />
-              {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-            </label>
+            </div>
             {createError && (
               <div className="rounded-md bg-red-500/10 p-2">
                 <p className="text-xs font-medium text-red-400">Error</p>

@@ -2,21 +2,33 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
 import { vi, describe, it, expect } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const createTestQueryClient = () => new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: false,
+        },
+    },
+})
 
 describe('UniversalImporter Integration', () => {
     it('parses CSV and shows preview', async () => {
         const onImport = vi.fn()
         const onClose = vi.fn()
         const user = userEvent.setup()
+        const queryClient = createTestQueryClient()
 
         render(
-            <UniversalImporter
-                isOpen={true}
-                onClose={onClose}
-                onImport={onImport}
-                title="Test Import"
-                fields={[{ key: 'name', label: 'Name' }]}
-            />
+            <QueryClientProvider client={queryClient}>
+                <UniversalImporter
+                    isOpen={true}
+                    onClose={onClose}
+                    onImport={onImport}
+                    title="Test Import"
+                    fields={[{ key: 'name', label: 'Name' }]}
+                />
+            </QueryClientProvider>
         )
 
         const file = new File(['Name\nItem 1\nItem 2'], 'test.csv', { type: 'text/csv' })
@@ -34,15 +46,18 @@ describe('UniversalImporter Integration', () => {
         const onImport = vi.fn()
         const onClose = vi.fn()
         const user = userEvent.setup()
+        const queryClient = createTestQueryClient()
 
         render(
-            <UniversalImporter
-                isOpen={true}
-                onClose={onClose}
-                onImport={onImport}
-                title="Test Import"
-                fields={[{ key: 'name', label: 'Name' }]}
-            />
+            <QueryClientProvider client={queryClient}>
+                <UniversalImporter
+                    isOpen={true}
+                    onClose={onClose}
+                    onImport={onImport}
+                    title="Test Import"
+                    fields={[{ key: 'name', label: 'Name' }]}
+                />
+            </QueryClientProvider>
         )
 
         const file = new File(['Name\nItem A'], 'test.csv', { type: 'text/csv' })
@@ -66,6 +81,7 @@ describe('UniversalImporter Integration', () => {
         const onImport = vi.fn()
         const onClose = vi.fn()
         const user = userEvent.setup()
+        const queryClient = createTestQueryClient()
 
         // Mock Papa.parse implementation locally? 
         // No, we rely on real PapaParse. If we feed it garbage, it might still parse depending on config.
@@ -76,13 +92,15 @@ describe('UniversalImporter Integration', () => {
         onImport.mockRejectedValue(new Error('Import failed'))
 
         render(
-            <UniversalImporter
-                isOpen={true}
-                onClose={onClose}
-                onImport={onImport}
-                title="Test Import"
-                fields={[{ key: 'name', label: 'Name' }]}
-            />
+            <QueryClientProvider client={queryClient}>
+                <UniversalImporter
+                    isOpen={true}
+                    onClose={onClose}
+                    onImport={onImport}
+                    title="Test Import"
+                    fields={[{ key: 'name', label: 'Name' }]}
+                />
+            </QueryClientProvider>
         )
 
         const file = new File(['Name\nItem B'], 'test.csv', { type: 'text/csv' })

@@ -39,9 +39,17 @@ test('R1: productos y recetas basicos', async ({ page }) => {
 
   await page.goto('/recipes')
   await expect(page.getByRole('heading', { name: /Recetas por organizacion/i })).toBeVisible()
+
+  // Verify EmptyState
+  await expect(page.getByText('Sin recetas')).toBeVisible()
+  await expect(page.getByText('Crea tu primera receta')).toBeVisible()
+
   await page.getByLabel('Nombre').fill(recipeName)
   await page.getByLabel('Raciones base').fill('10')
   await page.getByRole('button', { name: 'Crear' }).click()
+
+  // Verify Toast
+  await expect(page.getByText('Receta creada correctamente')).toBeVisible()
 
   const recipeLink = page.getByRole('link', { name: recipeName })
   await expect(recipeLink).toBeVisible({ timeout: 15000 })

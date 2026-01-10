@@ -7,6 +7,7 @@ import { computeRecipeNeeds } from '../domain/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
+import { toast } from '@/modules/shared/ui/Toast'
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -65,10 +66,15 @@ export default function RecipeDetailPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!productId || qty <= 0 || !canWrite) return
-    await addLine.mutateAsync({ productId, qty, unit })
-    setProductId('')
-    setQty(0)
-    setUnit('ud')
+    try {
+      await addLine.mutateAsync({ productId, qty, unit })
+      toast.success('Ingrediente añadido')
+      setProductId('')
+      setQty(0)
+      setUnit('ud')
+    } catch {
+      toast.error('Error al añadir ingrediente')
+    }
   }
 
   return (
@@ -98,9 +104,17 @@ export default function RecipeDetailPage() {
                 </div>
                 <button
                   className="text-xs font-semibold text-red-400 hover:text-red-300 transition-colors disabled:text-slate-600"
-                  onClick={() => l.id && canWrite && removeLine.mutate(l.id)}
+                  onClick={async () => {
+                    if (!l.id || !canWrite) return
+                    try {
+                      await removeLine.mutateAsync(l.id)
+                      toast.success('Ingrediente eliminado')
+                    } catch {
+                      toast.error('Error al eliminar')
+                    }
+                  }}
                   aria-label={`Eliminar ${l.productName ?? l.productId}`}
-                  disabled={!canWrite}
+                  disabled={!canWrite || removeLine.isPending}
                 >
                   Borrar
                 </button>

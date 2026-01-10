@@ -4,6 +4,10 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateRecipe, useRecipes } from '../data/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
+import { ChefHat } from 'lucide-react'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
+import { FormField } from '@/modules/shared/ui/FormField'
+import { toast } from '@/modules/shared/ui/Toast'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 export default function RecipesPage() {
@@ -30,9 +34,14 @@ export default function RecipesPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || servings <= 0 || !canWrite) return
-    await createRecipe.mutateAsync({ name: name.trim(), defaultServings: servings })
-    setName('')
-    setServings(10)
+    try {
+      await createRecipe.mutateAsync({ name: name.trim(), defaultServings: servings })
+      toast.success('Receta creada correctamente')
+      setName('')
+      setServings(10)
+    } catch (e) {
+      toast.error('Error al crear la receta')
+    }
   }
 
   return (
@@ -48,25 +57,25 @@ export default function RecipesPage() {
         {!canWrite && <p className="text-xs text-slate-500">Sin permisos para crear.</p>}
         <form className="mt-3 flex flex-col gap-2 md:flex-row md:items-end" onSubmit={onSubmit}>
           <div className="flex flex-col flex-1">
-            <label className="text-xs font-semibold text-slate-300" htmlFor="recipe-name">Nombre</label>
-            <input
+            <FormField
               id="recipe-name"
-              className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              label="Nombre"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={!canWrite}
               placeholder="Nombre de la receta"
+              className="bg-nano-navy-900 border-white/10 focus:border-nano-blue-500 text-white"
             />
           </div>
           <div className="flex flex-col w-32">
-            <label className="text-xs font-semibold text-slate-300" htmlFor="recipe-servings">Raciones base</label>
-            <input
+            <FormField
               id="recipe-servings"
+              label="Raciones base"
               type="number"
-              className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
               value={servings}
               onChange={(e) => setServings(Number(e.target.value) || 0)}
               disabled={!canWrite}
+              className="bg-nano-navy-900 border-white/10 focus:border-nano-blue-500 text-white"
             />
           </div>
           <button
@@ -106,7 +115,13 @@ export default function RecipesPage() {
               </Link>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-400 italic">Sin recetas.</p>
+            <div className="py-8">
+              <EmptyState
+                icon={ChefHat}
+                title="Sin recetas"
+                description="Crea tu primera receta para empezar a calcular costes."
+              />
+            </div>
           )}
         </div>
       </div>

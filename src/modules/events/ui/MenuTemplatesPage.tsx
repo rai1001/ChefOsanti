@@ -6,6 +6,10 @@ import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateMenuTemplate, useMenuTemplates } from '../data/menus'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
+import { FileText } from 'lucide-react'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
+import { FormField } from '@/modules/shared/ui/FormField'
+import { toast } from '@/modules/shared/ui/Toast' // Ensure correct path
 import { can } from '@/modules/auth/domain/roles'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
@@ -35,7 +39,12 @@ export default function MenuTemplatesPage() {
 
   const onSubmit = async (values: Form) => {
     if (!activeOrgId) return
-    await create.mutateAsync({ ...values, orgId: activeOrgId })
+    try {
+      await create.mutateAsync({ ...values, orgId: activeOrgId })
+      toast.success('Plantilla creada correctamente')
+    } catch {
+      toast.error('Error al crear plantilla')
+    }
   }
 
   if (loading || orgLoading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
@@ -62,20 +71,21 @@ export default function MenuTemplatesPage() {
       <div className="rounded-2xl glass-panel p-6 shadow-xl">
         <h2 className="text-lg font-semibold text-white mb-4">Crear plantilla</h2>
         <form className="grid gap-4 md:grid-cols-3" onSubmit={handleSubmit(onSubmit)}>
-          <label className="space-y-1.5 md:col-span-1">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nombre</span>
-            <input
-              className="w-full rounded-lg border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-nano-blue-500 focus:outline-none focus:ring-1 focus:ring-nano-blue-500/50"
+          <div className="md:col-span-1">
+            <FormField
+              id="template-name"
+              label="Nombre"
+              placeholder="Ej. Menú Boda"
+              error={errors.name}
               {...register('name')}
               disabled={!canWrite}
-              placeholder="Ej. Menú Boda"
+              className="bg-nano-navy-900 border-white/10 focus:border-nano-blue-500 text-white"
             />
-            {errors.name && <p className="text-xs text-red-400">{errors.name.message}</p>}
-          </label>
+          </div>
           <label className="space-y-1.5 md:col-span-1">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Categoría</span>
+            <span className="text-sm font-medium text-slate-700">Categoría</span>
             <select
-              className="w-full rounded-lg border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 focus:outline-none"
+              className="w-full h-10 rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 focus:outline-none"
               {...register('category')}
               disabled={!canWrite}
             >
@@ -88,15 +98,16 @@ export default function MenuTemplatesPage() {
             </select>
             {errors.category && <p className="text-xs text-red-400">{errors.category.message}</p>}
           </label>
-          <label className="space-y-1.5 md:col-span-1">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Notas</span>
-            <input
-              className="w-full rounded-lg border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-nano-blue-500 focus:outline-none"
+          <div className="md:col-span-1">
+            <FormField
+              id="template-notes"
+              label="Notas"
+              placeholder="Opcional"
               {...register('notes')}
               disabled={!canWrite}
-              placeholder="Opcional"
+              className="bg-nano-navy-900 border-white/10 focus:border-nano-blue-500 text-white"
             />
-          </label>
+          </div>
           <div className="md:col-span-3 pt-2">
             <button
               type="submit"
@@ -137,8 +148,12 @@ export default function MenuTemplatesPage() {
           </Link>
         ))}
         {!templates.data?.length && (
-          <div className="col-span-full py-12 text-center">
-            <p className="text-slate-500 italic">Aún no hay plantillas creadas.</p>
+          <div className="col-span-full py-12">
+            <EmptyState
+              icon={FileText}
+              title="Sin plantillas"
+              description="Crea plantillas de menú para agilizar la planificación de eventos."
+            />
           </div>
         )}
       </div>

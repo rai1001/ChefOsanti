@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Package } from 'lucide-react'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useHotels, useIngredients } from '../data/orders'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
@@ -60,7 +62,13 @@ export default function StockPage() {
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-400 italic">Selecciona hotel para ver stock.</p>
+            <div className="py-8">
+              <EmptyState
+                icon={Package}
+                title="Selecciona un hotel"
+                description="Elige un hotel en el selector superior para ver su inventario."
+              />
+            </div>
           )}
         </div>
       </div>

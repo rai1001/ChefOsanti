@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { detectOverlaps } from '../domain/event'
 import { useBookingsByHotel, useCreateSpace, useHotels, useSpaces } from '../data/events'
+import { CalendarOff } from 'lucide-react'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
+import { toast } from '@/modules/shared/ui/Toast'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 
 function toISO(dateStr: string, daysToAdd = 0) {
@@ -108,15 +111,20 @@ export default function EventsBoardPage() {
           if (!hotelId || !spaceName) return
           const selectedHotel = hotels.data?.find((h) => h.id === hotelId)
           const capNumber = spaceCapacity ? Number(spaceCapacity) : null
-          await createSpace.mutateAsync({
-            hotelId,
-            orgId: selectedHotel?.orgId ?? '',
-            name: spaceName,
-            capacity: Number.isFinite(capNumber) ? capNumber : null,
-            notes: null,
-          })
-          setSpaceName('')
-          setSpaceCapacity('')
+          try {
+            await createSpace.mutateAsync({
+              hotelId,
+              orgId: selectedHotel?.orgId ?? '',
+              name: spaceName,
+              capacity: Number.isFinite(capNumber) ? capNumber : null,
+              notes: null,
+            })
+            toast.success('Salón creado correctamente')
+            setSpaceName('')
+            setSpaceCapacity('')
+          } catch (e) {
+            toast.error('Error al crear salón')
+          }
         }}
       >
         <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Nuevo salón</span>
@@ -185,7 +193,14 @@ export default function EventsBoardPage() {
                     )
                   })
                 ) : (
-                  <p className="text-xs text-slate-600 italic pl-1">Sin reservas en el rango.</p>
+                  <div className="py-2">
+                    <EmptyState
+                      icon={CalendarOff}
+                      title="Sin reservas"
+                      description="No hay eventos programados en este rango."
+                      compact
+                    />
+                  </div>
                 )}
               </div>
             </div>
