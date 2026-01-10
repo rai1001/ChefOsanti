@@ -66,7 +66,7 @@ export async function generateReportData(orgId: string, type: ReportType, refere
     // 2. Fetch Data (Parallel)
     const [
         currEvents, currPurchasing, currStaff, currWaste,
-        prevEvents, prevPurchasing, prevStaff, prevWaste
+        prevEvents, prevPurchasing, prevStaff
     ] = await Promise.all([
         repo.getEventsMetrics(orgId, { start, end }),
         repo.getPurchasingMetrics(orgId, { start, end }),
@@ -75,7 +75,6 @@ export async function generateReportData(orgId: string, type: ReportType, refere
         repo.getEventsMetrics(orgId, { start: prevStart, end: prevEnd }),
         repo.getPurchasingMetrics(orgId, { start: prevStart, end: prevEnd }),
         repo.getStaffMetrics(orgId, { start: prevStart, end: prevEnd }),
-        repo.getWasteMetrics(orgId, { start: prevStart, end: prevEnd }),
     ]);
 
     // 3. Trends
