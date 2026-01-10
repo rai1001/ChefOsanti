@@ -25,6 +25,11 @@ export interface ReportKPIs {
         total_loss: number;
         items_count: number;
     };
+    trends?: {
+        events_growth_pct: number;
+        spend_growth_pct: number;
+        labor_hours_growth_pct: number;
+    };
 }
 
 export interface GeneratedReport {
