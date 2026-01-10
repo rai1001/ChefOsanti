@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from 'vitest'
-import { WasteEntry } from '../../domain/types'
+import type { WasteEntry } from './types'
 
 // Replicating the logic from WasteStats for testing purposes since it's embedded in the component.
 // Ideally, this logic should be extracted to a domain function, but for MVP we test the logic here or refactor.

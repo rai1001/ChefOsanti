@@ -3,8 +3,9 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/modules/shared/ui/Button'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
-import { useActiveOrgId } from '@/modules/shared/auth/useActiveOrgId'
-import { useWasteEntries, WasteFilters as Filters } from '@/modules/waste/data/wasteEntries'
+import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
+import type { WasteFilters as Filters } from '@/modules/waste/data/wasteEntries'
+import { useWasteEntries } from '@/modules/waste/data/wasteEntries'
 import { Spinner } from '@/modules/shared/ui/Spinner'
 import { WasteTable } from './components/WasteTable'
 import { WasteFilters } from './components/WasteFilters'
@@ -12,11 +13,11 @@ import { CreateWasteDialog } from './components/CreateWasteDialog'
 import { WasteStats } from './components/WasteStats'
 
 export default function WastePage() {
-    const orgId = useActiveOrgId()
+    const { activeOrgId } = useActiveOrgId()
     const [filters, setFilters] = useState<Filters>({})
     const [isCreateOpen, setIsCreateOpen] = useState(false)
 
-    const { data: entries, isLoading } = useWasteEntries(orgId, filters)
+    const { data: entries, isLoading } = useWasteEntries(activeOrgId ?? undefined, filters)
 
     const handleCreate = () => {
         setIsCreateOpen(true)
@@ -39,7 +40,7 @@ export default function WastePage() {
                 </Button>
             </div>
 
-            <WasteFilters filters={filters} onChange={setFilters} orgId={orgId!} />
+            <WasteFilters filters={filters} onChange={setFilters} orgId={activeOrgId!} />
 
             {hasEntries && <WasteStats entries={entries!} />}
 
@@ -47,8 +48,11 @@ export default function WastePage() {
                 <EmptyState
                     title="No hay mermas registradas"
                     description="Comienza registrando las pérdidas para llevar un control de costes."
-                    actionLabel="Registrar primera merma"
-                    onAction={handleCreate}
+                    action={
+                        <Button onClick={handleCreate}>
+                            Registrar primera merma
+                        </Button>
+                    }
                 />
             ) : !hasEntries && hasFilters ? (
                 <div className="text-center py-10 text-muted-foreground border border-dashed border-white/10 rounded-xl bg-nano-navy-800/30">

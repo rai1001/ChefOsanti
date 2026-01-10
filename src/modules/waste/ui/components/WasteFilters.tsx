@@ -1,6 +1,5 @@
 
-import { useForm } from 'react-hook-form'
-import { Search, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Card } from '@/modules/shared/ui/Card'
 import { Button } from '@/modules/shared/ui/Button'
 import { useWasteReasons } from '../../data/wasteReasons'

@@ -1,17 +1,17 @@
 
-import { WasteEntry } from '../../domain/types'
+import type { WasteEntry } from '../../domain/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shared/ui/Card'
 import { formatCurrency } from '@/lib/utils'
 import { useWasteReasons } from '../../data/wasteReasons'
-import { useActiveOrgId } from '@/modules/shared/auth/useActiveOrgId'
+import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 
 interface Props {
     entries: WasteEntry[]
 }
 
 export function WasteStats({ entries }: Props) {
-    const orgId = useActiveOrgId()
-    const { data: reasons } = useWasteReasons(orgId)
+    const { activeOrgId } = useActiveOrgId()
+    const { data: reasons } = useWasteReasons(activeOrgId ?? undefined)
 
     // 1. Calculate Totals
     const totalCost = entries.reduce((acc, e) => acc + e.totalCost, 0)

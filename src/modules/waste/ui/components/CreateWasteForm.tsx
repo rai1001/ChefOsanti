@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Button } from '@/modules/shared/ui/Button'
 import { FormField } from '@/modules/shared/ui/FormField'
-import { useActiveOrgId } from '@/modules/shared/auth/useActiveOrgId'
+import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useWasteReasons } from '../../data/wasteReasons'
 import { useProducts } from '@/modules/recipes/data/recipes'
 import { useHotels } from '@/modules/purchasing/data/orders'
@@ -31,11 +31,11 @@ interface Props {
 }
 
 export function CreateWasteForm({ onSuccess, onCancel }: Props) {
-    const orgId = useActiveOrgId()
-    const { data: reasons } = useWasteReasons(orgId)
-    const { data: products } = useProducts(orgId)
-    const { data: hotels } = useHotels(orgId)
-    const { mutateAsync: createEntry, isPending } = useCreateWasteEntry(orgId)
+    const { activeOrgId } = useActiveOrgId()
+    const { data: reasons } = useWasteReasons(activeOrgId ?? undefined)
+    const { data: products } = useProducts(activeOrgId ?? undefined)
+    const { data: hotels } = useHotels(activeOrgId ?? undefined)
+    const { mutateAsync: createEntry, isPending } = useCreateWasteEntry(activeOrgId ?? undefined)
 
     const defaultHotel = hotels?.[0]?.id || ''
 
@@ -72,13 +72,12 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
     const onSubmit = async (data: WasteFormValues) => {
         try {
             await createEntry({
-                occurredAt: new Date(data.occurredAt),
+                occurredAt: new Date(data.occurredAt).toISOString(),
                 hotelId: data.hotelId,
                 productId: data.productId,
                 quantity: data.quantity,
-                unit: data.unit,
+                unit: data.unit as "kg" | "ud" | "l",
                 unitCost: data.unitCost,
-                totalCost: data.quantity * data.unitCost,
                 reasonId: data.reasonId,
                 notes: data.notes
             })
@@ -95,16 +94,18 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-                <FormField label="Fecha y Hora" error={form.formState.errors.occurredAt}>
+                <FormField id="occurredAt" label="Fecha y Hora" error={form.formState.errors.occurredAt}>
                     <input
+                        id="occurredAt"
                         type="datetime-local"
                         className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
                         {...form.register('occurredAt')}
                     />
                 </FormField>
 
-                <FormField label="Hotel" error={form.formState.errors.hotelId}>
+                <FormField id="hotelId" label="Hotel" error={form.formState.errors.hotelId}>
                     <select
+                        id="hotelId"
                         className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
                         {...form.register('hotelId')}
                     >
@@ -116,8 +117,9 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                 </FormField>
             </div>
 
-            <FormField label="Producto" error={form.formState.errors.productId}>
+            <FormField id="productId" label="Producto" error={form.formState.errors.productId}>
                 <select
+                    id="productId"
                     className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
                     {...form.register('productId')}
                 >
@@ -129,9 +131,10 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
             </FormField>
 
             <div className="grid grid-cols-3 gap-4 mobile:grid-cols-1">
-                <FormField label="Cantidad" error={form.formState.errors.quantity}>
+                <FormField id="quantity" label="Cantidad" error={form.formState.errors.quantity}>
                     <div className="flex items-center gap-2">
                         <input
+                            id="quantity"
                             type="number"
                             step="0.001"
                             className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
@@ -141,8 +144,9 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                     </div>
                 </FormField>
 
-                <FormField label="Coste Unitario (€)" error={form.formState.errors.unitCost}>
+                <FormField id="unitCost" label="Coste Unitario (€)" error={form.formState.errors.unitCost}>
                     <input
+                        id="unitCost"
                         type="number"
                         step="0.01"
                         className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
@@ -158,8 +162,9 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                 </div>
             </div>
 
-            <FormField label="Motivo de Merma" error={form.formState.errors.reasonId}>
+            <FormField id="reasonId" label="Motivo de Merma" error={form.formState.errors.reasonId}>
                 <select
+                    id="reasonId"
                     className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
                     {...form.register('reasonId')}
                 >
@@ -170,8 +175,9 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                 </select>
             </FormField>
 
-            <FormField label="Notas (Opcional)" error={form.formState.errors.notes}>
+            <FormField id="notes" label="Notas (Opcional)" error={form.formState.errors.notes}>
                 <textarea
+                    id="notes"
                     className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500 min-h-[80px]"
                     {...form.register('notes')}
                 />

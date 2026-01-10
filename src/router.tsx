@@ -272,6 +272,16 @@ export const appRouter = createBrowserRouter([
           </RequirePermission>
         ),
       },
+      {
+        path: 'reports',
+        element: (
+          <RequirePermission perm="reports:read">
+            <Suspense fallback={<PageLoader />}>
+              <ReportsPage />
+            </Suspense>
+          </RequirePermission>
+        ),
+      },
     ],
   },
   { path: '/login', element: <LoginPage /> },

@@ -1,5 +1,5 @@
 
-import { WasteEntry } from '../../domain/types'
+import type { WasteEntry } from '../../domain/types'
 import { Card } from '@/modules/shared/ui/Card'
 import { formatCurrency } from '@/lib/utils'
 

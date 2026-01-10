@@ -1,7 +1,4 @@
-import { useNavigate } from 'react-router-dom';
-
 export default function ReportsPage() {
-    const navigate = useNavigate();
 
     return (
         <div className="space-y-6">
