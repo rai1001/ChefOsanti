@@ -1,3 +1,4 @@
+
 export type Role = 'admin' | 'manager' | 'staff'
 
 export type Permission =
@@ -16,6 +17,8 @@ export type Permission =
   | 'staff:write'
   | 'purchasing:approve'
   | 'admin:org'
+  | 'waste:read'
+  | 'waste:write'
 
 const rolePermissions: Record<Role, Permission[]> = {
   admin: [
@@ -34,6 +37,8 @@ const rolePermissions: Record<Role, Permission[]> = {
     'staff:write',
     'purchasing:approve',
     'admin:org',
+    'waste:read',
+    'waste:write',
   ],
   manager: [
     'dashboard:read',
@@ -56,6 +61,7 @@ const rolePermissions: Record<Role, Permission[]> = {
     'scheduling:read',
     'purchasing:read',
     'staff:read',
+    'waste:read',
   ],
 }
 

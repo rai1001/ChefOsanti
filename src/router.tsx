@@ -25,6 +25,8 @@ const RecipeDetailPage = lazy(() => import('./modules/recipes/ui/RecipeDetailPag
 const SchedulingPage = lazy(() => import('./modules/scheduling/ui/SchedulingPage'))
 const RosterGeneratorPage = lazy(() => import('./modules/scheduling/ui/RosterGeneratorPage'))
 const StaffPage = lazy(() => import('./modules/staff/ui/StaffPage'))
+const WastePage = lazy(() => import('./modules/waste/ui/WastePage'))
+const ReportsPage = lazy(() => import('./modules/reporting/ui/ReportsPage'))
 const ImporterPage = lazy(() => import('./modules/importer/ui/ImporterPage'))
 
 function PageLoader() {
@@ -256,6 +258,16 @@ export const appRouter = createBrowserRouter([
           <RequirePermission perm="dashboard:read">
             <Suspense fallback={<PageLoader />}>
               <ImporterPage />
+            </Suspense>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'waste',
+        element: (
+          <RequirePermission perm="waste:read">
+            <Suspense fallback={<PageLoader />}>
+              <WastePage />
             </Suspense>
           </RequirePermission>
         ),

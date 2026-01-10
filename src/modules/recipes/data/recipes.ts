@@ -1,9 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
-import type { Recipe, RecipeLine } from '../domain/recipes'
+import type { Recipe, RecipeLine, Product } from '../domain/recipes'
 
 export type RecipeWithLines = Recipe & { category?: string | null; notes?: string | null; lines: (RecipeLine & { productName?: string })[] }
+
+function mapProduct(row: any): Product & { cost: number } {
+  return {
+    id: row.id,
+    name: row.name,
+    baseUnit: row.base_unit,
+    cost: row.unit_cost ?? 0
+  }
+}
 
 function mapRecipe(row: any): Recipe {
   return {
@@ -37,6 +46,21 @@ export async function listRecipes(orgId?: string): Promise<Recipe[]> {
     })
   }
   return data?.map(mapRecipe) ?? []
+}
+
+export async function listProducts(orgId?: string): Promise<(Product & { cost: number })[]> {
+  const supabase = getSupabaseClient()
+  let query = supabase.from('products').select('*').order('name', { ascending: true })
+  if (orgId) query = query.eq('org_id', orgId)
+  const { data, error } = await query
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'listProducts',
+      orgId,
+    })
+  }
+  return data?.map(mapProduct) ?? []
 }
 
 export async function createRecipe(params: {
@@ -148,6 +172,14 @@ export function useRecipes(orgId: string | undefined) {
   return useQuery({
     queryKey: ['recipes', orgId],
     queryFn: () => listRecipes(orgId),
+    enabled: Boolean(orgId),
+  })
+}
+
+export function useProducts(orgId: string | undefined) {
+  return useQuery({
+    queryKey: ['products', orgId],
+    queryFn: () => listProducts(orgId),
     enabled: Boolean(orgId),
   })
 }

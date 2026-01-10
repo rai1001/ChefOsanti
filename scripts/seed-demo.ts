@@ -230,6 +230,74 @@ async function seed() {
         console.log(`✅ Menu Template exists: ${menuName}`)
     }
 
+    // 8. Create Waste Reasons
+    const reasons = [
+        'Caducidad',
+        'Sobreproducción',
+        'Error de Producción',
+        'Error de Recepción',
+        'Devolución Cliente',
+        'Otros'
+    ]
+
+    const reasonMap = new Map<string, string>() // name -> id
+
+    for (const name of reasons) {
+        const { data: existing } = await supabase
+            .from('waste_reasons')
+            .select('id')
+            .eq('org_id', orgId)
+            .eq('name', name)
+            .single()
+
+        if (existing) {
+            reasonMap.set(name, existing.id)
+        } else {
+            const { data, error } = await supabase
+                .from('waste_reasons')
+                .insert({ org_id: orgId, name })
+                .select('id')
+                .single()
+            if (error) throw error
+            reasonMap.set(name, data.id)
+            console.log(`✨ Created Waste Reason: ${name}`)
+        }
+    }
+
+    // 9. Create Waste Entries (Randomized)
+    // Needs: orgId, hotelId, product (id/unit), reasonId
+    const wasteProduct = productsToCreate[0] // Tomate (kg)
+    const wasteProdId = productMap.get(wasteProduct.name)
+    const wasteReasonId = reasonMap.get('Caducidad')
+
+    if (wasteProdId && wasteReasonId) {
+        // Check if we already have entries to avoid flooding on re-seed
+        const { count } = await supabase
+            .from('waste_entries')
+            .select('*', { count: 'exact', head: true })
+            .eq('org_id', orgId)
+
+        if (count === 0) {
+            const entries = Array.from({ length: 10 }).map((_, i) => ({
+                org_id: orgId,
+                hotel_id: hotelId,
+                product_id: wasteProdId,
+                unit: wasteProduct.base_unit,
+                quantity: parseFloat((Math.random() * 5).toFixed(2)),
+                reason_id: wasteReasonId,
+                unit_cost: 1.50, // Static cost for demo
+                occurred_at: new Date(Date.now() - i * 86400000).toISOString(), // Past days
+                notes: `Demo waste entry ${i + 1}`,
+            }))
+
+            const { error } = await supabase.from('waste_entries').insert(entries)
+            if (error) throw error
+            console.log('✨ Created 10 Demo Waste Entries')
+        } else {
+            console.log('✅ Waste Entries exist')
+        }
+    }
+
     console.log('✅ Demo seed completed successfully!')
 }
 

@@ -27,6 +27,7 @@ export function AppLayout({ children }: Props) {
 
   const navItems: { label: string; to: string; perm?: any }[] = [
     { label: 'Dashboard', to: '/dashboard', perm: 'dashboard:read' },
+    { label: 'Reportes', to: '/reports', perm: 'reports:read' },
     { label: 'Eventos', to: '/events', perm: 'events:read' },
     { label: 'Menus', to: '/menus', perm: 'menus:read' },
     { label: 'Productos', to: '/products', perm: 'recipes:read' },

@@ -50,9 +50,9 @@ drop trigger if exists tr_audit_suppliers on public.suppliers;
 create trigger tr_audit_suppliers after insert or update or delete on public.suppliers
 for each row execute function public.fn_audit_log_master_change();
 
-drop trigger if exists tr_audit_supplier_items on public.supplier_items;
-create trigger tr_audit_supplier_items after insert or update or delete on public.supplier_items
-for each row execute function public.fn_audit_log_master_change();
+-- drop trigger if exists tr_audit_supplier_items on public.supplier_items;
+-- create trigger tr_audit_supplier_items after insert or update or delete on public.supplier_items
+-- for each row execute function public.fn_audit_log_master_change();
 
 drop trigger if exists tr_audit_products on public.products;
 create trigger tr_audit_products after insert or update or delete on public.products
