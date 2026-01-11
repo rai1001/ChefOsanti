@@ -38,6 +38,7 @@ export function AppLayout({ children }: Props) {
     { label: 'Pedidos evento', to: '/purchasing/event-orders', perm: 'purchasing:read' },
     { label: 'Pedidos', to: '/purchasing/orders', perm: 'purchasing:read' },
     { label: 'Proveedores', to: '/purchasing/suppliers', perm: 'purchasing:read' },
+    { label: 'Mermas', to: '/waste', perm: 'waste:read' },
     { label: 'Stock', to: '/purchasing/stock', perm: 'purchasing:read' },
   ]
 

@@ -46,25 +46,34 @@ function getRanges(type: 'weekly' | 'monthly', refDateStr?: string) {
 }
 
 serve(async (req) => {
-    // CORS
+    // CORS headers - Enable for all responses
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    }
+
+    // CORS Preflight
     if (req.method === 'OPTIONS') {
-        return new Response('ok', {
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-            },
-        })
+        return new Response('ok', { headers: corsHeaders })
     }
 
     try {
         const client = supabaseForUser(req)
-        const { orgId, type, referenceDate } = (await req.json().catch(() => ({}))) as any
+        const body = await req.json().catch(() => ({})) as any
+        const { orgId, type, referenceDate } = body
+
+        console.log(`Received request: orgId=${orgId}, type=${type}, refDate=${referenceDate}`)
 
         if (!orgId || !type) {
-            return new Response(JSON.stringify({ error: 'orgId and type (weekly/monthly) are required' }), { status: 400 })
+            console.error('Missing required fields: orgId or type')
+            return new Response(JSON.stringify({ error: 'orgId and type (weekly/monthly) are required' }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
         }
 
         const range = getRanges(type, referenceDate);
+        console.log(`Calculated range: ${JSON.stringify(range)}`)
 
         // 1. Fetch Metrics (Parallel execution)
         // Note: Replicating queries here as we cannot import TS/Data layer from Vue/React app directly in Deno easily
@@ -74,8 +83,19 @@ serve(async (req) => {
             client.from('waste_logs').select('total_cost').eq('org_id', orgId).gte('created_at', range.start).lte('created_at', range.end)
         ]);
 
-        if (eventsRes.error) throw eventsRes.error;
-        if (ordersRes.error) throw ordersRes.error;
+        if (eventsRes.error) {
+            console.error('Error fetching events:', eventsRes.error)
+            throw eventsRes.error
+        }
+        if (ordersRes.error) {
+            console.error('Error fetching orders:', ordersRes.error)
+            throw ordersRes.error
+        }
+        // Waste might effectively be optional or empty, but check error
+        if (wasteRes.error) {
+            console.error('Error fetching waste:', wasteRes.error)
+            // throw wasteRes.error // Optional: maybe don't fail hard on waste? sticking to strict for now
+        }
 
         // Process Metrics
         const events = {
@@ -109,6 +129,8 @@ serve(async (req) => {
             }
         };
 
+        console.log('KPIs generated:', JSON.stringify(kpis))
+
         // 2. Generate AI Report
         if (!geminiApiKey) {
             console.error("GEMINI_API_KEY missing");
@@ -134,9 +156,11 @@ serve(async (req) => {
         ${getPrompt(kpis, type)}
         `;
 
+        console.log('Sending prompt to Gemini...');
         const result = await model.generateContent(finalPrompt);
         const response = await result.response;
         const reportMd = response.text();
+        console.log('Gemini response received.');
 
         // 3. Save to DB
         const { data: dbEntry, error: dbError } = await client.from('reporting_generated_reports').insert({
@@ -149,13 +173,20 @@ serve(async (req) => {
             status: 'generated'
         }).select().single();
 
-        if (dbError) throw dbError;
+        if (dbError) {
+            console.error('Error saving report to DB:', dbError)
+            throw dbError
+        }
 
         return new Response(JSON.stringify({ success: true, report: dbEntry }), {
-            headers: { 'Content-Type': 'application/json' }
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
 
     } catch (err: any) {
-        return new Response(JSON.stringify({ error: String(err?.message || err) }), { status: 500 })
+        console.error('Edge Function Error:', err);
+        return new Response(JSON.stringify({ error: String(err?.message || err) }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
     }
 })

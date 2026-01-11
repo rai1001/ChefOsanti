@@ -5,7 +5,7 @@
 -- This serves as both the "log" of reports and the cache for viewing them.
 CREATE TABLE IF NOT EXISTS reporting_generated_reports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  org_id UUID NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
   
   -- Report Metadata
   type TEXT NOT NULL CHECK (type IN ('weekly', 'monthly', 'on_demand')),
@@ -33,7 +33,7 @@ CREATE POLICY "Users can view reports for their orgs"
   FOR SELECT
   USING (
     org_id IN (
-      SELECT org_id FROM organization_roles 
+      SELECT org_id FROM org_memberships 
       WHERE user_id = auth.uid()
     )
   );
@@ -43,7 +43,7 @@ CREATE POLICY "Users can insert reports for their orgs"
   FOR INSERT
   WITH CHECK (
     org_id IN (
-      SELECT org_id FROM organization_roles 
+      SELECT org_id FROM org_memberships 
       WHERE user_id = auth.uid()
     )
   );

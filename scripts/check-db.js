@@ -1,53 +1,53 @@
 
-    import { createClient } from '@supabase/supabase-js'
-    import dotenv from 'dotenv'
+import { createClient } from '@supabase/supabase-js'
+import dotenv from 'dotenv'
 
-    dotenv.config({ path: '.env.local' })
+dotenv.config({ path: '.env.local' })
 
-    const supabaseUrl = process.env.VITE_SUPABASE_URL
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.VITE_SUPABASE_URL
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
 
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase URL or Key')
-      process.exit(1)
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase URL or Key')
+  process.exit(1)
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+async function checkDB() {
+  // Try to select from a table we know should exist if migrated
+  // 'settings' or 'users' (but users is protected), let's try 'settings' or check user session
+
+  console.log('Checking connection to:', supabaseUrl)
+
+  // 1. Check if we can reach the server (health check via a simple query)
+  // Since we don't know if tables exist, we'll try to sign in with a fake user to check Auth service
+  const { error: authError } = await supabase.auth.signInWithPassword({
+    email: 'test@example.com',
+    password: 'password'
+  })
+
+  if (authError && authError.message.includes('Invalid login credentials')) {
+    console.log('Auth service is reachable (Invalid login credentials expected).')
+  } else if (authError) {
+    console.log('Auth service error:', authError.message)
+  }
+
+  // 2. Check for public tables. We'll try to read from 'outlets' or a common table
+  const { count, error } = await supabase
+    .from('waste_entries')
+    .select('*', { count: 'exact', head: true })
+
+  console.log('Waste entries count:', count)
+
+  if (error) {
+    console.log('Table check error:', error.message)
+    if (error.code === '42P01') {
+      console.log('CONFIRMED: Table "outlets" does not exist. Schema is likely empty.')
     }
+  } else {
+    console.log('Table "waste_entries" exists.')
+  }
+}
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
-    async function checkDB() {
-      // Try to select from a table we know should exist if migrated
-      // 'settings' or 'users' (but users is protected), let's try 'settings' or check user session
-      
-      console.log('Checking connection to:', supabaseUrl)
-
-      // 1. Check if we can reach the server (health check via a simple query)
-      // Since we don't know if tables exist, we'll try to sign in with a fake user to check Auth service
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: 'test@example.com',
-        password: 'password'
-      })
-      
-      if (authError && authError.message.includes('Invalid login credentials')) {
-        console.log('Auth service is reachable (Invalid login credentials expected).')
-      } else if (authError) {
-        console.log('Auth service error:', authError.message)
-      }
-
-      // 2. Check for public tables. We'll try to read from 'outlets' or a common table
-      const { data, error } = await supabase
-        .from('outlets')
-        .select('*')
-        .limit(1)
-
-      if (error) {
-        console.log('Table check error:', error.message)
-        if (error.code === '42P01') {
-            console.log('CONFIRMED: Table "outlets" does not exist. Schema is likely empty.')
-        }
-      } else {
-        console.log('Table "outlets" exists. Data:', data)
-      }
-    }
-
-    checkDB()
-    
+checkDB()
