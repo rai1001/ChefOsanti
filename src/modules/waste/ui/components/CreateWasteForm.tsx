@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Button } from '@/modules/shared/ui/Button'
-import { FormField } from '@/modules/shared/ui/FormField'
+
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useWasteReasons } from '../../data/wasteReasons'
 import { useProducts } from '@/modules/recipes/data/recipes'
@@ -28,6 +28,22 @@ type WasteFormValues = z.infer<typeof wasteSchema>
 interface Props {
     onSuccess: () => void
     onCancel: () => void
+}
+
+function Field({ id, label, error, children }: { id: string, label: string, error?: any, children: React.ReactNode }) {
+    return (
+        <div className="flex flex-col gap-1.5 w-full">
+            <label htmlFor={id} className="text-sm font-medium text-slate-300">
+                {label}
+            </label>
+            {children}
+            {error && (
+                <span className="text-sm text-red-400" role="alert">
+                    {error.message}
+                </span>
+            )}
+        </div>
+    )
 }
 
 export function CreateWasteForm({ onSuccess, onCancel }: Props) {
@@ -94,16 +110,16 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-                <FormField id="occurredAt" label="Fecha y Hora" error={form.formState.errors.occurredAt}>
+                <Field id="occurredAt" label="Fecha y Hora" error={form.formState.errors.occurredAt}>
                     <input
                         id="occurredAt"
                         type="datetime-local"
                         className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
                         {...form.register('occurredAt')}
                     />
-                </FormField>
+                </Field>
 
-                <FormField id="hotelId" label="Hotel" error={form.formState.errors.hotelId}>
+                <Field id="hotelId" label="Hotel" error={form.formState.errors.hotelId}>
                     <select
                         id="hotelId"
                         className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
@@ -114,10 +130,10 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                             <option key={h.id} value={h.id}>{h.name}</option>
                         ))}
                     </select>
-                </FormField>
+                </Field>
             </div>
 
-            <FormField id="productId" label="Producto" error={form.formState.errors.productId}>
+            <Field id="productId" label="Producto" error={form.formState.errors.productId}>
                 <select
                     id="productId"
                     className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
@@ -128,10 +144,10 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                         <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                 </select>
-            </FormField>
+            </Field>
 
             <div className="grid grid-cols-3 gap-4 mobile:grid-cols-1">
-                <FormField id="quantity" label="Cantidad" error={form.formState.errors.quantity}>
+                <Field id="quantity" label="Cantidad" error={form.formState.errors.quantity}>
                     <div className="flex items-center gap-2">
                         <input
                             id="quantity"
@@ -142,9 +158,9 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                         />
                         <span className="text-sm text-slate-400 w-8">{selectedProduct?.baseUnit || '-'}</span>
                     </div>
-                </FormField>
+                </Field>
 
-                <FormField id="unitCost" label="Coste Unitario (€)" error={form.formState.errors.unitCost}>
+                <Field id="unitCost" label="Coste Unitario (€)" error={form.formState.errors.unitCost}>
                     <input
                         id="unitCost"
                         type="number"
@@ -152,7 +168,7 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                         className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
                         {...form.register('unitCost', { valueAsNumber: true })}
                     />
-                </FormField>
+                </Field>
 
                 <div className="flex flex-col space-y-1">
                     <span className="text-sm font-medium text-slate-300">Total Estimado</span>
@@ -162,7 +178,7 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                 </div>
             </div>
 
-            <FormField id="reasonId" label="Motivo de Merma" error={form.formState.errors.reasonId}>
+            <Field id="reasonId" label="Motivo de Merma" error={form.formState.errors.reasonId}>
                 <select
                     id="reasonId"
                     className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
@@ -173,15 +189,15 @@ export function CreateWasteForm({ onSuccess, onCancel }: Props) {
                         <option key={r.id} value={r.id}>{r.name}</option>
                     ))}
                 </select>
-            </FormField>
+            </Field>
 
-            <FormField id="notes" label="Notas (Opcional)" error={form.formState.errors.notes}>
+            <Field id="notes" label="Notas (Opcional)" error={form.formState.errors.notes}>
                 <textarea
                     id="notes"
                     className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:outline-none focus:border-nano-blue-500 min-h-[80px]"
                     {...form.register('notes')}
                 />
-            </FormField>
+            </Field>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
                 <Button type="button" variant="ghost" onClick={onCancel} disabled={isPending}>
