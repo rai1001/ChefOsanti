@@ -3,6 +3,8 @@ import { useState, useRef } from 'react'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useImportJobs, useImportStage, useImportValidate, useImportCommit, useImportJobRows } from '../data/importer'
 import { parseCSV } from '../data/csvParser'
+import { listHotelsByOrg } from '@/modules/orgs/data/hotels'
+import { useQuery } from '@tanstack/react-query'
 import type { ImportEntity } from '../domain/types'
 
 export default function ImporterPage() {
@@ -13,6 +15,18 @@ export default function ImporterPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [activeJobId, setActiveJobId] = useState<string | null>(null)
     const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+
+    // Events Specific State
+    const [rawSheet, setRawSheet] = useState<any[] | null>(null)
+    const [dateColumn, setDateColumn] = useState<string>('')
+    const [selectedHotelId, setSelectedHotelId] = useState<string>('')
+    const [activeParsedData, setActiveParsedData] = useState<any[] | null>(null) // For non-event standard CSV/Excel
+
+    const { data: hotels } = useQuery({
+        queryKey: ['hotels', activeOrgId],
+        queryFn: () => activeOrgId ? listHotelsByOrg(activeOrgId) : Promise.resolve([]),
+        enabled: !!activeOrgId && entity === 'events'
+    })
 
     // Queries & Mutations
     const jobs = useImportJobs(activeOrgId ?? undefined)
@@ -25,10 +39,62 @@ export default function ImporterPage() {
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Handlers
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const processMatrixData = (raw: any[], headerIndex: number, dateColKey: string): any[] => {
+        if (!raw || raw.length <= headerIndex) return []
+        const unpivoted: any[] = []
+        raw.forEach(row => {
+            const dateValue = row[dateColKey]
+            if (!dateValue) return
+            Object.keys(row).forEach(key => {
+                if (key !== dateColKey && key !== '__rowNum__') {
+                    const cellValue = row[key]
+                    if (cellValue) {
+                        unpivoted.push({
+                            name: cellValue,
+                            date: dateValue,
+                            location: key, // Using Column Header as Location Name
+                        })
+                    }
+                }
+            })
+        })
+        return unpivoted
+    }
+
+    const parsePreviewExcel = async (file: File) => {
+        const { parseExcelFile } = await import('@/modules/importer/utils/excelParser')
+        const { sheets, sheetNames } = await parseExcelFile(file)
+        const firstSheetName = sheetNames[0]
+        const data = sheets[firstSheetName]
+        if (!data || data.length === 0) throw new Error('La primera hoja está vacía')
+        const headers = Object.keys(data[0])
+        return { output: data, headers }
+    }
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         setNotification(null)
-        if (e.target.files?.[0]) {
-            setFile(e.target.files[0])
+        const selectedFile = e.target.files?.[0]
+        if (!selectedFile) return
+        setFile(selectedFile)
+        setRawSheet(null)
+        setActiveParsedData(null)
+
+        if (selectedFile.name.match(/\.xlsx?$/)) {
+            try {
+                // Pre-parse to facilitate UI configuration (header selection)
+                const { output, headers } = await parsePreviewExcel(selectedFile)
+                if (entity === 'events') {
+                    setRawSheet(output)
+                    // Auto-detect date column
+                    const potentialDate = headers.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'))
+                    if (potentialDate) setDateColumn(potentialDate)
+                } else {
+                    setActiveParsedData(output)
+                }
+            } catch (err) {
+                setNotification({ type: 'error', message: 'Error al leer Excel' })
+                console.error(err)
+            }
         }
     }
 
@@ -36,7 +102,38 @@ export default function ImporterPage() {
         if (!activeOrgId || !file) return
         setIsLoading(true)
         try {
-            const rows = await parseCSV(file)
+            let rows: any[] = []
+
+            if (file.name.endsWith('.csv')) {
+                rows = await parseCSV(file)
+            } else if (file.name.match(/\.xlsx?$/)) {
+                // If we already parsed it in handleFileChange, use that
+                // Or re-parse (but handleFileChange saves it to state)
+
+                if (entity === 'events') {
+                    if (!selectedHotelId) throw new Error('Selecciona un hotel')
+                    if (!dateColumn) throw new Error('Selecciona la columna de fechas')
+                    if (!rawSheet) throw new Error('No se pudo leer el Excel')
+
+                    const unpivoted = processMatrixData(rawSheet, 0, dateColumn)
+                    rows = unpivoted.map(u => ({
+                        title: u.name,
+                        starts_at: u.date,
+                        hotel_id: selectedHotelId,
+                        space_name: u.location,
+                        status: 'confirmed'
+                    }))
+                } else {
+                    if (activeParsedData) {
+                        rows = activeParsedData
+                    } else {
+                        // Fallback re-parse
+                        const { output } = await parsePreviewExcel(file)
+                        rows = output
+                    }
+                }
+            }
+
             const jobId = await stageMutation.mutateAsync({
                 orgId: activeOrgId,
                 entity,
@@ -96,7 +193,7 @@ export default function ImporterPage() {
         <div className="space-y-6 animate-fade-in pb-12">
             <header>
                 <h1 className="text-3xl font-bold text-white tracking-tight text-glow">Importador Universal</h1>
-                <p className="text-slate-400 mt-1">Sube tus archivos CSV para actualizar proveedores, artículos y eventos.</p>
+                <p className="text-slate-400 mt-1">Sube tus archivos CSV o Excel para actualizar proveedores, artículos y eventos.</p>
             </header>
 
             {
@@ -137,7 +234,7 @@ export default function ImporterPage() {
                                 <div className="flex gap-2">
                                     <input
                                         type="file"
-                                        accept=".csv"
+                                        accept=".csv, .xlsx, .xls"
                                         ref={fileInputRef}
                                         onChange={handleFileChange}
                                         className="hidden"
@@ -152,6 +249,42 @@ export default function ImporterPage() {
                                 </div>
                             </div>
                         </div>
+
+
+                        {/* Event Specific Configuration */}
+                        {entity === 'events' && file && file.name.match(/\.xlsx?$/) && rawSheet && (
+                            <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 p-4 bg-white/5 rounded-lg border border-white/10">
+                                <div className="space-y-1">
+                                    <label className="block text-xs font-semibold text-slate-400">Hotel Destino</label>
+                                    <select
+                                        value={selectedHotelId}
+                                        onChange={e => setSelectedHotelId(e.target.value)}
+                                        className="w-full rounded-lg bg-nano-navy-900 border border-white/10 px-3 py-2 text-white text-sm"
+                                    >
+                                        <option value="">Seleccionar Hotel...</option>
+                                        {hotels?.map(h => (
+                                            <option key={h.id} value={h.id}>{h.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="block text-xs font-semibold text-slate-400">Columna Fechas</label>
+                                    <select
+                                        value={dateColumn}
+                                        onChange={e => setDateColumn(e.target.value)}
+                                        className="w-full rounded-lg bg-nano-navy-900 border border-white/10 px-3 py-2 text-white text-sm"
+                                    >
+                                        <option value="">Seleccionar Columna...</option>
+                                        {Object.keys(rawSheet[0] || {}).map(k => (
+                                            <option key={k} value={k}>{k}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="col-span-2 text-xs text-nano-blue-300 bg-nano-blue-500/10 p-2 rounded border border-nano-blue-500/20">
+                                    Modo Planning: Las columnas restantes se interpretarán como Salas.
+                                </div>
+                            </div>
+                        )}
 
                         {!activeJobId && (
                             <div className="flex justify-end mt-4">
@@ -282,7 +415,7 @@ export default function ImporterPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
         </div >
     )
 }
