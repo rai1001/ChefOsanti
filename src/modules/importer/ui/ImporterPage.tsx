@@ -118,6 +118,7 @@ export default function ImporterPage() {
                     const unpivoted = processMatrixData(rawSheet, 0, dateColumn)
                     rows = unpivoted.map(u => ({
                         title: u.name,
+                        name: u.name, // Defensive: duplicate for validation
                         starts_at: u.date,
                         hotel_id: selectedHotelId,
                         space_name: u.location,

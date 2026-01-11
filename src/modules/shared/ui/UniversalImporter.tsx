@@ -186,6 +186,7 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
                 const unpivoted = processMatrixData(rawSheet, 0, dateColumn)
                 mappedData = unpivoted.map(u => ({
                     title: u.name,
+                    name: u.name, // Defensive: duplicate for validation
                     starts_at: u.date,
                     hotel_id: selectedHotelId,
                     space_name: u.location, // "Location" column header = Space Name
