@@ -2,7 +2,10 @@ import { useState, useRef } from 'react'
 import Papa from 'papaparse'
 import { formatErrorMessage } from '@/modules/shared/hooks/useFormattedError'
 import { useImportStage, useImportValidate, useImportCommit, useImportJobRows } from '@/modules/importer/data/importer'
+
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
+import { listHotelsByOrg } from '@/modules/orgs/data/hotels'
+import { useQuery } from '@tanstack/react-query'
 import type { ImportEntity } from '@/modules/importer/domain/types'
 
 interface UniversalImporterProps {
@@ -17,10 +20,21 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
     const { activeOrgId } = useActiveOrgId()
     const [file, setFile] = useState<File | null>(null)
     const [step, setStep] = useState<'upload' | 'mapping' | 'preview' | 'done'>('upload')
+    const [parsedData, setParsedData] = useState<any[] | null>(null)
+    const [rawSheet, setRawSheet] = useState<any[] | null>(null)
+    const [importMode, setImportMode] = useState<'standard' | 'schedule'>('standard')
+    const [dateColumn, setDateColumn] = useState<string>('')
     const [jobId, setJobId] = useState<string | null>(null)
     const [mapping, setMapping] = useState<Record<string, string>>({})
     const [error, setError] = useState<string | null>(null)
+    const [selectedHotelId, setSelectedHotelId] = useState<string>('')
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const { data: hotels } = useQuery({
+        queryKey: ['hotels', activeOrgId],
+        queryFn: () => activeOrgId ? listHotelsByOrg(activeOrgId) : Promise.resolve([]),
+        enabled: !!activeOrgId && entity === 'events'
+    })
 
     const stage = useImportStage()
     const validate = useImportValidate()
@@ -34,62 +48,167 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
             const obj: any = {}
             fields.forEach((field) => {
                 const targetHeader = currentMapping[field.key] || field.label
-                const val = row[targetHeader]
+                const val = row[targetHeader] // Helper to get case-insensitive match could be added here
                 obj[field.key] = field.transform ? field.transform(val) : val
             })
+            // Pass through raw for specialized use cases (like events) if needed, 
+            // though 'processData' mainly extracts mapped fields.
+            // We might need to preserve extra data for Events later.
             return obj
         })
     }
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const processMatrixData = (raw: any[], headerIndex: number, dateColKey: string): any[] => {
+        if (!raw || raw.length <= headerIndex) return []
+
+        // 1. Identify Room Columns (Headers)
+        // Assumption: raw is array of objects from xlsx sheet_to_json.
+        // If we need true raw matrix, we typically need 'header: 1' from xlsx. 
+        // Using objects means headers are already keys.
+        // For unpivoting "Schedule" type where first row is NOT header (but maybe row 5 is):
+        // This complexity suggests we should parse with 'header:1' (array of arrays) for maximum flexibility.
+        // For now, let's assume 'standard' JSON output but we iterate keys.
+
+        // Actually, best approach for flexible matrix:
+        // Input: Array of Objects.
+        // Use raw[0] keys as potential rooms if headerIndex is 0.
+        // If headerIndex > 0 (e.g. Row 5 has room names), this logic gets tricky with `sheet_to_json`.
+        // Simplest MVP: Assume standard header row for now or user sanitized Excel.
+        // Let's implement basic Unpivot:
+        // Rows = Dates
+        // Keys = Rooms
+
+        const unpivoted: any[] = []
+
+        raw.forEach(row => {
+            const dateValue = row[dateColKey]
+            if (!dateValue) return
+
+            Object.keys(row).forEach(key => {
+                if (key !== dateColKey && key !== '__rowNum__') {
+                    const cellValue = row[key]
+                    if (cellValue) {
+                        unpivoted.push({
+                            name: cellValue,
+                            date: dateValue,
+                            location: key, // Using Column Header as Location Name
+                        })
+                    }
+                }
+            })
+        })
+
+        return unpivoted
+    }
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0]
         if (!selectedFile) return
         setFile(selectedFile)
         setError(null)
+        setParsedData(null)
 
-        Papa.parse(selectedFile, {
-            header: true,
-            skipEmptyLines: true,
-            preview: 1,
-            complete: (results) => {
-                const headers = results.meta.fields || []
-                const initialMapping: Record<string, string> = {}
-                fields.forEach(f => {
-                    const match = headers.find(h => h.toLowerCase() === f.label.toLowerCase() || h.toLowerCase() === f.key.toLowerCase())
-                    if (match) initialMapping[f.key] = match
-                })
-                setMapping(initialMapping)
-                setStep('mapping')
-            },
-            error: (err) => setError(formatErrorMessage(err)),
+        if (selectedFile.name.endsWith('.csv')) {
+            Papa.parse(selectedFile, {
+                header: true,
+                skipEmptyLines: true,
+                preview: 0, // Read all
+                complete: (results) => {
+                    const headers = results.meta.fields || []
+                    setParsedData(results.data)
+                    autoMapHeaders(headers)
+                },
+                error: (err) => setError(formatErrorMessage(err)),
+            })
+        } else if (selectedFile.name.match(/\.xlsx?$/)) {
+            try {
+                // Dynamically import to split bundle if needed, or just standard import
+                // Determine if we need multi-sheet support based on entity
+                // For now, defaulting to first sheet for standard entities
+                const { output, headers } = await parsePreviewExcel(selectedFile)
+
+                if (entity === 'events') {
+                    setImportMode('schedule')
+                    setRawSheet(output)
+                    // Heuristic: Try to find 'Fecha' or 'Date' column
+                    const potentialDate = headers.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'))
+                    if (potentialDate) setDateColumn(potentialDate)
+                    setStep('mapping')
+                } else {
+                    setImportMode('standard')
+                    setParsedData(output)
+                    autoMapHeaders(headers)
+                }
+            } catch (err) {
+                setError('Error al leer el archivo Excel: ' + formatErrorMessage(err))
+            }
+        }
+    }
+
+    const autoMapHeaders = (headers: string[]) => {
+        const initialMapping: Record<string, string> = {}
+        fields.forEach(f => {
+            const match = headers.find(h => h.toLowerCase() === f.label.toLowerCase() || h.toLowerCase() === f.key.toLowerCase())
+            if (match) initialMapping[f.key] = match
         })
+        setMapping(initialMapping)
+        setStep('mapping')
+    }
+
+    const parsePreviewExcel = async (file: File) => {
+        const { parseExcelFile } = await import('@/modules/importer/utils/excelParser')
+        const { sheets, sheetNames } = await parseExcelFile(file)
+
+        // TODO: Handle 'events' multi-sheet import here specifically
+        // usage: if (entity === 'events') { return mergeSheets(sheets) ... }
+
+        // Default: First sheet
+        const firstSheetName = sheetNames[0]
+        const data = sheets[firstSheetName]
+
+        if (!data || data.length === 0) throw new Error('La primera hoja está vacía')
+
+        // Get headers from first row
+        const headers = Object.keys(data[0])
+        return { output: data, headers }
     }
 
     const handleStage = async () => {
         if (!file || !activeOrgId) return
         setError(null)
 
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: async (results) => {
-                try {
-                    const mapped = processData(results.data, mapping)
-                    const id = await stage.mutateAsync({
-                        orgId: activeOrgId,
-                        entity,
-                        filename: file.name,
-                        rows: mapped
-                    })
-                    setJobId(id)
-                    await validate.mutateAsync(id)
-                    setStep('preview')
-                } catch (err) {
-                    setError(formatErrorMessage(err))
-                }
-            },
-            error: (err) => setError(formatErrorMessage(err)),
-        })
+        try {
+            let mappedData: any[] = []
+
+            if (importMode === 'schedule' && rawSheet) {
+                if (!selectedHotelId) throw new Error('Debes seleccionar un hotel')
+
+                const unpivoted = processMatrixData(rawSheet, 0, dateColumn)
+                mappedData = unpivoted.map(u => ({
+                    title: u.name,
+                    starts_at: u.date,
+                    hotel_id: selectedHotelId,
+                    space_name: u.location, // "Location" column header = Space Name
+                    status: 'confirmed'
+                }))
+            } else if (parsedData) {
+                mappedData = processData(parsedData, mapping)
+            } else {
+                return
+            }
+
+            const id = await stage.mutateAsync({
+                orgId: activeOrgId,
+                entity,
+                filename: file.name,
+                rows: mappedData
+            })
+            setJobId(id)
+            await validate.mutateAsync(id)
+            setStep('preview')
+        } catch (err) {
+            setError(formatErrorMessage(err))
+        }
     }
 
     const handleCommit = async () => {
@@ -115,7 +234,7 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
                         <div className="rounded-lg border-2 border-dashed border-white/10 bg-nano-navy-900 p-8 text-center transition-colors hover:border-nano-blue-500/50">
                             <input
                                 type="file"
-                                accept=".csv"
+                                accept=".csv, .xlsx, .xls"
                                 onChange={handleFileChange}
                                 className="hidden"
                                 id="file-upload"
@@ -128,29 +247,68 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
                                     </svg>
                                 </div>
                                 <span className="text-sm font-medium text-white">
-                                    Click para subir CSV
+                                    Click para subir CSV o Excel
                                 </span>
-                                <p className="mt-1 text-xs text-slate-400">Separado por comas (.csv)</p>
+                                <p className="mt-1 text-xs text-slate-400">.csv, .xlsx, .xls</p>
                             </label>
                         </div>
                     )}
 
                     {step === 'mapping' && (
                         <div className="space-y-4">
-                            <p className="text-sm text-slate-300 font-medium">Mapea las columnas de tu archivo:</p>
-                            <div className="grid grid-cols-2 gap-4">
-                                {fields.map(field => (
-                                    <div key={field.key} className="space-y-1">
-                                        <label className="text-xs text-slate-500 uppercase">{field.label}</label>
-                                        <input
-                                            value={mapping[field.key] || ''}
-                                            onChange={(e) => setMapping(prev => ({ ...prev, [field.key]: e.target.value }))}
-                                            className="w-full rounded-lg bg-nano-navy-900 border border-white/10 px-3 py-2 text-sm text-white"
-                                            placeholder="Cabecera en CSV"
-                                        />
+                            {importMode === 'schedule' && rawSheet ? (
+                                <div className="space-y-4">
+                                    <div className="bg-nano-blue-500/10 p-3 rounded-md border border-nano-blue-500/20">
+                                        <p className="text-sm text-nano-blue-200">
+                                            <strong>Modo Planning:</strong> Selecciona la columna de fechas. Las demás columnas se usarán como Salas.
+                                        </p>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs text-slate-400">Columna de Fechas</label>
+                                        <select
+                                            className="w-full bg-nano-navy-900 border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
+                                            onChange={(e) => setDateColumn(e.target.value)}
+                                            value={dateColumn}
+                                        >
+                                            <option value="">Seleccionar Columna...</option>
+                                            {rawSheet && rawSheet.length > 0 && Object.keys(rawSheet[0]).map(k => (
+                                                <option key={k} value={k}>{k}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs text-slate-400">Hotel Destino</label>
+                                        <select
+                                            className="w-full bg-nano-navy-900 border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:border-nano-blue-500"
+                                            onChange={(e) => setSelectedHotelId(e.target.value)}
+                                            value={selectedHotelId}
+                                        >
+                                            <option value="">Seleccionar Hotel...</option>
+                                            {hotels?.map(h => (
+                                                <option key={h.id} value={h.id}>{h.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="text-sm text-slate-300 font-medium">Mapea las columnas de tu archivo:</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {fields.map(field => (
+                                            <div key={field.key} className="space-y-1">
+                                                <label className="text-xs text-slate-500 uppercase">{field.label}</label>
+                                                <input
+                                                    value={mapping[field.key] || ''}
+                                                    onChange={(e) => setMapping(prev => ({ ...prev, [field.key]: e.target.value }))}
+                                                    className="w-full rounded-lg bg-nano-navy-900 border border-white/10 px-3 py-2 text-sm text-white"
+                                                    placeholder="Cabecera en archivo"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 

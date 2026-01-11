@@ -33,6 +33,7 @@
     "react-router-dom": "^7.11.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.3.5"
   },
   "devDependencies": {
@@ -45,6 +46,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
+    "@types/xlsx": "^0.0.35",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.23",
     "dotenv": "^17.2.3",

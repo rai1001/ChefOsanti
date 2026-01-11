@@ -113,6 +113,7 @@ declare
   
   -- Lookups
   v_target_id uuid;
+  v_space_id uuid;
   v_org_id uuid;
   
   -- Counters
@@ -179,25 +180,45 @@ begin
        end if;
        
     elsif v_job.entity = 'events' then
-       -- Requerido: hotel_name, title, starts_at
-       if v_row.raw->>'hotel_name' is null then v_errors := array_append(v_errors, 'Missing hotel_name'); end if;
+       -- Requerido: hotel_id (passed from UI), title, starts_at
+       if v_row.raw->>'hotel_id' is null then v_errors := array_append(v_errors, 'Missing hotel_id'); end if;
        if v_row.raw->>'title' is null then v_errors := array_append(v_errors, 'Missing title'); end if;
        if v_row.raw->>'starts_at' is null then v_errors := array_append(v_errors, 'Missing starts_at'); end if;
 
-       -- Lookup Hotel
-       if v_row.raw->>'hotel_name' is not null then
-          select id into v_target_id from public.hotels where org_id = v_org_id and name = (v_row.raw->>'hotel_name');
-          if v_target_id is null then
-             v_errors := array_append(v_errors, 'Hotel not found: ' || (v_row.raw->>'hotel_name'));
-          else
-             v_normalized := v_normalized || jsonb_build_object('hotel_id', v_target_id);
-             
-             -- Check Exists
-             perform 1 from public.events where org_id = v_org_id and hotel_id = v_target_id 
-                         and title = (v_row.raw->>'title') and starts_at = (v_row.raw->>'starts_at')::timestamptz;
-             if found then v_action := 'update'; end if;
-          end if;
+       -- Validate Hotel Ownership
+       if v_row.raw->>'hotel_id' is not null then
+           perform 1 from public.hotels where id = (v_row.raw->>'hotel_id')::uuid and org_id = v_org_id;
+           if not found then v_errors := array_append(v_errors, 'Invalid hotel_id'); end if;
        end if;
+
+       -- Lookup Space (if space_name provided)
+       if v_row.raw->>'space_name' is not null and v_row.raw->>'hotel_id' is not null then
+           select id into v_space_id from public.spaces 
+           where org_id = v_org_id 
+             and hotel_id = (v_row.raw->>'hotel_id')::uuid 
+             and lower(name) = lower(v_row.raw->>'space_name');
+           
+           if v_space_id is null then
+               v_errors := array_append(v_errors, 'Space not found: ' || (v_row.raw->>'space_name'));
+           else
+               v_normalized := v_normalized || jsonb_build_object('space_id', v_space_id);
+           end if;
+       end if;
+
+       -- Check Duplicate Event (upsert based on unique constraint or business key)
+       if v_errors = '{}' then 
+           select id into v_target_id from public.events 
+           where org_id = v_org_id 
+             and hotel_id = (v_row.raw->>'hotel_id')::uuid 
+             and title = (v_row.raw->>'title') 
+             and starts_at = (v_row.raw->>'starts_at')::timestamptz;
+           
+           if v_target_id is not null then
+               v_action := 'update';
+               v_normalized := v_normalized || jsonb_build_object('event_id', v_target_id);
+           end if;
+       end if;
+       
     end if;
 
     -- Update row status
@@ -243,6 +264,7 @@ declare
   v_row public.import_rows%rowtype;
   v_summary jsonb;
   v_org_id uuid;
+  v_event_id uuid;
 begin
   select * into v_job from public.import_jobs where id = p_job_id;
   v_org_id := v_job.org_id;
@@ -256,7 +278,7 @@ begin
     if v_job.entity = 'suppliers' then
        insert into public.suppliers (org_id, name)
        values (v_org_id, v_row.normalized->>'name')
-       on conflict (org_id, name) do nothing; -- Already checked upsert logic in validate, but safest is do update/nothing
+       on conflict (org_id, name) do nothing; 
 
     elsif v_job.entity = 'supplier_items' then
        insert into public.supplier_items (supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes)
@@ -274,19 +296,39 @@ begin
            price_per_unit = excluded.price_per_unit;
 
     elsif v_job.entity = 'events' then
+       -- 1. Upsert Event
        insert into public.events (org_id, hotel_id, title, starts_at, ends_at, status, notes)
        values (
          v_org_id,
          (v_row.normalized->>'hotel_id')::uuid,
          v_row.normalized->>'title',
          (v_row.normalized->>'starts_at')::timestamptz,
-         (v_row.normalized->>'ends_at')::timestamptz,
+         -- Default ends_at to starts_at + 1 hour if not provided (simple fallback)
+         coalesce((v_row.normalized->>'ends_at')::timestamptz, (v_row.normalized->>'starts_at')::timestamptz + interval '1 hour'),
          coalesce(v_row.normalized->>'status', 'confirmed'),
          v_row.normalized->>'notes'
        )
        on conflict (org_id, hotel_id, title, starts_at) do update
-       set notes = excluded.notes,
-           ends_at = excluded.ends_at;
+       set notes = excluded.notes
+       returning id into v_event_id;
+       
+       -- If it was an update and didn't return id (unlikely with RETURNING on conflict update, but specific to PG versions), 
+       -- ensure we have ID. actually RETURNING works on conflict update.
+       
+       -- 2. Create/Update Space Booking
+       -- Only if space_id was resolved
+       if v_row.normalized->>'space_id' is not null then
+          insert into public.space_bookings (org_id, event_id, space_id, starts_at, ends_at)
+          values (
+             v_org_id,
+             v_event_id,
+             (v_row.normalized->>'space_id')::uuid,
+             (v_row.normalized->>'starts_at')::timestamptz,
+             coalesce((v_row.normalized->>'ends_at')::timestamptz, (v_row.normalized->>'starts_at')::timestamptz + interval '1 hour')
+          )
+          on conflict do nothing; -- Avoid double booking error for retry, or handle logic
+       end if;
+
     end if;
   end loop;
 
