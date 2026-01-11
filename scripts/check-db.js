@@ -35,10 +35,10 @@ async function checkDB() {
 
   // 2. Check for public tables. We'll try to read from 'outlets' or a common table
   const { count, error } = await supabase
-    .from('waste_entries')
+    .from('reporting_generated_reports')
     .select('*', { count: 'exact', head: true })
 
-  console.log('Waste entries count:', count)
+  console.log('Reporting reports count:', count)
 
   if (error) {
     console.log('Table check error:', error.message)
@@ -46,7 +46,7 @@ async function checkDB() {
       console.log('CONFIRMED: Table "outlets" does not exist. Schema is likely empty.')
     }
   } else {
-    console.log('Table "waste_entries" exists.')
+    console.log('Table "reporting_generated_reports" exists.')
   }
 }
 
