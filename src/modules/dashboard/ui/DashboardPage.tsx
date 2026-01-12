@@ -36,12 +36,8 @@ function HotelAtlanticoFix() {
     const { getSupabaseClient } = await import('@/lib/supabaseClient')
     const client = getSupabaseClient()
 
-    // Insert membership
-    const { error } = await client.from('org_memberships').insert({
-      org_id: targetOrgId,
-      user_id: session.user.id,
-      role: 'owner'
-    })
+    // Call RPC to join safely
+    const { error } = await client.rpc('join_hotel_atlantico')
 
     if (error) {
       console.error(error)
