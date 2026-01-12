@@ -1,7 +1,6 @@
 
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { format, addDays, startOfDay, endOfDay, isSameDay } from 'date-fns'
+import { format, addDays, startOfDay, endOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useGlobalTasks } from '../data/productionRepository'
 import type { ProductionStation } from '../types'
@@ -27,7 +26,7 @@ export function GlobalProductionPage() {
     const orgId = "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d" // Replace with actual mechanism later
 
     const [filter, setFilter] = useState<DateFilter>('today')
-    const [customRange, setCustomRange] = useState<{ from: Date; to: Date } | null>(null)
+    const [customRange] = useState<{ from: Date; to: Date } | null>(null)
 
     const dateRange = (() => {
         const now = new Date()
