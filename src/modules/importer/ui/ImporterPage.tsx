@@ -68,8 +68,10 @@ export default function ImporterPage() {
             }
         }
 
-        // Try to find Year in Sheet Name (e.g. "2025-...")
-        const yearMatch = selectedSheetName.match(/202\d/)
+        // Try to find Year in Sheet Name (e.g. "2025-...") OR File Name
+        // Regex to find years like 2014, 2025, 2026. Matches 2010-2029 to be safe, or just 4 digits.
+        const yearRegex = /20[1-2]\d/
+        const yearMatch = selectedSheetName.match(yearRegex) || (file?.name || '').match(yearRegex)
         const year = yearMatch ? Number(yearMatch[0]) : new Date().getFullYear()
 
         raw.forEach(row => {
@@ -115,7 +117,8 @@ export default function ImporterPage() {
                 }
             } else {
                 // Standard or String date
-                finalDate = normalizeDate(dateValue)
+                // Standard or String date
+                finalDate = normalizeDate(dateValue, year)
             }
 
             // FILTER: If we couldn't resolve a valid date, SKIP this row entirely
@@ -141,23 +144,59 @@ export default function ImporterPage() {
     }
 
     // Helper to normalize dates (Excel can return strings like "10/05/2025" or Date objects)
-    const normalizeDate = (input: any): string | null => {
+    // Helper to normalize dates (Excel can return strings like "10/05/2025" or Date objects)
+    const normalizeDate = (input: any, defaultYear?: number): string | null => {
         if (!input) return null
         if (input instanceof Date) return input.toISOString()
 
-        // Try parsing string
-        const d = new Date(input)
-        if (!isNaN(d.getTime())) return d.toISOString()
+        // Logic for handling Strings
+        if (typeof input === 'string') {
+            // Case 1: DD/MM/YYYY (Explicit Year)
+            if (input.match(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/)) {
+                const parts = input.split(/[\/\-]/)
+                // Assuming DD/MM/YYYY
+                const day = Number(parts[0])
+                const month = Number(parts[1])
+                const year = Number(parts[2])
+                return new Date(year, month - 1, day).toISOString()
+            }
 
-        // Handle DD/MM/YYYY manually if standard parse fails (common in Spanish Excel)
-        if (typeof input === 'string' && input.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
-            const [day, month, year] = input.split('/').map(Number)
-            const iso = new Date(year, month - 1, day).toISOString()
-            return iso
+            // Case 2: DD/MM (Implicit Year) or "15-Ene" (Implicit Year)
+            // If defaultYear is provided, we must enforce it.
+            // Problem: new Date("10/05") defaults to 2001 (Chrome) or Current Year.
+            // We retry parsing with the year appended if possible, or construct manually.
+
+            // DD/MM Regex
+            const shortDateMatch = input.match(/^(\d{1,2})[\/\-](\d{1,2})$/)
+            if (shortDateMatch && defaultYear) {
+                const day = Number(shortDateMatch[1])
+                const month = Number(shortDateMatch[2])
+                return new Date(defaultYear, month - 1, day).toISOString()
+            }
+        }
+
+        // Fallback: Standard parsing
+        const d = new Date(input)
+        if (!isNaN(d.getTime())) {
+            // Fix: If standard parsing results in "Current Year" (or 2001) but we have a `defaultYear` different from it,
+            // AND the input string didn't look like it had a year... we might want to override.
+            // However, detecting "did it have a year" is tricky across locales.
+            // Safe bet: If we passed `defaultYear`, we expect the result to be in that year UNLESS input explicitly had another year.
+
+            // For now, let's trust explicit DD/MM logic above for overrides.
+            // If it falls through here (e.g. "15 Jan"), we can try to fix the year if it mismatches.
+            if (defaultYear && d.getFullYear() !== defaultYear) {
+                // Heuristic: If input lacks 4 digits, assume it meant defaultYear
+                if (!/\d{4}/.test(String(input))) {
+                    d.setFullYear(defaultYear)
+                    return d.toISOString()
+                }
+            }
+            return d.toISOString()
         }
 
         console.warn('Could not parse date:', input)
-        return null // Let backend validation complain about missing date rather than crashing
+        return null
     }
 
     const parsePreviewExcel = async (file: File) => {
