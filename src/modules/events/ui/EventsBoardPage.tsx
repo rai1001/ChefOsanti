@@ -25,7 +25,6 @@ function formatRange(start?: string, end?: string) {
 }
 
 export default function EventsBoardPage() {
-  const today = new Date().toISOString().slice(0, 10)
   const { session, loading, error } = useSupabaseSession()
   const hotels = useHotels()
   const [hotelId, setHotelId] = useState<string>('')
@@ -39,7 +38,6 @@ export default function EventsBoardPage() {
   const [spaceCapacity, setSpaceCapacity] = useState('')
   const createSpace = useCreateSpace()
   const sessionError = useFormattedError(error)
-  const createSpaceError = useFormattedError(createSpace.error)
 
   useEffect(() => {
     if (!hotelId && hotels.data?.length) {

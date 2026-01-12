@@ -42,21 +42,44 @@ export default function ImporterPage() {
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Handlers
-    const processMatrixData = (raw: any[], headerIndex: number, dateColKey: string): any[] => {
+    const processMatrixData = (raw: any[], headerIndex: number, dateColKey: string, selectedSheetName: string): any[] => {
         if (!raw || raw.length <= headerIndex) return []
         const unpivoted: any[] = []
         raw.forEach(row => {
             const dateValue = row[dateColKey]
+            // Skip rows where the Date Column value is clearly junk (Header repeats, Total, Empty)
             if (!dateValue) return
+            const dateStr = String(dateValue).toUpperCase()
+            if (dateStr.includes('TOTAL') || dateStr.includes('P.V.P') || dateStr.includes('IDENTIFICACIÓN') || dateStr.includes('ALERGENOS')) return
+
             Object.keys(row).forEach(key => {
                 if (key !== dateColKey && key !== '__rowNum__') {
                     const cellValue = row[key]
                     // Strict filter: omit null/undefined and empty/whitespace strings
-                    // Use Regex to ensure we catch ALL whitespace types including NBSP
                     if (cellValue && /\S/.test(String(cellValue))) {
+                        // SMART DATE: If dateValue is just a number (1-31), try to construct full date
+                        let finalDate = dateValue
+                        if (typeof dateValue === 'number' || (typeof dateValue === 'string' && dateValue.match(/^\d{1,2}$/))) {
+                            const day = Number(dateValue)
+                            if (day >= 1 && day <= 31) {
+                                // Try to find Month in Column Header (e.g. "ENERO")
+                                const monthName = dateColKey.toUpperCase().trim()
+                                const months = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+                                const monthIdx = months.findIndex(m => monthName.includes(m))
+
+                                // Try to find Year in Sheet Name (e.g. "2025-...")
+                                const yearMatch = selectedSheetName.match(/202\d/)
+                                const year = yearMatch ? Number(yearMatch[0]) : new Date().getFullYear()
+
+                                if (monthIdx >= 0) {
+                                    finalDate = new Date(year, monthIdx, day).toISOString()
+                                }
+                            }
+                        }
+
                         unpivoted.push({
                             name: cellValue,
-                            date: dateValue,
+                            date: finalDate,
                             location: key, // Using Column Header as Location Name
                         })
                     }
@@ -64,6 +87,26 @@ export default function ImporterPage() {
             })
         })
         return unpivoted
+    }
+
+    // Helper to normalize dates (Excel can return strings like "10/05/2025" or Date objects)
+    const normalizeDate = (input: any): string | null => {
+        if (!input) return null
+        if (input instanceof Date) return input.toISOString()
+
+        // Try parsing string
+        const d = new Date(input)
+        if (!isNaN(d.getTime())) return d.toISOString()
+
+        // Handle DD/MM/YYYY manually if standard parse fails (common in Spanish Excel)
+        if (typeof input === 'string' && input.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+            const [day, month, year] = input.split('/').map(Number)
+            const iso = new Date(year, month - 1, day).toISOString()
+            return iso
+        }
+
+        console.warn('Could not parse date:', input)
+        return null // Let backend validation complain about missing date rather than crashing
     }
 
     const parsePreviewExcel = async (file: File) => {
@@ -173,7 +216,7 @@ export default function ImporterPage() {
                             continue
                         }
 
-                        const unpivoted = processMatrixData(sData, 0, sDateCol)
+                        const unpivoted = processMatrixData(sData, 0, sDateCol, sName)
                         allUnpivoted.push(...unpivoted)
                     }
 
@@ -182,7 +225,8 @@ export default function ImporterPage() {
                     rows = allUnpivoted.map(u => ({
                         title: u.name,
                         name: u.name,
-                        starts_at: u.date,
+                        // Ensure starts_at is ISO8601 to prevent SQL Cast Errors (400 Bad Request)
+                        starts_at: normalizeDate(u.date),
                         hotel_id: selectedHotelId,
                         // WORKAROUND: Send hotel_name for old backend validation compatibility
                         // WORKAROUND: Send hotel_name for old backend validation compatibility
