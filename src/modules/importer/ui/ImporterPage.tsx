@@ -120,10 +120,10 @@ export default function ImporterPage() {
 
         if (entity === 'events') {
             setRawSheet(data)
-            setDateColumn('') // Reset date column on sheet change
-            // Auto-detect date column
+            // Do NOT reset date column on sheet change - persist user selection
+            // Auto-detect date column ONLY if not already set
             const potentialDate = headers.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'))
-            if (potentialDate) setDateColumn(potentialDate)
+            if (potentialDate && !dateColumn) setDateColumn(potentialDate)
         } else {
             setActiveParsedData(data)
         }
