@@ -75,31 +75,48 @@ export default function ImporterPage() {
         const year = yearMatch ? Number(yearMatch[0]) : new Date().getFullYear()
 
         raw.forEach(row => {
+            // 1. Context Switch Check: Scan Date Column Only (or First Column if Date Empty)
+            // Priority: Date Column -> Then other columns if date is empty
+
+            const cellDate = row[dateColKey]
+            const cellDateStr = cellDate ? String(cellDate).toUpperCase().trim() : ''
+
+            // Check Date Column Context Switch
+            let isHeaderRow = false
+
+            // Only consider it a header if it's NOT a number (e.g. "15") and matches a month name exactly or closely
+            if (cellDateStr && !/^\d/.test(cellDateStr)) {
+                // Skip known junk (Total, etc)
+                const junkKeywords = ['TOTAL', 'TRIMESTRE', 'SEMESTRE', 'NOTAS']
+                if (!junkKeywords.some(k => cellDateStr.includes(k))) {
+                    let foundIdx = monthsFull.findIndex(m => cellDateStr === m || (cellDateStr.includes(m) && cellDateStr.length < 20)) // Strict length to avoid titles
+                    if (foundIdx === -1) foundIdx = monthsShort.findIndex(m => cellDateStr === m)
+                    if (foundIdx === -1) foundIdx = monthsEng.findIndex(m => cellDateStr === m || (cellDateStr.includes(m) && cellDateStr.length < 20))
+                    if (foundIdx === -1) foundIdx = monthsEngShort.findIndex(m => cellDateStr === m)
+
+                    if (foundIdx !== -1) {
+                        currentMonthIdx = foundIdx
+                        isHeaderRow = true
+                    }
+                }
+            }
+
+            if (isHeaderRow) return
+
+            // 2. Process Date Data
+            // Note: dateValue was already grabbed above but let's re-declare or just use `cellDate` if compatible?
+            // To minimize diff risk, we'll keep existing flow but ensure we rely on `dateValue`.
             const dateValue = row[dateColKey]
-            // Skip rows where the Date Column value is clearly junk (Header repeats, Total, Empty)
             if (!dateValue) return
             const dateStr = String(dateValue).toUpperCase().trim()
 
-            // Check if this row IS a month header (SWITCH CONTEXT)
-            let foundIdx = monthsFull.findIndex(m => dateStr === m || dateStr.includes(m))
-            if (foundIdx === -1) foundIdx = monthsShort.findIndex(m => dateStr === m) // Strict for short to avoid 'MAR' in 'MARTES'
-            if (foundIdx === -1) foundIdx = monthsEng.findIndex(m => dateStr === m || dateStr.includes(m))
-            if (foundIdx === -1) foundIdx = monthsEngShort.findIndex(m => dateStr === m)
-
-            // Special check: ensure we don't match random text as month unless it's clearly a header
-            // But usually these are standalone cells.
-            if (foundIdx !== -1) {
-                currentMonthIdx = foundIdx
-                return // It's a header row, not data
-            }
-
+            // Junk check again for the specific date column specific value
             const junkKeywords = [
                 'TOTAL', 'P.V.P', 'IDENTIFICACIÓN', 'ALERGENOS',
                 'ROOM', 'DESAYUNO', 'BANQUETES', 'COFFEE',
                 'MINIBAR', 'SALA', 'PRODUCCION', 'BAR', 'BUFFET',
                 'HORAS', 'EQUIPOS', 'GRUPOS', 'ESTADO',
                 'TRIMESTRE', 'SEMESTRE'
-                // REMOVED MONTHS FROM JUNK
             ]
             if (junkKeywords.some(k => dateStr.includes(k))) return
 
@@ -119,6 +136,16 @@ export default function ImporterPage() {
                 // Standard or String date
                 // Standard or String date
                 finalDate = normalizeDate(dateValue, year)
+
+                // If we resolved a full date (not just a day number), Update the Context!
+                // This handles cases where a header is actually "01/02/2026" formatted as "Febrero"
+                // or if the list just jumps to "15-Feb" without a header.
+                if (finalDate) {
+                    const d = new Date(finalDate)
+                    if (!isNaN(d.getTime())) {
+                        currentMonthIdx = d.getMonth()
+                    }
+                }
             }
 
             // FILTER: If we couldn't resolve a valid date, SKIP this row entirely
