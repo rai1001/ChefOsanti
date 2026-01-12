@@ -50,7 +50,12 @@ export default function ImporterPage() {
             // Skip rows where the Date Column value is clearly junk (Header repeats, Total, Empty)
             if (!dateValue) return
             const dateStr = String(dateValue).toUpperCase()
-            if (dateStr.includes('TOTAL') || dateStr.includes('P.V.P') || dateStr.includes('IDENTIFICACIÓN') || dateStr.includes('ALERGENOS')) return
+            const junkKeywords = [
+                'TOTAL', 'P.V.P', 'IDENTIFICACIÓN', 'ALERGENOS',
+                'ROOM SERVICE', 'DESAYUNO', 'BANQUETES', 'COFFEE',
+                'MINIBARS', 'SALAS', 'PRODUCCION'
+            ]
+            if (junkKeywords.some(k => dateStr.includes(k))) return
 
             Object.keys(row).forEach(key => {
                 if (key !== dateColKey && key !== '__rowNum__') {
@@ -199,16 +204,30 @@ export default function ImporterPage() {
                         let sDateCol = ''
                         const potentialDate = sHeaders.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'))
 
-                        // Fallback: use globally selected if matches, otherwise try first column
-                        if (potentialDate) {
+                        // 1. SMART MATCH: Check if any header is a Month Name that matches the Sheet Name
+                        // e.g. Sheet "2025-ENERO" -> Look for column "ENERO"
+                        const months = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+                        const sheetMonth = months.find(m => sName.toUpperCase().includes(m))
+
+                        if (sheetMonth && sHeaders.includes(sheetMonth)) {
+                            sDateCol = sheetMonth
+                        }
+                        // 2. Fallback to "Fecha"/"Date" scan
+                        else if (potentialDate) {
                             sDateCol = potentialDate
-                        } else if (dateColumn && sHeaders.includes(dateColumn)) {
+                        }
+                        // 3. User Selection (only if it exists in this sheet)
+                        else if (dateColumn && sHeaders.includes(dateColumn)) {
                             sDateCol = dateColumn
-                        } else if (dateColumn) {
-                            // Fuzzy match or fallback to first column (heuristic for standardized sheets)
-                            // Often the "Date" column is just the first one, even if named differently (e.g. empty string or different day)
+                            // Warn if user selected "ROSALIA" but we are looking for dates
+                            if (sDateCol !== 'ENERO' && !sDateCol.includes('FECHA')) {
+                                console.warn(`Using user-selected column '${sDateCol}' which might not be a date column.`)
+                            }
+                        }
+                        // 4. Last Resort: First Column (often implicit date)
+                        else {
                             sDateCol = sHeaders[0]
-                            console.warn(`Sheet ${sName}: Selected column '${dateColumn}' not found. Falling back to first column '${sDateCol}'.`)
+                            console.warn(`Sheet ${sName}: Auto-selecting first column '${sDateCol}' as Date Column.`)
                         }
 
                         if (!sDateCol) {
