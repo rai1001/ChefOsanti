@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Dialog } from '@headlessui/react'
+
 import { X, Plus, Trash2, Clock, Users, Utensils, AlignLeft } from 'lucide-react'
 import type { OcrDraft, OcrDetectedService, OcrSection } from '../domain/ocrParser'
 
