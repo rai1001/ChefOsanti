@@ -20,6 +20,67 @@ function isoWeekStart(date = new Date()) {
   return startOfWeek(date).toISOString().slice(0, 10)
 }
 
+// Temporary Fix Component for Hotel Atlantico Access
+function HotelAtlanticoFix() {
+  const { session } = useSupabaseSession()
+  const { memberships } = useActiveOrgId()
+  const [loading, setLoading] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  const targetOrgId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+  const isMember = memberships?.some(m => m.orgId === targetOrgId)
+
+  const join = async () => {
+    if (!session?.user) return
+    setLoading(true)
+    const { getSupabaseClient } = await import('@/lib/supabaseClient')
+    const client = getSupabaseClient()
+
+    // Insert membership
+    const { error } = await client.from('org_memberships').insert({
+      org_id: targetOrgId,
+      user_id: session.user.id,
+      role: 'owner'
+    })
+
+    if (error) {
+      console.error(error)
+      setMsg('Error: ' + error.message)
+    } else {
+      setMsg('¡Conectado! Recargando...')
+      setTimeout(() => window.location.reload(), 1500)
+    }
+    setLoading(false)
+  }
+
+  // Only show if logged in but not a member of the new org
+  if (!session?.user || isMember) return null
+
+  return (
+    <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-nano-blue-900/40 to-nano-navy-800 border border-nano-blue-500/50 flex items-center justify-between animate-fade-in">
+      <div>
+        <h3 className="text-white font-bold flex items-center gap-2">
+          <span className="text-xl">🏨</span>
+          Configuración Hotel Atlántico
+        </h3>
+        <p className="text-nano-blue-200 text-sm mt-1">
+          Detectamos que aún no tienes acceso a la nueva organización.
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        {msg && <span className="text-white font-medium bg-green-500/20 px-3 py-1 rounded-lg border border-green-500/30">{msg}</span>}
+        <button
+          onClick={join}
+          disabled={loading}
+          className="px-5 py-2.5 bg-nano-blue-600 hover:bg-nano-blue-500 text-white font-bold rounded-lg shadow-lg shadow-nano-blue-600/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Conectando...' : 'Unirse Ahora'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const { activeOrgId, loading: orgLoading, memberships, setOrg } = useActiveOrgId()
   const hotels = useHotels()
@@ -141,6 +202,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Hero Section: AI Brief */}
+      <HotelAtlanticoFix />
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-nano-navy-800 to-nano-navy-900 border border-white/10 p-1 shadow-2xl">
         <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-nano-blue-500/20 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-nano-orange-500/10 blur-3xl"></div>
