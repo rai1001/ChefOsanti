@@ -138,30 +138,58 @@ export default function ImporterPage() {
             if (file.name.endsWith('.csv')) {
                 rows = await parseCSV(file)
             } else if (file.name.match(/\.xlsx?$/)) {
-                // If we already parsed it in handleFileChange, use that
-                // Or re-parse (but handleFileChange saves it to state)
-
                 if (entity === 'events') {
                     if (!selectedHotelId) throw new Error('Selecciona un hotel')
-                    if (!dateColumn) throw new Error('Selecciona la columna de fechas')
-                    if (!rawSheet) throw new Error('No se pudo leer el Excel')
+                    if (sheetNames.length === 0) throw new Error('No se encontraron hojas en el Excel')
 
-                    const unpivoted = processMatrixData(rawSheet, 0, dateColumn)
-                    rows = unpivoted.map(u => ({
+                    // Iterate ALL sheets
+                    const allUnpivoted: any[] = []
+
+                    for (const sName of sheetNames) {
+                        const sData = sheets[sName]
+                        if (!sData || sData.length === 0) continue
+
+                        const sHeaders = Object.keys(sData[0])
+                        // Auto-detect date column per sheet
+                        let sDateCol = ''
+                        const potentialDate = sHeaders.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'))
+
+                        // Fallback: use globally selected if matches, otherwise skip or error
+                        if (potentialDate) {
+                            sDateCol = potentialDate
+                        } else if (dateColumn && sHeaders.includes(dateColumn)) {
+                            sDateCol = dateColumn
+                        }
+
+                        if (!sDateCol) {
+                            console.warn(`Skipping sheet ${sName}: No date column found`)
+                            continue
+                        }
+
+                        const unpivoted = processMatrixData(sData, 0, sDateCol)
+                        allUnpivoted.push(...unpivoted)
+                    }
+
+                    if (allUnpivoted.length === 0) throw new Error('No se pudieron extraer eventos de ninguna hoja (verifique columnas de fecha)')
+
+                    rows = allUnpivoted.map(u => ({
                         title: u.name,
-                        name: u.name, // Defensive: duplicate for validation
+                        name: u.name,
                         starts_at: u.date,
                         hotel_id: selectedHotelId,
                         space_name: u.location,
                         status: 'confirmed'
                     }))
+
+                    setNotification({ type: 'success', message: `Procesados ${rows.length} eventos de ${sheetNames.length} hojas` })
+
                 } else {
+                    // Non-events standard logic (single sheet)
                     if (activeParsedData) {
                         rows = activeParsedData
                     } else if (sheetNames.length > 0 && selectedSheetName) {
                         rows = sheets[selectedSheetName]
                     } else {
-                        // Fallback re-parse (should rarely happen if state is synced)
                         const { sheets: reSheets, sheetNames: reNames } = await parsePreviewExcel(file)
                         rows = reSheets[reNames[0]]
                     }
@@ -286,7 +314,7 @@ export default function ImporterPage() {
                         </div>
 
                         {/* Sheet Selection (if multi-sheet) */}
-                        {sheetNames.length > 1 && (
+                        {sheetNames.length > 1 && entity !== 'events' && (
                             <div className="bg-white/5 p-4 rounded-lg border border-white/10 animate-in fade-in">
                                 <label className="block text-xs font-semibold text-slate-400 mb-2">Seleccionar Hoja de Excel</label>
                                 <div className="flex flex-wrap gap-2">
@@ -302,6 +330,20 @@ export default function ImporterPage() {
                                             {name}
                                         </button>
                                     ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {entity === 'events' && sheetNames.length > 1 && (
+                            <div className="bg-nano-blue-500/10 p-4 rounded-lg border border-nano-blue-500/20 flex items-center gap-3 animate-in fade-in">
+                                <div className="text-nano-blue-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-white">Importación Multi-Hoja Detectada</p>
+                                    <p className="text-xs text-nano-blue-200">Se procesarán las {sheetNames.length} hojas encontradas (2025-2026).</p>
                                 </div>
                             </div>
                         )}
