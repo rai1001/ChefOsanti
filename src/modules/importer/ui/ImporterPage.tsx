@@ -154,11 +154,16 @@ export default function ImporterPage() {
                         let sDateCol = ''
                         const potentialDate = sHeaders.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'))
 
-                        // Fallback: use globally selected if matches, otherwise skip or error
+                        // Fallback: use globally selected if matches, otherwise try first column
                         if (potentialDate) {
                             sDateCol = potentialDate
                         } else if (dateColumn && sHeaders.includes(dateColumn)) {
                             sDateCol = dateColumn
+                        } else if (dateColumn) {
+                            // Fuzzy match or fallback to first column (heuristic for standardized sheets)
+                            // Often the "Date" column is just the first one, even if named differently (e.g. empty string or different day)
+                            sDateCol = sHeaders[0]
+                            console.warn(`Sheet ${sName}: Selected column '${dateColumn}' not found. Falling back to first column '${sDateCol}'.`)
                         }
 
                         if (!sDateCol) {
