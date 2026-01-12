@@ -52,8 +52,12 @@ export default function ImporterPage() {
             const dateStr = String(dateValue).toUpperCase()
             const junkKeywords = [
                 'TOTAL', 'P.V.P', 'IDENTIFICACIÓN', 'ALERGENOS',
-                'ROOM SERVICE', 'DESAYUNO', 'BANQUETES', 'COFFEE',
-                'MINIBARS', 'SALAS', 'PRODUCCION'
+                'ROOM', 'DESAYUNO', 'BANQUETES', 'COFFEE',
+                'MINIBAR', 'SALA', 'PRODUCCION', 'BAR', 'BUFFET',
+                'HORAS', 'EQUIPOS', 'GRUPOS',
+                // Exclude Month Headers appearing in rows
+                'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+                'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
             ]
             if (junkKeywords.some(k => dateStr.includes(k))) return
 
