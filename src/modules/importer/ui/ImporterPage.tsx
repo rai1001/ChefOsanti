@@ -51,7 +51,8 @@ export default function ImporterPage() {
             Object.keys(row).forEach(key => {
                 if (key !== dateColKey && key !== '__rowNum__') {
                     const cellValue = row[key]
-                    if (cellValue) {
+                    // Strict filter: omit null/undefined and empty/whitespace strings
+                    if (cellValue && String(cellValue).trim().length > 0) {
                         unpivoted.push({
                             name: cellValue,
                             date: dateValue,
