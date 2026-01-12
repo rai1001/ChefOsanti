@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_crypto";
 
 CREATE TABLE IF NOT EXISTS public.events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID DEFAULT '00000000-0000-0000-0000-000000000000', -- Placeholder for RLS
+    org_id UUID DEFAULT 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', -- Hotel Atlantico
     name TEXT NOT NULL,
     event_date DATE NOT NULL,
     menu_status TEXT DEFAULT 'pending',
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.events (
 CREATE TABLE IF NOT EXISTS public.event_rooms (
     event_id UUID REFERENCES public.events(id) ON DELETE CASCADE,
     room_name TEXT NOT NULL,
-    org_id UUID DEFAULT '00000000-0000-0000-0000-000000000000',
+    org_id UUID DEFAULT 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
     PRIMARY KEY (event_id, room_name)
 );
 
