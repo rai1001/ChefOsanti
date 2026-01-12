@@ -29,6 +29,7 @@ import { EventBookingsSection } from './EventBookingsSection'
 import { EventServicesSection } from './EventServicesSection'
 import { AddBookingModal, type BookingForm } from './AddBookingModal'
 import { AddServiceModal, type ServiceForm } from './AddServiceModal'
+import { ProductionSection } from '@/modules/production/ui/ProductionSection'
 
 function normalizeDraft(raw: any, fallbackText: string): OcrDraft {
   if (!raw || !Array.isArray(raw.detectedServices)) {
@@ -240,6 +241,13 @@ export default function EventDetailPage() {
           menuTemplates={menuTemplates.data ?? []}
           onDeleteService={(id) => deleteService.mutate(id)}
           onAddService={() => setIsAddServiceOpen(true)}
+        />
+
+        <ProductionSection
+          services={eventServices}
+          orgId={event.orgId}
+          hotelId={event.hotelId}
+          eventId={event.id}
         />
 
         {/* Keeping Draft Orders Section Inline */}
