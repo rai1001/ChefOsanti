@@ -54,38 +54,46 @@ export default function ImporterPage() {
                 'TOTAL', 'P.V.P', 'IDENTIFICACIÓN', 'ALERGENOS',
                 'ROOM', 'DESAYUNO', 'BANQUETES', 'COFFEE',
                 'MINIBAR', 'SALA', 'PRODUCCION', 'BAR', 'BUFFET',
-                'HORAS', 'EQUIPOS', 'GRUPOS',
+                'HORAS', 'EQUIPOS', 'GRUPOS', 'ESTADO',
                 // Exclude Month Headers appearing in rows
                 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
                 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
             ]
             if (junkKeywords.some(k => dateStr.includes(k))) return
 
+            // Parse Date immediately to verify validity
+            let finalDate = null
+            if (typeof dateValue === 'number' || (typeof dateValue === 'string' && dateValue.match(/^\d{1,2}$/))) {
+                // Numeric day (1-31) logic
+                const day = Number(dateValue)
+                if (day >= 1 && day <= 31) {
+                    // Try to find Month in Column Header (e.g. "ENERO")
+                    const monthName = dateColKey.toUpperCase().trim()
+                    const months = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+                    const monthIdx = months.findIndex(m => monthName.includes(m))
+
+                    // Try to find Year in Sheet Name (e.g. "2025-...")
+                    const yearMatch = selectedSheetName.match(/202\d/)
+                    const year = yearMatch ? Number(yearMatch[0]) : new Date().getFullYear()
+
+                    if (monthIdx >= 0) {
+                        finalDate = new Date(year, monthIdx, day).toISOString()
+                    }
+                }
+            } else {
+                // Standard or String date
+                finalDate = normalizeDate(dateValue)
+            }
+
+            // FILTER: If we couldn't resolve a valid date, SKIP this row entirely
+            // This prevents "Missing starts_at" errors for miscellaneous text rows
+            if (!finalDate) return
+
             Object.keys(row).forEach(key => {
                 if (key !== dateColKey && key !== '__rowNum__') {
                     const cellValue = row[key]
                     // Strict filter: omit null/undefined and empty/whitespace strings
                     if (cellValue && /\S/.test(String(cellValue))) {
-                        // SMART DATE: If dateValue is just a number (1-31), try to construct full date
-                        let finalDate = dateValue
-                        if (typeof dateValue === 'number' || (typeof dateValue === 'string' && dateValue.match(/^\d{1,2}$/))) {
-                            const day = Number(dateValue)
-                            if (day >= 1 && day <= 31) {
-                                // Try to find Month in Column Header (e.g. "ENERO")
-                                const monthName = dateColKey.toUpperCase().trim()
-                                const months = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
-                                const monthIdx = months.findIndex(m => monthName.includes(m))
-
-                                // Try to find Year in Sheet Name (e.g. "2025-...")
-                                const yearMatch = selectedSheetName.match(/202\d/)
-                                const year = yearMatch ? Number(yearMatch[0]) : new Date().getFullYear()
-
-                                if (monthIdx >= 0) {
-                                    finalDate = new Date(year, monthIdx, day).toISOString()
-                                }
-                            }
-                        }
-
                         unpivoted.push({
                             name: cellValue,
                             date: finalDate,
