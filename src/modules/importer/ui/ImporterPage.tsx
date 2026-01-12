@@ -45,39 +45,72 @@ export default function ImporterPage() {
     const processMatrixData = (raw: any[], headerIndex: number, dateColKey: string, selectedSheetName: string): any[] => {
         if (!raw || raw.length <= headerIndex) return []
         const unpivoted: any[] = []
+
+        // Initialize Quarter/Month Context
+        const monthsFull = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+        const monthsShort = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
+        const monthsEng = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+        const monthsEngShort = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
+        // Try to determine initial month from Sheet Name (e.g. "2025-ENE-MAR" -> Starts with ENE)
+        const sNameUpper = selectedSheetName.toUpperCase()
+        // Find FIRST occurrence of any month in the sheet name to use as default
+        // We iterate through months chronologicaly, but we should probably check position?
+        // Simple heuristic: First match in the month list is usually the start of the quarter (Jan, Apr, Jul, Oct) if ordered.
+        let currentMonthIdx = -1
+
+        // Find the first month that appears in the sheet name (Scanning 0..11)
+        // This favors "ENERO" in "ENERO-MARZO"
+        for (let i = 0; i < 12; i++) {
+            if (sNameUpper.includes(monthsFull[i]) || sNameUpper.includes(monthsShort[i]) || sNameUpper.includes(monthsEng[i]) || sNameUpper.includes(monthsEngShort[i])) {
+                currentMonthIdx = i
+                break
+            }
+        }
+
+        // Try to find Year in Sheet Name (e.g. "2025-...")
+        const yearMatch = selectedSheetName.match(/202\d/)
+        const year = yearMatch ? Number(yearMatch[0]) : new Date().getFullYear()
+
         raw.forEach(row => {
             const dateValue = row[dateColKey]
             // Skip rows where the Date Column value is clearly junk (Header repeats, Total, Empty)
             if (!dateValue) return
-            const dateStr = String(dateValue).toUpperCase()
+            const dateStr = String(dateValue).toUpperCase().trim()
+
+            // Check if this row IS a month header (SWITCH CONTEXT)
+            let foundIdx = monthsFull.findIndex(m => dateStr === m || dateStr.includes(m))
+            if (foundIdx === -1) foundIdx = monthsShort.findIndex(m => dateStr === m) // Strict for short to avoid 'MAR' in 'MARTES'
+            if (foundIdx === -1) foundIdx = monthsEng.findIndex(m => dateStr === m || dateStr.includes(m))
+            if (foundIdx === -1) foundIdx = monthsEngShort.findIndex(m => dateStr === m)
+
+            // Special check: ensure we don't match random text as month unless it's clearly a header
+            // But usually these are standalone cells.
+            if (foundIdx !== -1) {
+                currentMonthIdx = foundIdx
+                return // It's a header row, not data
+            }
+
             const junkKeywords = [
                 'TOTAL', 'P.V.P', 'IDENTIFICACIÓN', 'ALERGENOS',
                 'ROOM', 'DESAYUNO', 'BANQUETES', 'COFFEE',
                 'MINIBAR', 'SALA', 'PRODUCCION', 'BAR', 'BUFFET',
                 'HORAS', 'EQUIPOS', 'GRUPOS', 'ESTADO',
-                // Exclude Month Headers appearing in rows
-                'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-                'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+                'TRIMESTRE', 'SEMESTRE'
+                // REMOVED MONTHS FROM JUNK
             ]
             if (junkKeywords.some(k => dateStr.includes(k))) return
 
             // Parse Date immediately to verify validity
             let finalDate = null
+
+            // Numeric day (1-31) logic
             if (typeof dateValue === 'number' || (typeof dateValue === 'string' && dateValue.match(/^\d{1,2}$/))) {
-                // Numeric day (1-31) logic
                 const day = Number(dateValue)
                 if (day >= 1 && day <= 31) {
-                    // Try to find Month in Column Header (e.g. "ENERO")
-                    const monthName = dateColKey.toUpperCase().trim()
-                    const months = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
-                    const monthIdx = months.findIndex(m => monthName.includes(m))
-
-                    // Try to find Year in Sheet Name (e.g. "2025-...")
-                    const yearMatch = selectedSheetName.match(/202\d/)
-                    const year = yearMatch ? Number(yearMatch[0]) : new Date().getFullYear()
-
-                    if (monthIdx >= 0) {
-                        finalDate = new Date(year, monthIdx, day).toISOString()
+                    // Use detected context
+                    if (currentMonthIdx >= 0) {
+                        finalDate = new Date(year, currentMonthIdx, day).toISOString()
                     }
                 }
             } else {
@@ -90,7 +123,8 @@ export default function ImporterPage() {
             if (!finalDate) return
 
             Object.keys(row).forEach(key => {
-                if (key !== dateColKey && key !== '__rowNum__') {
+                // Ignore the Date Column itself, internal row num, and any empty header columns from XLSX parsing
+                if (key !== dateColKey && key !== '__rowNum__' && !key.startsWith('__EMPTY')) {
                     const cellValue = row[key]
                     // Strict filter: omit null/undefined and empty/whitespace strings
                     if (cellValue && /\S/.test(String(cellValue))) {
@@ -206,10 +240,14 @@ export default function ImporterPage() {
 
                     // Iterate ALL sheets
                     const allUnpivoted: any[] = []
+                    const skippedSheets: string[] = []
 
                     for (const sName of sheetNames) {
                         const sData = sheets[sName]
-                        if (!sData || sData.length === 0) continue
+                        if (!sData || sData.length === 0) {
+                            skippedSheets.push(`${sName} (Vacía)`)
+                            continue
+                        }
 
                         const sHeaders = Object.keys(sData[0])
                         // Auto-detect date column per sheet
@@ -218,17 +256,28 @@ export default function ImporterPage() {
 
                         // 1. SMART MATCH: Check if any header is a Month Name that matches the Sheet Name
                         // e.g. Sheet "2025-ENERO" -> Look for column "ENERO"
-                        const months = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
-                        const sheetMonth = months.find(m => sName.toUpperCase().includes(m))
+                        // Support 3-letter abbreviations (Spanish & English)
+                        const monthsFull = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+                        const monthsShort = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
+                        const monthsEng = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+                        const monthsEngShort = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
-                        if (sheetMonth && sHeaders.includes(sheetMonth)) {
-                            sDateCol = sheetMonth
+                        const sNameUpper = sName.toUpperCase()
+
+                        // Find matches by full or short name (Spanish then English)
+                        let sheetMonthIndex = monthsFull.findIndex(m => sNameUpper.includes(m))
+                        if (sheetMonthIndex === -1) sheetMonthIndex = monthsShort.findIndex(m => sNameUpper.includes(m))
+                        if (sheetMonthIndex === -1) sheetMonthIndex = monthsEng.findIndex(m => sNameUpper.includes(m))
+                        if (sheetMonthIndex === -1) sheetMonthIndex = monthsEngShort.findIndex(m => sNameUpper.includes(m))
+
+                        const sheetMonthName = sheetMonthIndex >= 0 ? monthsFull[sheetMonthIndex] : null
+
+                        if (sheetMonthName && sHeaders.includes(sheetMonthName)) {
+                            sDateCol = sheetMonthName
                         }
-                        // STRICT: If no month found in Sheet Name, skip it (Prevents loading summary/chart sheets)
-                        else if (!sheetMonth) {
-                            console.warn(`Skipping sheet '${sName}' (Not a Month sheet)`)
-                            continue
-                        }
+                        // STRICT REMOVED: Do not skip just because sheet name doesn't match a month.
+                        // We will check for Date columns next.
+
                         // 2. Fallback to "Fecha"/"Date" scan
                         else if (potentialDate) {
                             sDateCol = potentialDate
@@ -236,10 +285,6 @@ export default function ImporterPage() {
                         // 3. User Selection (only if it exists in this sheet)
                         else if (dateColumn && sHeaders.includes(dateColumn)) {
                             sDateCol = dateColumn
-                            // Warn if user selected "ROSALIA" but we are looking for dates
-                            if (sDateCol !== 'ENERO' && !sDateCol.includes('FECHA')) {
-                                console.warn(`Using user-selected column '${sDateCol}' which might not be a date column.`)
-                            }
                         }
                         // 4. Last Resort: First Column (often implicit date)
                         else {
@@ -248,15 +293,18 @@ export default function ImporterPage() {
                         }
 
                         if (!sDateCol) {
-                            console.warn(`Skipping sheet ${sName}: No date column found`)
+                            skippedSheets.push(`${sName} (Sin columna fecha)`)
                             continue
                         }
 
                         const unpivoted = processMatrixData(sData, 0, sDateCol, sName)
+                        if (unpivoted.length === 0) {
+                            skippedSheets.push(`${sName} (Sin filas válidas - ¿Fallo mes?)`)
+                        }
                         allUnpivoted.push(...unpivoted)
                     }
 
-                    if (allUnpivoted.length === 0) throw new Error('No se pudieron extraer eventos de ninguna hoja (verifique columnas de fecha)')
+                    if (allUnpivoted.length === 0) throw new Error('No se pudieron extraer eventos. Hojas omitidas: ' + skippedSheets.join(', '))
 
                     rows = allUnpivoted.map(u => ({
                         title: u.name,
@@ -272,7 +320,11 @@ export default function ImporterPage() {
                         status: 'confirmed'
                     }))
 
-                    setNotification({ type: 'success', message: `Procesados ${rows.length} eventos de ${sheetNames.length} hojas` })
+                    let msg = `Procesados ${rows.length} eventos.`
+                    if (skippedSheets.length > 0) {
+                        msg += ` Omitidas: ${skippedSheets.join(', ')}`
+                    }
+                    setNotification({ type: 'success', message: msg })
 
                 } else {
                     // Non-events standard logic (single sheet)
