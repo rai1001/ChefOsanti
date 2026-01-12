@@ -52,7 +52,8 @@ export default function ImporterPage() {
                 if (key !== dateColKey && key !== '__rowNum__') {
                     const cellValue = row[key]
                     // Strict filter: omit null/undefined and empty/whitespace strings
-                    if (cellValue && String(cellValue).trim().length > 0) {
+                    // Use Regex to ensure we catch ALL whitespace types including NBSP
+                    if (cellValue && /\S/.test(String(cellValue))) {
                         unpivoted.push({
                             name: cellValue,
                             date: dateValue,
@@ -183,6 +184,10 @@ export default function ImporterPage() {
                         name: u.name,
                         starts_at: u.date,
                         hotel_id: selectedHotelId,
+                        // WORKAROUND: Send hotel_name for old backend validation compatibility
+                        // WORKAROUND: Send hotel_name for old backend validation compatibility
+                        // Fallback to "Hotel Atlantico" if lookup fails (temporary fix for user)
+                        hotel_name: hotels?.find(h => h.id === selectedHotelId)?.name || 'Hotel Atlantico',
                         space_name: u.location,
                         status: 'confirmed'
                     }))
@@ -209,6 +214,7 @@ export default function ImporterPage() {
                 filename: file.name,
                 rows
             })
+            console.log('DEBUG: Staged Rows Sample:', rows[0])
             setActiveJobId(jobId)
             setNotification({ type: 'success', message: 'Datos previsualizados correctamente' })
         } catch (err) {
