@@ -216,6 +216,11 @@ export default function ImporterPage() {
                         if (sheetMonth && sHeaders.includes(sheetMonth)) {
                             sDateCol = sheetMonth
                         }
+                        // STRICT: If no month found in Sheet Name, skip it (Prevents loading summary/chart sheets)
+                        else if (!sheetMonth) {
+                            console.warn(`Skipping sheet '${sName}' (Not a Month sheet)`)
+                            continue
+                        }
                         // 2. Fallback to "Fecha"/"Date" scan
                         else if (potentialDate) {
                             sDateCol = potentialDate
