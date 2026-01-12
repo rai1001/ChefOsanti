@@ -17,6 +17,7 @@ const EventOrderDetailPage = lazy(() => import('./modules/purchasing/ui/EventOrd
 const EventsBoardPage = lazy(() => import('./modules/events/ui/EventsBoardPage'))
 const NewEventPage = lazy(() => import('./modules/events/ui/NewEventPage'))
 const EventDetailPage = lazy(() => import('./modules/events/ui/EventDetailPage'))
+const GlobalProductionPage = lazy(() => import('./modules/production/ui/GlobalProductionPage'))
 const MenuTemplatesPage = lazy(() => import('./modules/events/ui/MenuTemplatesPage'))
 const MenuTemplateDetailPage = lazy(() => import('./modules/events/ui/MenuTemplateDetailPage'))
 const ProductsPage = lazy(() => import('./modules/recipes/ui/ProductsPage'))
@@ -88,6 +89,16 @@ export const appRouter = createBrowserRouter([
           <RequirePermission perm="events:read">
             <Suspense fallback={<PageLoader />}>
               <EventDetailPage />
+            </Suspense>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'production',
+        element: (
+          <RequirePermission perm="events:read">
+            <Suspense fallback={<PageLoader />}>
+              <GlobalProductionPage />
             </Suspense>
           </RequirePermission>
         ),

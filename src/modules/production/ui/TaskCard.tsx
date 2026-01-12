@@ -50,6 +50,11 @@ export function TaskCard({ task, onStatusChange, onDelete }: TaskCardProps) {
                     <span className="inline-flex items-center rounded-sm bg-slate-100 px-1.5 py-0.5 text-[10px] uppercase font-bold tracking-wider text-slate-500">
                         {STATION_LABELS[task.station]}
                     </span>
+                    {task.planned_qty && (
+                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                            {task.planned_qty} {task.unit}
+                        </span>
+                    )}
                     {task.due_at && (
                         <span className="text-xs text-slate-500">
                             {format(new Date(task.due_at), 'HH:mm', { locale: es })}

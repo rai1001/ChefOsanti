@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import {
     useProductionPlan,
     useProductionTasks,
+    useGenerateProductionPlan,
     useCreateProductionPlan,
     useCreateProductionTask,
     useUpdateProductionTask,
@@ -36,6 +37,7 @@ export function ProductionPlanView({ serviceId, orgId, hotelId, eventId }: Produ
     const { data: tasks, isLoading: loadingTasks } = useProductionTasks(plan?.id)
 
     const createPlan = useCreateProductionPlan()
+    const generatePlan = useGenerateProductionPlan()
     const createTask = useCreateProductionTask()
     const updateTask = useUpdateProductionTask()
     const deleteTask = useDeleteProductionTask()
@@ -53,19 +55,47 @@ export function ProductionPlanView({ serviceId, orgId, hotelId, eventId }: Produ
         return grouped
     }, [tasks])
 
+    const handleGenerate = async () => {
+        if (!confirm('Esto generará tareas basadas en el menú del evento. ¿Continuar?')) return;
+
+        try {
+            const result = await generatePlan.mutateAsync(serviceId);
+            let msg = `Generación completada:\n- Tareas creadas: ${result.created}`;
+
+            const missing = result.missing_items || [];
+            if (missing.length > 0) {
+                msg += `\n\n⚠️ ${missing.length} ítems sin receta asignada (ignorados):\n` + missing.map(m => `• ${m}`).join('\n');
+            } else {
+                msg += `\n- Todos los ítems fueron procesados.`;
+            }
+            alert(msg);
+        } catch (e) {
+            alert('Error al generar: ' + (e as Error).message);
+        }
+    }
+
     if (loadingPlan) return <div className="p-4"><Spinner /></div>
 
     if (!plan) {
         return (
             <div className="flex flex-col items-center justify-center py-8 text-center bg-white/5 rounded-lg border border-slate-200 border-dashed">
                 <p className="text-slate-500 mb-4">No hay plan de producción para este servicio.</p>
-                <Button
-                    variant="default"
-                    onClick={() => createPlan.mutate({ orgId, hotelId, eventId, eventServiceId: serviceId })}
-                    disabled={createPlan.isPending}
-                >
-                    Create Plan de Producción
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="default"
+                        onClick={() => createPlan.mutate({ orgId, hotelId, eventId, eventServiceId: serviceId })}
+                        disabled={createPlan.isPending}
+                    >
+                        Crear Plan Manual
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={handleGenerate}
+                        disabled={generatePlan.isPending}
+                    >
+                        {generatePlan.isPending ? 'Generando...' : 'Generar desde Menú'}
+                    </Button>
+                </div>
             </div>
         )
     }
@@ -75,10 +105,20 @@ export function ProductionPlanView({ serviceId, orgId, hotelId, eventId }: Produ
             <header className="flex items-center justify-between">
                 <div>
                     <h3 className="text-lg font-medium text-slate-800">Mise en place</h3>
-                    <p className="text-sm text-slate-500">Plan de producción manual (v1)</p>
+                    <p className="text-sm text-slate-500">
+                        {plan.generated_from === 'menu' ? 'Generado autom.' : 'Plan manual'}
+                    </p>
                 </div>
                 <div className="flex gap-2">
-                    {/* Future: "Generate from Menu" button here */}
+                    {/* Allow re-generation even if exists, but maybe warn? RPC handles re-run safe-ish (inserts only). */}
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleGenerate}
+                        disabled={generatePlan.isPending}
+                    >
+                        {generatePlan.isPending ? '...' : 'Re-generar desde Menú'}
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => setIsAddingTask('frio')}>
                         + Añadir Tarea
                     </Button>
@@ -108,8 +148,6 @@ export function ProductionPlanView({ serviceId, orgId, hotelId, eventId }: Produ
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {STATIONS.map((station) => {
                         const stationTasks = tasksByStation[station] || []
-                        // Optional: Hide empty stations? No, better to show empty so user knows they exist.
-                        // Or maybe only hide if very crowded. Let's show all for now.
 
                         return (
                             <div key={station} className="rounded-lg border border-slate-200 bg-slate-50/50 flex flex-col">

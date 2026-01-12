@@ -28,4 +28,31 @@ export interface ProductionTask {
     blocked_reason?: string;
     notes?: string;
     created_at: string;
+    // PR2: Auto-Generation
+    planned_qty?: number;
+    unit?: string;
+    recipe_id?: string;
+}
+
+export interface MenuItemRecipeAlias {
+    id: string;
+    org_id: string;
+    alias_name: string;
+    recipe_id: string;
+}
+
+export interface RecipeProductionMeta {
+    id: string;
+    org_id: string;
+    recipe_id: string;
+    station: ProductionStation;
+    lead_time_minutes: number;
+    default_batch_size?: number;
+    shelf_life_days?: number;
+}
+
+export interface ProductionTaskWithContext extends ProductionTask {
+    event_name: string;
+    event_date: string;
+    plan_status: ProductionPlanStatus;
 }

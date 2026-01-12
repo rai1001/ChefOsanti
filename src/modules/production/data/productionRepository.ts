@@ -4,7 +4,8 @@ import { mapSupabaseError } from '@/lib/shared/errors'
 import type {
     ProductionPlan,
     ProductionTask,
-    ProductionStation
+    ProductionStation,
+    ProductionTaskWithContext
 } from '../types'
 
 // Input Types
@@ -59,6 +60,9 @@ function mapTask(row: any): ProductionTask {
         blocked_reason: row.blocked_reason,
         notes: row.notes,
         created_at: row.created_at,
+        planned_qty: row.planned_qty,
+        unit: row.unit,
+        recipe_id: row.recipe_id,
     }
 }
 
@@ -140,6 +144,40 @@ async function insertTask(input: CreateTaskInput): Promise<ProductionTask> {
     return mapTask(data)
 }
 
+export async function fetchGlobalTasks(filters: { from: Date; to: Date; orgId: string }): Promise<ProductionTaskWithContext[]> {
+    const supabase = getSupabaseClient()
+
+    // We need to join production_tasks -> production_plans -> events
+    // Supabase TS types might be tricky with deep joins, using any for intermediate
+    const { data, error } = await supabase
+        .from('production_tasks')
+        .select(`
+            *,
+            production_plans!inner (
+                status,
+                events!inner (
+                    name,
+                    starts_at
+                )
+            )
+        `)
+        .eq('org_id', filters.orgId)
+        .gte('production_plans.events.starts_at', filters.from.toISOString())
+        .lte('production_plans.events.starts_at', filters.to.toISOString())
+        .order('due_at', { ascending: true })
+
+    if (error) {
+        throw mapSupabaseError(error, { module: 'production', operation: 'fetchGlobalTasks' })
+    }
+
+    return (data || []).map((row: any) => ({
+        ...mapTask(row),
+        event_name: row.production_plans?.events?.name || 'Evento Desconocido',
+        event_date: row.production_plans?.events?.starts_at || '',
+        plan_status: row.production_plans?.status || 'draft'
+    }))
+}
+
 async function updateTaskInDb(input: UpdateTaskInput): Promise<ProductionTask> {
     const supabase = getSupabaseClient()
     const { id, ...updates } = input
@@ -177,7 +215,40 @@ async function deleteProductionTask(taskId: string): Promise<void> {
     }
 }
 
+// PR2: Generation
+interface GeneratePlanResult {
+    plan_id: string;
+    created: number;
+    missing_count: number | null;
+    missing_items: string[] | null;
+}
+
+async function generatePlanRPC(serviceId: string): Promise<GeneratePlanResult> {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase.rpc('generate_production_plan', {
+        p_service_id: serviceId
+    })
+
+    if (error) {
+        throw mapSupabaseError(error, { module: 'production', operation: 'generatePlan', serviceId })
+    }
+    return data as GeneratePlanResult
+}
+
 // Hooks
+
+export function useGenerateProductionPlan() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: generatePlanRPC,
+        onSuccess: (_, serviceId) => {
+            queryClient.invalidateQueries({ queryKey: ['production_plan', serviceId] })
+            // Also invalidate tasks if we knew the planId, but we might not yet.
+            // But the plan fetch will return the new/existing plan, and then tasks will refetch if planId is stable.
+            // Better: invalidate based on serviceId if possible or just accept eventual consistency.
+        }
+    })
+}
 
 export function useProductionPlan(serviceId: string | undefined) {
     return useQuery({
@@ -234,6 +305,16 @@ export function useDeleteProductionTask() {
             // but typically we can invalidate by prefix or pass context.
             // For now, simple validation.
             queryClient.invalidateQueries({ queryKey: ['production_tasks'] })
+            queryClient.invalidateQueries({ queryKey: ['global_tasks'] })
         }
     })
 }
+
+export function useGlobalTasks(orgId: string, from: Date, to: Date) {
+    return useQuery({
+        queryKey: ['global_tasks', orgId, from.toISOString(), to.toISOString()],
+        queryFn: () => fetchGlobalTasks({ orgId, from, to }),
+        enabled: Boolean(orgId),
+    })
+}
+
