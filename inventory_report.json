@@ -1,0 +1,704 @@
+{
+  "2025-ENERO.MARZO": {
+    "rows": 167,
+    "cols": 10,
+    "columns": [
+      "ENERO",
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO",
+      "HALL",
+      "RESTAURANTE",
+      "BAR",
+      "Unnamed: 9"
+    ],
+    "head": [
+      {
+        "ENERO": 1,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": "FESTIVO",
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      },
+      {
+        "ENERO": 2,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": " ",
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      },
+      {
+        "ENERO": 3,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": " ",
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      },
+      {
+        "ENERO": 4,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": " ",
+        "RESTAURANTE": " ",
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      },
+      {
+        "ENERO": 5,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": " ",
+        "RESTAURANTE": " ",
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      }
+    ]
+  },
+  "2025-ABRIL.JUNIO": {
+    "rows": 164,
+    "cols": 11,
+    "columns": [
+      "ABRIL",
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO",
+      "HALL",
+      "RESTAURANTE",
+      "BAR",
+      "Unnamed: 9",
+      "Unnamed: 10"
+    ],
+    "head": [
+      {
+        "ABRIL": 1,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": "PEREZ TORRES Y CIA. / \"U\" 27 pax + audios                                   COFFEE dentro sala",
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": " ",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      },
+      {
+        "ABRIL": 2,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": " ",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      },
+      {
+        "ABRIL": 3,
+        "ROSALIA": "REUNION CONGRESO TTCC",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": " ",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      },
+      {
+        "ABRIL": 4,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": " ",
+        "BAR": " ",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      },
+      {
+        "ABRIL": 5,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": "UEM/40 PAX",
+        "CURROS": "UEM/40 PAX",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": " ",
+        "BAR": " ",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      }
+    ]
+  },
+  "2025-JULIO.SEPTIEMBRE": {
+    "rows": 164,
+    "cols": 10,
+    "columns": [
+      "JULIO",
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO",
+      "HALL",
+      "RESTAURANTE",
+      "BAR",
+      "Unnamed: 9"
+    ],
+    "head": [
+      {
+        "JULIO": 1,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": NaN,
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      },
+      {
+        "JULIO": 2,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": "GPO. HOTUSA PC/17 PAX",
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      },
+      {
+        "JULIO": 3,
+        "ROSALIA": NaN,
+        "PONDAL": "CASTING                     CONCHI IGLESIAS",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": NaN,
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      },
+      {
+        "JULIO": 4,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": NaN,
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      },
+      {
+        "JULIO": 5,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": NaN,
+        "BAR": " ",
+        "Unnamed: 9": NaN
+      }
+    ]
+  },
+  "2025-OCTUBRE.DICIEMBRE": {
+    "rows": 161,
+    "cols": 11,
+    "columns": [
+      "OCTUBRE",
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO",
+      "HALL",
+      "RESTAURANTE",
+      "BAR",
+      "Unnamed: 9",
+      "Unnamed: 10"
+    ],
+    "head": [
+      {
+        "OCTUBRE": 1,
+        "ROSALIA": "VILMORIN MIKADO",
+        "PONDAL": " ",
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": "VILMORIN MIKADO",
+        "HALL": "VILMORIN COFFEE MAÑANA Y TARDE                17 PAX",
+        "RESTAURANTE": "VILMORIN - COMIDA 17 PAX",
+        "BAR": " ",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      },
+      {
+        "OCTUBRE": 2,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": "VILMORIN MIKADO",
+        "CURROS": "VILMORIN MIKADO",
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": "VILMORIN  - COMIDA 61 PAX",
+        "BAR": " ",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      },
+      {
+        "OCTUBRE": 3,
+        "ROSALIA": "UD ALMERIA",
+        "PONDAL": "UD ALMERIA",
+        "CASTELAO": "UD ALMERIA",
+        "CURROS": "UD ALMERIA",
+        "CUNQUEIRO": "UD ALMERIA",
+        "HALL": NaN,
+        "RESTAURANTE": "COMIDA JUBILACION PITUSA/72 PAX                                                        ",
+        "BAR": "CENA GPO. HOTUSA/14 PAX",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      },
+      {
+        "OCTUBRE": 4,
+        "ROSALIA": "UD ALMERIA",
+        "PONDAL": "UD ALMERIA",
+        "CASTELAO": "UD ALMERIA",
+        "CURROS": "UD ALMERIA",
+        "CUNQUEIRO": "UD ALMERIA",
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": "CENA GPO. HOTUSA/14 PAX",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      },
+      {
+        "OCTUBRE": 5,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": " ",
+        "RESTAURANTE": " ",
+        "BAR": " ",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN
+      }
+    ]
+  },
+  "2026-Enero.Marzo": {
+    "rows": 167,
+    "cols": 9,
+    "columns": [
+      "ENERO",
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO",
+      "HALL",
+      "RESTAURANTE",
+      "BAR"
+    ],
+    "head": [
+      {
+        "ENERO": 1,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": NaN,
+        "BAR": " "
+      },
+      {
+        "ENERO": 2,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": " ",
+        "CURROS": " ",
+        "CUNQUEIRO": " ",
+        "HALL": " ",
+        "RESTAURANTE": " ",
+        "BAR": " "
+      },
+      {
+        "ENERO": 3,
+        "ROSALIA": "CADIZ CF",
+        "PONDAL": "CADIZ CF",
+        "CASTELAO": "CADIZ CF",
+        "CURROS": "CADIZ CF",
+        "CUNQUEIRO": "CADIZ CF",
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": " "
+      },
+      {
+        "ENERO": 4,
+        "ROSALIA": "CADIZ CF",
+        "PONDAL": "CADIZ CF",
+        "CASTELAO": "CADIZ CF",
+        "CURROS": "CADIZ CF",
+        "CUNQUEIRO": "CADIZ CF",
+        "HALL": "PARTIDO A LAS 21'00",
+        "RESTAURANTE": NaN,
+        "BAR": " "
+      },
+      {
+        "ENERO": 5,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": "BICO DE XEADO/100 PAX",
+        "CUNQUEIRO": "BICO DE XEADO/100 PAX",
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": " "
+      }
+    ]
+  },
+  "2026-Abril.Junio": {
+    "rows": 165,
+    "cols": 9,
+    "columns": [
+      "ABRIL",
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO",
+      "HALL",
+      "RESTAURANTE",
+      "BAR"
+    ],
+    "head": [
+      {
+        "ABRIL": 1,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "ABRIL": 2,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "ABRIL": 3,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "ABRIL": 4,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "ABRIL": 5,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      }
+    ]
+  },
+  "2026-Julio.Septiembre": {
+    "rows": 166,
+    "cols": 9,
+    "columns": [
+      "JULIO",
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO",
+      "HALL",
+      "RESTAURANTE",
+      "BAR"
+    ],
+    "head": [
+      {
+        "JULIO": 1,
+        "ROSALIA": " ",
+        "PONDAL": " ",
+        "CASTELAO": "ODDO \"ESCUELA\" 40 PAX + AUDIOS MCN y COFFEE",
+        "CURROS": " ",
+        "CUNQUEIRO": NaN,
+        "HALL": "ODDO COCKTAIL COMIDA 40 PAX",
+        "RESTAURANTE": NaN,
+        "BAR": " "
+      },
+      {
+        "JULIO": 2,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": "ODDO \"ESCUELA\" 40 PAX + AUDIOS MCN y COFFEE",
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": "ODDO COCKTAIL COMIDA 40 PAX",
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "JULIO": 3,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "JULIO": 4,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "JULIO": 5,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      }
+    ]
+  },
+  "2026-Octubre.Diciembre": {
+    "rows": 94,
+    "cols": 9,
+    "columns": [
+      "OCTUBRE",
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO",
+      "HALL",
+      "RESTAURANTE",
+      "BAR"
+    ],
+    "head": [
+      {
+        "OCTUBRE": 1,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "OCTUBRE": 2,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "OCTUBRE": 3,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "OCTUBRE": 4,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      },
+      {
+        "OCTUBRE": 5,
+        "ROSALIA": NaN,
+        "PONDAL": NaN,
+        "CASTELAO": NaN,
+        "CURROS": NaN,
+        "CUNQUEIRO": NaN,
+        "HALL": NaN,
+        "RESTAURANTE": NaN,
+        "BAR": NaN
+      }
+    ]
+  },
+  "ALOJAMIENTO COMP. 2026": {
+    "rows": 102,
+    "cols": 12,
+    "columns": [
+      "Unnamed: 0",
+      "Unnamed: 1",
+      "Unnamed: 2",
+      "Unnamed: 3",
+      "Unnamed: 4",
+      "Unnamed: 5",
+      "Unnamed: 6",
+      "Unnamed: 7",
+      "Unnamed: 8",
+      "Unnamed: 9",
+      "Unnamed: 10",
+      "Unnamed: 11"
+    ],
+    "head": [
+      {
+        "Unnamed: 0": "PRODUCCION NETA x SEGMENTOS COMPARATIVA",
+        "Unnamed: 1": NaN,
+        "Unnamed: 2": NaN,
+        "Unnamed: 3": NaN,
+        "Unnamed: 4": "PRODUCCION NETA x SEGMENTOS COMPARATIVA",
+        "Unnamed: 5": NaN,
+        "Unnamed: 6": NaN,
+        "Unnamed: 7": NaN,
+        "Unnamed: 8": "PRODUCCION NETA x SEGMENTOS COMPARATIVA",
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN,
+        "Unnamed: 11": NaN
+      },
+      {
+        "Unnamed: 0": NaN,
+        "Unnamed: 1": "MES DE ENERO",
+        "Unnamed: 2": NaN,
+        "Unnamed: 3": NaN,
+        "Unnamed: 4": NaN,
+        "Unnamed: 5": "MES DE FEBRERO",
+        "Unnamed: 6": NaN,
+        "Unnamed: 7": NaN,
+        "Unnamed: 8": NaN,
+        "Unnamed: 9": "MES DE MARZO",
+        "Unnamed: 10": NaN,
+        "Unnamed: 11": NaN
+      },
+      {
+        "Unnamed: 0": NaN,
+        "Unnamed: 1": NaN,
+        "Unnamed: 2": NaN,
+        "Unnamed: 3": NaN,
+        "Unnamed: 4": NaN,
+        "Unnamed: 5": NaN,
+        "Unnamed: 6": NaN,
+        "Unnamed: 7": NaN,
+        "Unnamed: 8": NaN,
+        "Unnamed: 9": NaN,
+        "Unnamed: 10": NaN,
+        "Unnamed: 11": NaN
+      },
+      {
+        "Unnamed: 0": "Ejercicio    2019",
+        "Unnamed: 1": 129521.31,
+        "Unnamed: 2": NaN,
+        "Unnamed: 3": NaN,
+        "Unnamed: 4": "Ejercicio    2019",
+        "Unnamed: 5": 173407.25,
+        "Unnamed: 6": NaN,
+        "Unnamed: 7": NaN,
+        "Unnamed: 8": "Ejercicio    2019",
+        "Unnamed: 9": 169734.6,
+        "Unnamed: 10": NaN,
+        "Unnamed: 11": NaN
+      },
+      {
+        "Unnamed: 0": "Ejercicio    2020",
+        "Unnamed: 1": 144149.44,
+        "Unnamed: 2": NaN,
+        "Unnamed: 3": NaN,
+        "Unnamed: 4": "Ejercicio    2020",
+        "Unnamed: 5": 150289.41,
+        "Unnamed: 6": NaN,
+        "Unnamed: 7": NaN,
+        "Unnamed: 8": "Ejercicio    2020",
+        "Unnamed: 9": 36562.15,
+        "Unnamed: 10": NaN,
+        "Unnamed: 11": NaN
+      }
+    ]
+  }
+}

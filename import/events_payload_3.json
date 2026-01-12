@@ -1,0 +1,2235 @@
+[
+  {
+    "id": "1d8cbd81-078e-36f9-a8da-d275cc544b7a",
+    "name": "XTI-EXP. DANTE",
+    "date": "2025-02-04",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 37,
+        "room": "CUNQUEIRO",
+        "raw_content": "XTI-EXP. DANTE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e078542f-87db-ec21-fb54-8380751115c0",
+    "name": "TERUMO/ \"U\" 12 pax",
+    "date": "2025-02-05",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 38,
+        "room": "PONDAL",
+        "raw_content": "TERUMO/ \"U\" 12 pax"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "8dcf5312-30a2-d856-2c17-d6a778474bbf",
+    "name": "XTI-EXP. DANTE (out)",
+    "date": "2025-02-05",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 38,
+        "room": "CUNQUEIRO",
+        "raw_content": "XTI-EXP. DANTE (out)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9b9a19a3-350b-2eac-2d3b-2400cf9297d5",
+    "name": "CHARLA GPO. HOTUSA/25 pax",
+    "date": "2025-02-06",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 39,
+        "room": "ROSALIA",
+        "raw_content": "CHARLA GPO. HOTUSA/25 pax"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f76c3605-c635-1301-52ba-019defd62785",
+    "name": "PC GPO. DEPORT. HOTUSA/50 PAX",
+    "date": "2025-02-06",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 39,
+        "room": "RESTAURANTE",
+        "raw_content": "PC GPO. DEPORT. HOTUSA/50 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "023b0c2f-4cd6-ca5e-639e-8d57358e9280",
+    "name": "CHARLA GPO. HOTUSA/25 pax",
+    "date": "2025-02-07",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 40,
+        "room": "ROSALIA",
+        "raw_content": "CHARLA GPO. HOTUSA/25 pax"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "241f1958-a7f4-8c8b-8fd7-fbf86f900167",
+    "name": "UEM/ Examen 20 PAX",
+    "date": "2025-02-07",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 40,
+        "room": "CASTELAO",
+        "raw_content": "UEM/ Examen 20 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ae8c6618-2e5c-3b10-a09d-3d743ea00318",
+    "name": "PC GPO. DEPORT. HOTUSA/50 PAX",
+    "date": "2025-02-07",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 40,
+        "room": "RESTAURANTE",
+        "raw_content": "PC GPO. DEPORT. HOTUSA/50 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "02195b5b-1cf2-2b81-76b5-8c61449646b7",
+    "name": "CHARLA GPO. HOTUSA/25 pax",
+    "date": "2025-02-08",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 41,
+        "room": "ROSALIA",
+        "raw_content": "CHARLA GPO. HOTUSA/25 pax"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0e1f53b2-9a97-e85d-bc08-aa384f7a349d",
+    "name": "UEM/ Examen 10 PAX",
+    "date": "2025-02-08",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 41,
+        "room": "PONDAL",
+        "raw_content": "UEM/ Examen 10 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0f8a81cc-4e0c-df6e-16df-9dd474df8d5a",
+    "name": "UEM/ Examen 40 PAX",
+    "date": "2025-02-08",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 41,
+        "room": "CASTELAO",
+        "raw_content": "UEM/ Examen 40 PAX"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 41,
+        "room": "CURROS",
+        "raw_content": "UEM/ Examen 40 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ca114508-a052-d920-556e-68ccb6336a73",
+    "name": "FOZ DO CAVADO                                        CENA MENU GPO. 41 PAX",
+    "date": "2025-02-08",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 41,
+        "room": "CUNQUEIRO",
+        "raw_content": "FOZ DO CAVADO                                        CENA MENU GPO. 41 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "623726e7-2ab8-f6fa-f825-4303649fbefb",
+    "name": "PC GPO. DEPORT. HOTUSA/50 PAX",
+    "date": "2025-02-08",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 41,
+        "room": "RESTAURANTE",
+        "raw_content": "PC GPO. DEPORT. HOTUSA/50 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ff21414c-eef2-19e8-0782-4e80a8bb404e",
+    "name": "UEM/ Examen 40 PAX",
+    "date": "2025-02-09",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 42,
+        "room": "CASTELAO",
+        "raw_content": "UEM/ Examen 40 PAX"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 42,
+        "room": "CURROS",
+        "raw_content": "UEM/ Examen 40 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "49776bc4-c3c6-91fe-4823-c9625e97b5d4",
+    "name": "SHISEIDO/35 \"ESCUELA\"",
+    "date": "2025-02-10",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 43,
+        "room": "CASTELAO",
+        "raw_content": "SHISEIDO/35 \"ESCUELA\""
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "a1677d4c-c475-4553-9187-00b37fc156fb",
+    "name": "COCKTAIL BIENVENIDA SHISEIDO",
+    "date": "2025-02-10",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 43,
+        "room": "CURROS",
+        "raw_content": "COCKTAIL BIENVENIDA SHISEIDO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f3167f9d-da05-aa10-31af-da8496cc5bf5",
+    "name": "IN X TARDE EXP. STONEFLY",
+    "date": "2025-02-12",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 45,
+        "room": "CUNQUEIRO",
+        "raw_content": "IN X TARDE EXP. STONEFLY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0b5ee5f2-48c0-a334-d001-5ebd4cd4e881",
+    "name": "STONEFLY",
+    "date": "2025-02-13",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 46,
+        "room": "CUNQUEIRO",
+        "raw_content": "STONEFLY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "75ac0954-5cf3-177e-30ec-eb6466ebcb6e",
+    "name": "FEM. ATLETICO MADRID/FISIO",
+    "date": "2025-02-15",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 48,
+        "room": "PONDAL",
+        "raw_content": "FEM. ATLETICO MADRID/FISIO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "547a597b-fec0-ab07-00e6-cbd79deafb23",
+    "name": "FEM. ATLETICO MADRID/CHARLA",
+    "date": "2025-02-15",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 48,
+        "room": "CASTELAO",
+        "raw_content": "FEM. ATLETICO MADRID/CHARLA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "3fe5b407-762f-7bbb-5b61-1a5280b9f2f2",
+    "name": "FEM. ATLETICO MADRID/COMEDOR",
+    "date": "2025-02-15",
+    "rooms": [
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 48,
+        "room": "CURROS",
+        "raw_content": "FEM. ATLETICO MADRID/COMEDOR"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 48,
+        "room": "CUNQUEIRO",
+        "raw_content": "FEM. ATLETICO MADRID/COMEDOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "8e6ed803-64b5-1205-16cc-607e44b0312d",
+    "name": "JORNADAS LACONICAS",
+    "date": "2025-02-15",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 48,
+        "room": "RESTAURANTE",
+        "raw_content": "JORNADAS LACONICAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "3116b854-2754-be31-6bcf-1e46b3af531f",
+    "name": "FEM. ATLETICO MADRID/FISIO",
+    "date": "2025-02-16",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 49,
+        "room": "PONDAL",
+        "raw_content": "FEM. ATLETICO MADRID/FISIO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "7fda3d60-163d-c95c-cd2c-21fe1067ce6f",
+    "name": "FEM. ATLETICO MADRID/CHARLA",
+    "date": "2025-02-16",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 49,
+        "room": "CASTELAO",
+        "raw_content": "FEM. ATLETICO MADRID/CHARLA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "a39052ee-821c-ef9f-0244-483dcd0716f6",
+    "name": "FEM. ATLETICO MADRID/COMEDOR",
+    "date": "2025-02-16",
+    "rooms": [
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 49,
+        "room": "CURROS",
+        "raw_content": "FEM. ATLETICO MADRID/COMEDOR"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 49,
+        "room": "CUNQUEIRO",
+        "raw_content": "FEM. ATLETICO MADRID/COMEDOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "497a139d-8d6c-b088-d4f1-2d63530c7020",
+    "name": "JORNADAS LACONICAS",
+    "date": "2025-02-16",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 49,
+        "room": "RESTAURANTE",
+        "raw_content": "JORNADAS LACONICAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c3caa300-4b56-3a9e-0363-066bfcdf8846",
+    "name": "MONTAJE X TARDE TAMARIS",
+    "date": "2025-02-17",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 50,
+        "room": "CURROS",
+        "raw_content": "MONTAJE X TARDE TAMARIS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "bd116c6c-417f-30ba-236a-8ed1be94be2a",
+    "name": "TAMARIS",
+    "date": "2025-02-18",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 51,
+        "room": "CURROS",
+        "raw_content": "TAMARIS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9a0f4008-8ae4-026a-9ec4-b82e790fd42d",
+    "name": "TAMARIS",
+    "date": "2025-02-19",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 52,
+        "room": "CURROS",
+        "raw_content": "TAMARIS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ba962cd4-cf32-e47f-ccc0-519369abb23a",
+    "name": "KEYTEL EVENTS/\"U\" 15 pax   COFFEE DENTRO SALA",
+    "date": "2025-02-20",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 53,
+        "room": "CASTELAO",
+        "raw_content": "KEYTEL EVENTS/\"U\" 15 pax   COFFEE DENTRO SALA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "02f23a65-2cff-c286-4460-e6f9917a9636",
+    "name": "SINGULAR BANK                         COFFEES VARIOS DENTRO SALA",
+    "date": "2025-02-20",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 53,
+        "room": "CUNQUEIRO",
+        "raw_content": "SINGULAR BANK                         COFFEES VARIOS DENTRO SALA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c37b9007-6c37-6507-323d-02a64565aa2d",
+    "name": "DESVIO \"EXE\" IMSERSO/52 PAX MP",
+    "date": "2025-02-20",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 53,
+        "room": "RESTAURANTE",
+        "raw_content": "DESVIO \"EXE\" IMSERSO/52 PAX MP"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "647839c4-5813-897b-adf2-06b3e65b5f8d",
+    "name": "KEYTEL EVENTS/\"U\" 15 pax   COFFEE DENTRO SALA",
+    "date": "2025-02-21",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 54,
+        "room": "CASTELAO",
+        "raw_content": "KEYTEL EVENTS/\"U\" 15 pax   COFFEE DENTRO SALA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "89df58a9-3015-04cd-d7dc-ea52e96ae5a7",
+    "name": "DESVIO  \"EXE\" IMSERSO/52 PAX MP",
+    "date": "2025-02-21",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 54,
+        "room": "RESTAURANTE",
+        "raw_content": "DESVIO  \"EXE\" IMSERSO/52 PAX MP"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "a82e0db3-c288-8d1e-8ff4-af428d2d6157",
+    "name": "UEM/ Examen 40 PAX",
+    "date": "2025-02-22",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 55,
+        "room": "CASTELAO",
+        "raw_content": "UEM/ Examen 40 PAX"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 55,
+        "room": "CURROS",
+        "raw_content": "UEM/ Examen 40 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "dd41cb23-4c29-019a-1f2a-4fb947c37ab9",
+    "name": "JORNADAS LACONICAS                 DESVIO \"EXE\" IMSERSO/52 PAX MP",
+    "date": "2025-02-22",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 55,
+        "room": "RESTAURANTE",
+        "raw_content": "JORNADAS LACONICAS                 DESVIO \"EXE\" IMSERSO/52 PAX MP"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d6315e45-e8a1-2be2-c39f-bee0447df0a9",
+    "name": "UEM/ Examen 10 PAX",
+    "date": "2025-02-23",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 56,
+        "room": "PONDAL",
+        "raw_content": "UEM/ Examen 10 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "928e57b6-78ed-2dff-557e-9a3485dfa97d",
+    "name": "JORNADAS LACONICAS",
+    "date": "2025-02-23",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 56,
+        "room": "RESTAURANTE",
+        "raw_content": "JORNADAS LACONICAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ecf01c06-33fd-9fb7-0eef-0424c74f16af",
+    "name": "MONTAJE EL GANSO",
+    "date": "2025-02-24",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 57,
+        "room": "ROSALIA",
+        "raw_content": "MONTAJE EL GANSO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "2f024f27-66c8-c474-19fb-018e2c0f0c71",
+    "name": "MONTAJE  x TARDE DARIO",
+    "date": "2025-02-24",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 57,
+        "room": "CASTELAO",
+        "raw_content": "MONTAJE  x TARDE DARIO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "21f9c889-8bdf-cedc-446c-a85e8aa06d01",
+    "name": "EXP. GIOSEPPO                          MONTAJE X TARDE",
+    "date": "2025-02-24",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 57,
+        "room": "CUNQUEIRO",
+        "raw_content": "EXP. GIOSEPPO                          MONTAJE X TARDE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0c16d3c2-ce05-0560-5f91-cfb6e395a212",
+    "name": "EL GANSO",
+    "date": "2025-02-25",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 58,
+        "room": "ROSALIA",
+        "raw_content": "EL GANSO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6d34ef94-eab6-f988-a811-10004b07d205",
+    "name": "EXPO. DARIO CHOUZA",
+    "date": "2025-02-25",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 58,
+        "room": "CASTELAO",
+        "raw_content": "EXPO. DARIO CHOUZA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "25686467-bf54-53a4-3ad2-5840ca03cb3d",
+    "name": "GIOSEPPO",
+    "date": "2025-02-25",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 58,
+        "room": "CUNQUEIRO",
+        "raw_content": "GIOSEPPO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "47ec3540-5a3b-ff5b-c970-fe78ffaf8ef0",
+    "name": "EL GANSO",
+    "date": "2025-02-26",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 59,
+        "room": "ROSALIA",
+        "raw_content": "EL GANSO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "75cf2309-64e3-22b2-fa07-5467108a4163",
+    "name": "GT MOTIVE/UK  11 PAX \"U\"",
+    "date": "2025-02-26",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 59,
+        "room": "PONDAL",
+        "raw_content": "GT MOTIVE/UK  11 PAX \"U\""
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "3ec2b93f-57b9-7583-d618-1918d1e48841",
+    "name": "GT MOTIVE/SALES \"U\" 14 PAX",
+    "date": "2025-02-26",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 59,
+        "room": "CASTELAO",
+        "raw_content": "GT MOTIVE/SALES \"U\" 14 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "5346ab3b-ce8e-b7a5-8184-aba71a54bac4",
+    "name": "GT MOTIVE DIRECCION COCKTAIL",
+    "date": "2025-02-26",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 59,
+        "room": "CURROS",
+        "raw_content": "GT MOTIVE DIRECCION COCKTAIL"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c4ae8015-9ec5-d63e-72b3-9bff7d36c90c",
+    "name": "GIOSEPPO",
+    "date": "2025-02-26",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 59,
+        "room": "CUNQUEIRO",
+        "raw_content": "GIOSEPPO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6cac9fc6-d302-ce59-6b36-f12c9f808243",
+    "name": "CLUB DE LECTURA/17'00 HRS.",
+    "date": "2025-02-26",
+    "rooms": [
+      "BAR"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 59,
+        "room": "BAR",
+        "raw_content": "CLUB DE LECTURA/17'00 HRS."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "5bb168fa-2993-3f8c-1f69-c94f93f71720",
+    "name": "EL GANSO",
+    "date": "2025-02-27",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 60,
+        "room": "ROSALIA",
+        "raw_content": "EL GANSO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "97c17b1e-ff19-ee2b-a942-a219aebf1974",
+    "name": "GIOSEPPO",
+    "date": "2025-02-27",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 60,
+        "room": "CUNQUEIRO",
+        "raw_content": "GIOSEPPO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "39ce2bd7-cf78-264a-780f-93f786980d12",
+    "name": "OUT EL GANSO",
+    "date": "2025-02-28",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 61,
+        "room": "ROSALIA",
+        "raw_content": "OUT EL GANSO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "a621a829-f9f5-e9dd-a10a-4fe8e73926c6",
+    "name": "Montaje x EXP.LODI",
+    "date": "2025-03-01",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 63,
+        "room": "CASTELAO",
+        "raw_content": "Montaje x EXP.LODI"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "552109ce-1506-0e28-f448-7627c5a4c55d",
+    "name": "MONTAJE X TARDE EXP. AMARPIES",
+    "date": "2025-03-01",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 63,
+        "room": "CUNQUEIRO",
+        "raw_content": "MONTAJE X TARDE EXP. AMARPIES"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9cbde9f3-a0b8-6b19-d22d-4dfedf3db390",
+    "name": "LACONICAS: 50 PAX MEDICOS",
+    "date": "2025-03-01",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 63,
+        "room": "RESTAURANTE",
+        "raw_content": "LACONICAS: 50 PAX MEDICOS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "dc6ef814-4727-d854-d32a-153920cdd4e1",
+    "name": "LODI",
+    "date": "2025-03-02",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 64,
+        "room": "CASTELAO",
+        "raw_content": "LODI"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "594e8f21-9df9-f2c5-4f96-00b4130c6443",
+    "name": "Montaje x tarde EXP. HISPANITAS",
+    "date": "2025-03-02",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 64,
+        "room": "CURROS",
+        "raw_content": "Montaje x tarde EXP. HISPANITAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c7a36557-4914-f3e0-a6df-4dcc75b120f6",
+    "name": "AMARPIES (ARTURO AMAT)",
+    "date": "2025-03-02",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 64,
+        "room": "CUNQUEIRO",
+        "raw_content": "AMARPIES (ARTURO AMAT)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "3561abd7-21db-3bc8-2fa7-39f20258a99b",
+    "name": "LODI",
+    "date": "2025-03-03",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 65,
+        "room": "CASTELAO",
+        "raw_content": "LODI"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0003bc1b-5bee-3a9d-8c4b-2df60fa831d6",
+    "name": "HISPANITAS",
+    "date": "2025-03-03",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 65,
+        "room": "CURROS",
+        "raw_content": "HISPANITAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e031f759-b0ea-a2c3-f52e-06d28a19598b",
+    "name": "AMARPIES (ARTURO AMAT)",
+    "date": "2025-03-03",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 65,
+        "room": "CUNQUEIRO",
+        "raw_content": "AMARPIES (ARTURO AMAT)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "5aa710c8-d99a-f1f4-5064-ece80bf6a8b5",
+    "name": "Desmontaje LODI",
+    "date": "2025-03-04",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 66,
+        "room": "CASTELAO",
+        "raw_content": "Desmontaje LODI"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "40bfa54e-6a24-da42-87a7-efc551aa223e",
+    "name": "HISPANITAS",
+    "date": "2025-03-04",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 66,
+        "room": "CURROS",
+        "raw_content": "HISPANITAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "930a4529-1592-5aa2-9ca1-75e1f4471d6f",
+    "name": "OUT  -  AMARPIES (ARTURO AMAT)",
+    "date": "2025-03-04",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 66,
+        "room": "CUNQUEIRO",
+        "raw_content": "OUT  -  AMARPIES (ARTURO AMAT)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c1f0aa1d-d06f-9d42-8057-363d85f1d4e3",
+    "name": "FESTIVO LOCAL                                MARTES CARNAVAL",
+    "date": "2025-03-04",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 66,
+        "room": "RESTAURANTE",
+        "raw_content": "FESTIVO LOCAL                                MARTES CARNAVAL"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f4c58fed-d437-8342-f6a0-25ec0c228087",
+    "name": "Montaje CALZADOS GONZALO",
+    "date": "2025-03-05",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 67,
+        "room": "CASTELAO",
+        "raw_content": "Montaje CALZADOS GONZALO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f915c69b-61c2-bc36-74e6-ee5b5cf22e97",
+    "name": "COCKTAIL  GSX  15 PAX/20'00 HRS.",
+    "date": "2025-03-06",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 68,
+        "room": "ROSALIA",
+        "raw_content": "COCKTAIL  GSX  15 PAX/20'00 HRS."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "152e684f-89fe-4214-0fe6-df77f18aa161",
+    "name": "GSK/15 PAX-19'00 HRS.",
+    "date": "2025-03-06",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 68,
+        "room": "PONDAL",
+        "raw_content": "GSK/15 PAX-19'00 HRS."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "cb9d4b20-9d9d-43ee-303b-0e87846ac2b8",
+    "name": "CALZADOS GONZALO",
+    "date": "2025-03-06",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 68,
+        "room": "CASTELAO",
+        "raw_content": "CALZADOS GONZALO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1d07f487-b7ea-630b-d973-7d5d0ce042e1",
+    "name": "JORNADAS LACONICAS",
+    "date": "2025-03-08",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 70,
+        "room": "RESTAURANTE",
+        "raw_content": "JORNADAS LACONICAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c8ee4533-f3d5-7878-90aa-0782e3986d77",
+    "name": "JORNADAS LACONICAS",
+    "date": "2025-03-09",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 71,
+        "room": "RESTAURANTE",
+        "raw_content": "JORNADAS LACONICAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "52138041-77da-7ff1-8534-6398edf9eb1c",
+    "name": "JUAN CARLOS RAMIREZ",
+    "date": "2025-03-10",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 72,
+        "room": "CURROS",
+        "raw_content": "JUAN CARLOS RAMIREZ"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9cedff20-34d6-3243-204c-8b35633944b2",
+    "name": "REUNION COMITÉ DE EMPRESA",
+    "date": "2025-03-11",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 73,
+        "room": "ROSALIA",
+        "raw_content": "REUNION COMITÉ DE EMPRESA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "aa606287-9807-24fc-49ae-aaea525fd2fd",
+    "name": "JUAN CARLOS RAMIREZ",
+    "date": "2025-03-11",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 73,
+        "room": "CURROS",
+        "raw_content": "JUAN CARLOS RAMIREZ"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "bc015d62-e433-a441-e4e6-7ff0da2ac148",
+    "name": "PALEX MEDICAL",
+    "date": "2025-03-13",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 75,
+        "room": "PONDAL",
+        "raw_content": "PALEX MEDICAL"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6329470d-7293-6a98-39fc-2e0abd55d816",
+    "name": "LA LIGA GENUINE/cena  (76 pax)",
+    "date": "2025-03-14",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 76,
+        "room": "RESTAURANTE",
+        "raw_content": "LA LIGA GENUINE/cena  (76 pax)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c99b6c6d-c513-659c-0e10-3e4c2237a676",
+    "name": "LA LIGA GENUINE/PC (85 pax)",
+    "date": "2025-03-15",
+    "rooms": [
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 77,
+        "room": "CURROS",
+        "raw_content": "LA LIGA GENUINE/PC (85 pax)"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 77,
+        "room": "CUNQUEIRO",
+        "raw_content": "LA LIGA GENUINE/PC (85 pax)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c6b3e7fe-4729-7c93-2c0c-2c7f07f1ef30",
+    "name": "LA LIGA GENUINE/PC (122 pax)",
+    "date": "2025-03-15",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 77,
+        "room": "RESTAURANTE",
+        "raw_content": "LA LIGA GENUINE/PC (122 pax)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "fdfcb500-011e-655d-e7a7-cd16db3dad70",
+    "name": "PEPE MOLL x tarde/noche",
+    "date": "2025-03-16",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 78,
+        "room": "CASTELAO",
+        "raw_content": "PEPE MOLL x tarde/noche"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0f20a988-9fc3-a8cf-66f5-ff6481994123",
+    "name": "LA LIGA GENUINE: PICNICS 8'00",
+    "date": "2025-03-16",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 78,
+        "room": "CURROS",
+        "raw_content": "LA LIGA GENUINE: PICNICS 8'00"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "b67d5759-784a-257b-66cd-295b02c65b30",
+    "name": "140 UNIDADES.",
+    "date": "2025-03-16",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 78,
+        "room": "CUNQUEIRO",
+        "raw_content": "140 UNIDADES."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f530b8c6-2f48-0728-4f7d-8b92960e016e",
+    "name": "LA LIGA GENUINE/MP (67 pax)",
+    "date": "2025-03-16",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 78,
+        "room": "RESTAURANTE",
+        "raw_content": "LA LIGA GENUINE/MP (67 pax)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "7b8ee53b-6a04-3d8b-1660-639a932c9606",
+    "name": "PEPE MOLL EXP.",
+    "date": "2025-03-17",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 79,
+        "room": "CASTELAO",
+        "raw_content": "PEPE MOLL EXP."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6e48dfe1-992f-926b-37c9-26a1a36afe6b",
+    "name": "PEPE MOLL EXP.",
+    "date": "2025-03-18",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 80,
+        "room": "CASTELAO",
+        "raw_content": "PEPE MOLL EXP."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1255879e-f71c-757b-255a-ce74d23e39ff",
+    "name": "TRABAJOS JARDINERIA",
+    "date": "2025-03-19",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO",
+      "HALL",
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 81,
+        "room": "ROSALIA",
+        "raw_content": "TRABAJOS JARDINERIA"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 81,
+        "room": "PONDAL",
+        "raw_content": "TRABAJOS JARDINERIA"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 81,
+        "room": "CASTELAO",
+        "raw_content": "TRABAJOS JARDINERIA"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 81,
+        "room": "CURROS",
+        "raw_content": "TRABAJOS JARDINERIA"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 81,
+        "room": "CUNQUEIRO",
+        "raw_content": "TRABAJOS JARDINERIA"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 81,
+        "room": "HALL",
+        "raw_content": "TRABAJOS JARDINERIA"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 81,
+        "room": "RESTAURANTE",
+        "raw_content": "TRABAJOS JARDINERIA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "4cf115fe-021f-a727-2554-b2d807871d6b",
+    "name": "SIMULACRO BOMBEROS                 CURSO: 14'00 y SIMULACRO: 15'00",
+    "date": "2025-03-20",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 82,
+        "room": "CUNQUEIRO",
+        "raw_content": "SIMULACRO BOMBEROS                 CURSO: 14'00 y SIMULACRO: 15'00"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d4a4fa8f-4b6c-8d8f-cf99-ee29f951ed83",
+    "name": "UDG COSTA ADEJE               TENERIFE B FEMENINO",
+    "date": "2025-03-21",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 83,
+        "room": "ROSALIA",
+        "raw_content": "UDG COSTA ADEJE               TENERIFE B FEMENINO"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 83,
+        "room": "PONDAL",
+        "raw_content": "UDG COSTA ADEJE               TENERIFE B FEMENINO"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 83,
+        "room": "CASTELAO",
+        "raw_content": "UDG COSTA ADEJE               TENERIFE B FEMENINO"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 83,
+        "room": "CURROS",
+        "raw_content": "UDG COSTA ADEJE               TENERIFE B FEMENINO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "33e921a5-8623-c1a5-7e78-47f4d37c8ba0",
+    "name": "Montaje UEM",
+    "date": "2025-03-21",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 83,
+        "room": "CUNQUEIRO",
+        "raw_content": "Montaje UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f09d07cf-cd56-90a1-961e-bc89c5785fe9",
+    "name": "UDG COSTA ADEJE               TENERIFE B FEMENINO",
+    "date": "2025-03-22",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 84,
+        "room": "ROSALIA",
+        "raw_content": "UDG COSTA ADEJE               TENERIFE B FEMENINO"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 84,
+        "room": "PONDAL",
+        "raw_content": "UDG COSTA ADEJE               TENERIFE B FEMENINO"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 84,
+        "room": "CASTELAO",
+        "raw_content": "UDG COSTA ADEJE               TENERIFE B FEMENINO"
+      },
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 84,
+        "room": "CURROS",
+        "raw_content": "UDG COSTA ADEJE               TENERIFE B FEMENINO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "5f2cb8ad-c564-9ab7-dbcb-8b11155a3302",
+    "name": "UEM x 30 pax \"ESCUELA\"",
+    "date": "2025-03-22",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 84,
+        "room": "CUNQUEIRO",
+        "raw_content": "UEM x 30 pax \"ESCUELA\""
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0a3f1b23-5e78-8482-01d7-405d1e2d6edd",
+    "name": "UEM x 30 pax \"ESCUELA\"",
+    "date": "2025-03-23",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 85,
+        "room": "CUNQUEIRO",
+        "raw_content": "UEM x 30 pax \"ESCUELA\""
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "7a8989eb-83c0-9c11-a5ac-49d7a3031c73",
+    "name": "REUNIÓN SR. BARRAN                \"U\" 6 PAX + COFFEE",
+    "date": "2025-03-25",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 87,
+        "room": "ROSALIA",
+        "raw_content": "REUNIÓN SR. BARRAN                \"U\" 6 PAX + COFFEE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ba159718-c7ed-a023-a9c4-9b5d21597e7c",
+    "name": "GENERAL OPTICA/\"U\" 25 PAX MJ",
+    "date": "2025-03-26",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 88,
+        "room": "CUNQUEIRO",
+        "raw_content": "GENERAL OPTICA/\"U\" 25 PAX MJ"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d52b5578-dbba-4b73-29dd-64fdf2fbf7ff",
+    "name": "COFFEE-BREAK /GEN.OP",
+    "date": "2025-03-26",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 88,
+        "room": "HALL",
+        "raw_content": "COFFEE-BREAK /GEN.OP"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "2ceb6356-3a92-e886-a4fb-6c63a698af34",
+    "name": "DICOFARM/ENTREVISTAS",
+    "date": "2025-03-31",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-ENERO.MARZO",
+        "row": 93,
+        "room": "PONDAL",
+        "raw_content": "DICOFARM/ENTREVISTAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0c9d7509-5a86-6f6d-6228-4003bd953e3e",
+    "name": "GPO. HOTUSA PC/17 PAX",
+    "date": "2025-07-02",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 3,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA PC/17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d2b653b0-a1b8-62d5-30b1-e5423f543f03",
+    "name": "CASTING                     CONCHI IGLESIAS",
+    "date": "2025-07-03",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 4,
+        "room": "PONDAL",
+        "raw_content": "CASTING                     CONCHI IGLESIAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "b02b5d1c-3c52-1918-fe76-6567cbe4862d",
+    "name": "MAN TRUCK/\"U\" 6 PAX",
+    "date": "2025-07-09",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 10,
+        "room": "PONDAL",
+        "raw_content": "MAN TRUCK/\"U\" 6 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "96f85893-4e58-5c84-b5d4-57c050994b64",
+    "name": "UEM",
+    "date": "2025-07-12",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 13,
+        "room": "CASTELAO",
+        "raw_content": "UEM"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 13,
+        "room": "CURROS",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  }
+]

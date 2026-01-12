@@ -1,0 +1,2207 @@
+[
+  {
+    "id": "fd49c071-2859-6068-9f48-52dbb44af810",
+    "name": "UEM",
+    "date": "2025-07-13",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 14,
+        "room": "CASTELAO",
+        "raw_content": "UEM"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 14,
+        "room": "CURROS",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1215c3af-f34d-d40a-1268-942439edebb4",
+    "name": "TMS-FORMACION EUROSTARS",
+    "date": "2025-07-15",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 16,
+        "room": "CUNQUEIRO",
+        "raw_content": "TMS-FORMACION EUROSTARS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6317ef4d-a405-96fc-3424-54cf552b985e",
+    "name": "TMS-FORMACION EUROSTARS",
+    "date": "2025-07-16",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 17,
+        "room": "CUNQUEIRO",
+        "raw_content": "TMS-FORMACION EUROSTARS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e89a9c52-582e-252c-481f-217963fc735e",
+    "name": "UEM",
+    "date": "2025-07-17",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 18,
+        "room": "CASTELAO",
+        "raw_content": "UEM"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 18,
+        "room": "CURROS",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d1b4e47c-49f5-5cc0-8438-ffd2f3913067",
+    "name": "IMAYA FORMACION                           ESCUELA 17 PAX",
+    "date": "2025-07-18",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 19,
+        "room": "ROSALIA",
+        "raw_content": "IMAYA FORMACION                           ESCUELA 17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6e7b03d9-635c-65c6-0998-0259aec23e6a",
+    "name": "UEM",
+    "date": "2025-07-18",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 19,
+        "room": "CASTELAO",
+        "raw_content": "UEM"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 19,
+        "room": "CURROS",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9ce9087b-f0fc-a751-18be-b2c432192bff",
+    "name": "COFFEES-IMAYA FORM./17 PAX",
+    "date": "2025-07-18",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 19,
+        "room": "HALL",
+        "raw_content": "COFFEES-IMAYA FORM./17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d8a10ad9-17e0-c8ad-b1e7-5f7b56caa173",
+    "name": "IMAYA FORMACION                      ESCUELA 17 PAX",
+    "date": "2025-07-19",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 20,
+        "room": "ROSALIA",
+        "raw_content": "IMAYA FORMACION                      ESCUELA 17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6884950f-1de6-2769-0629-678a9739da26",
+    "name": "UEM",
+    "date": "2025-07-19",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 20,
+        "room": "CASTELAO",
+        "raw_content": "UEM"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 20,
+        "room": "CURROS",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f3b55e73-f2c3-a0ad-b4f5-ffd70ad3b1c9",
+    "name": "COFFEES-IMAYA FORM./17 PAX",
+    "date": "2025-07-19",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 20,
+        "room": "HALL",
+        "raw_content": "COFFEES-IMAYA FORM./17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0a956d81-2377-f80c-f978-16ca26b42075",
+    "name": "IMAYA FORMACION                      ESCUELA 17 PAX",
+    "date": "2025-07-20",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 21,
+        "room": "ROSALIA",
+        "raw_content": "IMAYA FORMACION                      ESCUELA 17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "534a2640-0dbc-9775-96e1-529f84268e42",
+    "name": "UEM",
+    "date": "2025-07-20",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 21,
+        "room": "CASTELAO",
+        "raw_content": "UEM"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 21,
+        "room": "CURROS",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0c991a8f-cef3-dbb0-ce61-c001deead7f8",
+    "name": "UEM",
+    "date": "2025-07-21",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 22,
+        "room": "ROSALIA",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "081eea00-195b-3ecb-1965-f83053ace48e",
+    "name": "EUROSTARS HOTEL COMPANY",
+    "date": "2025-07-21",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 22,
+        "room": "PONDAL",
+        "raw_content": "EUROSTARS HOTEL COMPANY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "447531a6-775a-8423-aef2-d0c2ffb3e319",
+    "name": "Montaje TAYPA x tarde",
+    "date": "2025-07-21",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 22,
+        "room": "CURROS",
+        "raw_content": "Montaje TAYPA x tarde"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "317b6968-ee15-2e71-44e5-0443049a2967",
+    "name": "MONTAJE GIOSEPPO CALZADO",
+    "date": "2025-07-21",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 22,
+        "room": "CUNQUEIRO",
+        "raw_content": "MONTAJE GIOSEPPO CALZADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "53ce3a0d-3596-cef4-6de4-38040137b917",
+    "name": "GPO. HOTUSA/CENA 22 PAX",
+    "date": "2025-07-21",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 22,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/CENA 22 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "af230a66-c2dc-5008-f734-a95e775f5e38",
+    "name": "UEM",
+    "date": "2025-07-22",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 23,
+        "room": "ROSALIA",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "dccd4153-6db1-4c92-f51b-7a314b9778b0",
+    "name": "EXPOSICION INDITEX",
+    "date": "2025-07-22",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 23,
+        "room": "PONDAL",
+        "raw_content": "EXPOSICION INDITEX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1ab799c4-de81-9e28-1436-1e719c834868",
+    "name": "TAYPA-EXP. CONFECCION",
+    "date": "2025-07-22",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 23,
+        "room": "CURROS",
+        "raw_content": "TAYPA-EXP. CONFECCION"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "38af0396-4bf5-6f02-dd19-309713b7eed6",
+    "name": "GIOSEPPO",
+    "date": "2025-07-22",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 23,
+        "room": "CUNQUEIRO",
+        "raw_content": "GIOSEPPO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1fc753fc-b707-7acb-ee25-851431920390",
+    "name": "GPO. HOTUSA/CENA 22 PAX",
+    "date": "2025-07-22",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 23,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/CENA 22 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "01f4f6d6-85fe-0d0c-9685-8114b7c88d88",
+    "name": "UEM",
+    "date": "2025-07-23",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 24,
+        "room": "ROSALIA",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d0f85a94-42a4-e8a5-0e95-68fa3f2117d9",
+    "name": "GIOSEPPO",
+    "date": "2025-07-23",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 24,
+        "room": "CUNQUEIRO",
+        "raw_content": "GIOSEPPO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e9da3085-5295-4c25-1cc9-8c761973d0ef",
+    "name": "UEM",
+    "date": "2025-07-24",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 25,
+        "room": "ROSALIA",
+        "raw_content": "UEM"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "cb10b83a-ffe2-19dd-9e7a-5238f536beed",
+    "name": "GIOSEPPO",
+    "date": "2025-07-24",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 25,
+        "room": "CUNQUEIRO",
+        "raw_content": "GIOSEPPO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "8c531f82-56e5-a419-4d55-f274442eceb0",
+    "name": "MONTAJE DARIO CHOUZA",
+    "date": "2025-07-25",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 26,
+        "room": "CURROS",
+        "raw_content": "MONTAJE DARIO CHOUZA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "821c5ae1-c3a4-cb49-cf2e-a43382f311fc",
+    "name": "FESTIVO",
+    "date": "2025-07-25",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 26,
+        "room": "RESTAURANTE",
+        "raw_content": "FESTIVO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f25ad722-b205-735a-47fe-96a1aac69df6",
+    "name": "DARIO CHOUZA",
+    "date": "2025-07-26",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 27,
+        "room": "CURROS",
+        "raw_content": "DARIO CHOUZA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c0cda0f2-dc3b-2d02-0957-dbb980aec286",
+    "name": "BLOQUEO MUESTRARIO",
+    "date": "2025-07-27",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 28,
+        "room": "CURROS",
+        "raw_content": "BLOQUEO MUESTRARIO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "df22b8c1-460b-cb12-f323-c51b721711bd",
+    "name": "DARIO CHOUZA",
+    "date": "2025-07-28",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 29,
+        "room": "CURROS",
+        "raw_content": "DARIO CHOUZA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "bdd0f78f-0ed4-a5c7-9403-faa9bd81a58d",
+    "name": "EUROSTARS HOTEL COMPANY",
+    "date": "2025-07-29",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 30,
+        "room": "PONDAL",
+        "raw_content": "EUROSTARS HOTEL COMPANY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "260c4db0-9fb2-3d03-63ab-fea16288f3b9",
+    "name": "FREE BODA L&J",
+    "date": "2025-08-09",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 42,
+        "room": "ROSALIA",
+        "raw_content": "FREE BODA L&J"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e77f81f4-a9b4-7c87-a27a-7c7b4ba0857a",
+    "name": "TAMARIS-LLEGADA Y MONTAJE",
+    "date": "2025-08-10",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 43,
+        "room": "CUNQUEIRO",
+        "raw_content": "TAMARIS-LLEGADA Y MONTAJE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "06d8851a-76b9-1af5-040a-442b4d505e8d",
+    "name": "TAMARIS/Expos. Calzado",
+    "date": "2025-08-11",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 44,
+        "room": "CUNQUEIRO",
+        "raw_content": "TAMARIS/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e94886f3-7ec8-b45b-b8eb-8ba2d716a46e",
+    "name": "TAMARIS/Expos. Calzado",
+    "date": "2025-08-12",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 45,
+        "room": "CUNQUEIRO",
+        "raw_content": "TAMARIS/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "a3bada96-e46d-7434-fe46-746c350a59cc",
+    "name": "EUROSTARS HOTEL COMPANY",
+    "date": "2025-08-19",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 52,
+        "room": "PONDAL",
+        "raw_content": "EUROSTARS HOTEL COMPANY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "adf4148e-44b9-419b-bce7-caba71f30a0b",
+    "name": "EUROSTARS HOTEL COMPANY",
+    "date": "2025-08-26",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 59,
+        "room": "PONDAL",
+        "raw_content": "EUROSTARS HOTEL COMPANY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "2e9d855e-109b-8ca9-2f5e-65cba2ef7a33",
+    "name": "XTI-LLEGADA Y MONTAJE",
+    "date": "2025-08-27",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 60,
+        "room": "CUNQUEIRO",
+        "raw_content": "XTI-LLEGADA Y MONTAJE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "151222b7-3f3d-3dc2-815b-e3961b2d38f3",
+    "name": "XTI/Expos. Calzado",
+    "date": "2025-08-28",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 61,
+        "room": "CUNQUEIRO",
+        "raw_content": "XTI/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ef5531bd-03cc-d93a-537d-f7599c8e7693",
+    "name": "XTI/Expos. Calzado",
+    "date": "2025-08-29",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 62,
+        "room": "CUNQUEIRO",
+        "raw_content": "XTI/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ad82fe49-6cda-cad0-5b18-e1114f86ca29",
+    "name": "XTI/Expos. Calzado",
+    "date": "2025-08-30",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 63,
+        "room": "CUNQUEIRO",
+        "raw_content": "XTI/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d96d384b-1430-baac-8a31-66fb17c8abe9",
+    "name": "GPO. HOTUSA/MP                                        CENA 57 PAX",
+    "date": "2025-08-30",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 63,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/MP                                        CENA 57 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "fe164e2d-7c25-467d-ba76-a4cb5142df22",
+    "name": "XTI/Expos. Calzado",
+    "date": "2025-08-31",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 64,
+        "room": "CUNQUEIRO",
+        "raw_content": "XTI/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ebfd3962-020f-7165-0c26-abaf038442f9",
+    "name": "ARTURO AMAT-IN Y MONTAJE",
+    "date": "2025-09-01",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 66,
+        "room": "CUNQUEIRO",
+        "raw_content": "ARTURO AMAT-IN Y MONTAJE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "4e9ccdec-e732-d1ab-c997-c95f4e4cc0cf",
+    "name": "EUROSTARS HOTEL COMPANY",
+    "date": "2025-09-02",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 67,
+        "room": "ROSALIA",
+        "raw_content": "EUROSTARS HOTEL COMPANY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "19b5401d-138b-8ae1-55e1-473fb9c2a1f8",
+    "name": "ARTURO AMAT/Expos. Calzado",
+    "date": "2025-09-02",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 67,
+        "room": "CUNQUEIRO",
+        "raw_content": "ARTURO AMAT/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e939eeb8-2e73-aaec-3a3d-836e55dd363f",
+    "name": "ARTURO AMAT/Expos. Calzado",
+    "date": "2025-09-03",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 68,
+        "room": "CUNQUEIRO",
+        "raw_content": "ARTURO AMAT/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "354cfd4a-6617-3064-2122-c31b78b14bda",
+    "name": "SPORTING GIJON",
+    "date": "2025-09-05",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 70,
+        "room": "ROSALIA",
+        "raw_content": "SPORTING GIJON"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 70,
+        "room": "PONDAL",
+        "raw_content": "SPORTING GIJON"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 70,
+        "room": "CASTELAO",
+        "raw_content": "SPORTING GIJON"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 70,
+        "room": "CURROS",
+        "raw_content": "SPORTING GIJON"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 70,
+        "room": "CUNQUEIRO",
+        "raw_content": "SPORTING GIJON"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d384eb4c-545c-93f9-62e4-7138b923931b",
+    "name": "GPO. HOTUSA/MP 50 PAX",
+    "date": "2025-09-05",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 70,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/MP 50 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "060a67f9-d162-da04-33c2-f5228ac993cd",
+    "name": "SPORTING GIJON",
+    "date": "2025-09-06",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 71,
+        "room": "ROSALIA",
+        "raw_content": "SPORTING GIJON"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 71,
+        "room": "PONDAL",
+        "raw_content": "SPORTING GIJON"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 71,
+        "room": "CASTELAO",
+        "raw_content": "SPORTING GIJON"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 71,
+        "room": "CURROS",
+        "raw_content": "SPORTING GIJON"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 71,
+        "room": "CUNQUEIRO",
+        "raw_content": "SPORTING GIJON"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1f547a24-154d-7b2f-3bdf-0d5994eb199d",
+    "name": "GPO. HOTUSA/MP 50 PAX",
+    "date": "2025-09-06",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 71,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/MP 50 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "57716938-4d91-8a84-7384-a1168a2bddc1",
+    "name": "STONEFLY-LLEGADA Y MONTAJE",
+    "date": "2025-09-07",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 72,
+        "room": "CUNQUEIRO",
+        "raw_content": "STONEFLY-LLEGADA Y MONTAJE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c95345c1-4841-20c1-ff88-23f77e33e5a7",
+    "name": "LLEGADA EL GANSO",
+    "date": "2025-09-08",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 73,
+        "room": "ROSALIA",
+        "raw_content": "LLEGADA EL GANSO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f7222eae-7a04-bd5c-1bb9-7954912f706f",
+    "name": "STONEFLY/Expos. Calzado",
+    "date": "2025-09-08",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 73,
+        "room": "CUNQUEIRO",
+        "raw_content": "STONEFLY/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "93867994-6ddf-85e2-81a0-ac289dbb94f9",
+    "name": "EL GANSO-EXP. CONF.",
+    "date": "2025-09-09",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 74,
+        "room": "ROSALIA",
+        "raw_content": "EL GANSO-EXP. CONF."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "62ddad37-3eb6-0c99-1df1-d6c81c0327ea",
+    "name": "REUNION 11 PAX-OKTA",
+    "date": "2025-09-09",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 74,
+        "room": "PONDAL",
+        "raw_content": "REUNION 11 PAX-OKTA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "5591bfd1-9c3c-550f-e5e4-f7904654d656",
+    "name": "STONEFLY/Expos. Calzado",
+    "date": "2025-09-09",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 74,
+        "room": "CUNQUEIRO",
+        "raw_content": "STONEFLY/Expos. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "b5d9d67f-d66d-cba0-1349-128c7c451aa3",
+    "name": "EL GANSO-EXP. CONF.",
+    "date": "2025-09-10",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 75,
+        "room": "ROSALIA",
+        "raw_content": "EL GANSO-EXP. CONF."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0234e3bb-b50a-4a2b-c41e-0ab9a3569c05",
+    "name": "REUNION 11 PAX-OKTA",
+    "date": "2025-09-10",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 75,
+        "room": "PONDAL",
+        "raw_content": "REUNION 11 PAX-OKTA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d0bc09ee-8ba2-11fd-e539-db0eafe647d8",
+    "name": "MONTAJE x  tarde  DIOR",
+    "date": "2025-09-10",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 75,
+        "room": "CASTELAO",
+        "raw_content": "MONTAJE x  tarde  DIOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "eef26f00-4b3a-978e-c797-16d456fbed88",
+    "name": "EUROSTARS HOTEL COMPANY",
+    "date": "2025-09-10",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 75,
+        "room": "CURROS",
+        "raw_content": "EUROSTARS HOTEL COMPANY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "46f886ba-dc8f-2ae4-d1fc-2a54b28be278",
+    "name": "GPO. HOTUSA/MP 23 PAX",
+    "date": "2025-09-10",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 75,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/MP 23 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "8732e75c-557f-615e-ff9f-3f70b0ec0255",
+    "name": "EL GANSO-EXP. CONF.",
+    "date": "2025-09-11",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 76,
+        "room": "ROSALIA",
+        "raw_content": "EL GANSO-EXP. CONF."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "a457e13f-aa97-15c0-10d9-aae310ff7ec7",
+    "name": "REUNION 11 PAX-OKTA",
+    "date": "2025-09-11",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 76,
+        "room": "PONDAL",
+        "raw_content": "REUNION 11 PAX-OKTA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "2746be2a-7cbb-d3cf-b1ff-b6d50a6ac2ac",
+    "name": "FORMACIÓN DIOR  BTRAVEL/12 pax",
+    "date": "2025-09-11",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 76,
+        "room": "CASTELAO",
+        "raw_content": "FORMACIÓN DIOR  BTRAVEL/12 pax"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "13254cd8-6194-384b-7199-d4ee6c40b39d",
+    "name": "THE URBAN ROOSTERS",
+    "date": "2025-09-11",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 76,
+        "room": "CUNQUEIRO",
+        "raw_content": "THE URBAN ROOSTERS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "7eb42e77-3f7a-b6d0-de87-53ad68875e2a",
+    "name": "COFFEE DIOR MAÑANA Y TARDE",
+    "date": "2025-09-11",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 76,
+        "room": "HALL",
+        "raw_content": "COFFEE DIOR MAÑANA Y TARDE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "3c5ae4e4-893d-8f4d-099c-0573cfb34a4a",
+    "name": "GPO. HOTUSA/MP 50 PAX",
+    "date": "2025-09-11",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 76,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/MP 50 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "3b9e5a63-cc85-edda-5010-1c480b701974",
+    "name": "SALIDA EL GANSO",
+    "date": "2025-09-12",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 77,
+        "room": "ROSALIA",
+        "raw_content": "SALIDA EL GANSO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "fecc27e2-43e3-19db-357e-eb685b04f582",
+    "name": "BLOQUEO MATERIAL DIOR",
+    "date": "2025-09-12",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 77,
+        "room": "PONDAL",
+        "raw_content": "BLOQUEO MATERIAL DIOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "56551f7c-d3aa-cbc3-27df-03c5b01f9ab2",
+    "name": "GPO. HOTUSA/MP 46 PAX",
+    "date": "2025-09-12",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 77,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/MP 46 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "11fe0877-6667-4db9-9ac3-19bbbd0cea3d",
+    "name": "BLOQUEO MATERIAL DIOR",
+    "date": "2025-09-13",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 78,
+        "room": "PONDAL",
+        "raw_content": "BLOQUEO MATERIAL DIOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9bf4ab65-36af-35dc-2854-c3a707b216d9",
+    "name": "UEM-EXAMEN 30 PAX",
+    "date": "2025-09-13",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 78,
+        "room": "CASTELAO",
+        "raw_content": "UEM-EXAMEN 30 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "07b26361-ef67-56a9-4b3d-ac06fbf99b92",
+    "name": "GPO. HOTUSA/MP 34 PAX",
+    "date": "2025-09-13",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 78,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/MP 34 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c3016fdf-8141-4050-dc45-0b37b60373f6",
+    "name": "BLOQUEO MATERIAL DIOR",
+    "date": "2025-09-14",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 79,
+        "room": "PONDAL",
+        "raw_content": "BLOQUEO MATERIAL DIOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "59fc8167-1ee3-092c-d6ee-8210e6902403",
+    "name": "UEM-EXAMEN 30 PAX",
+    "date": "2025-09-14",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 79,
+        "room": "CASTELAO",
+        "raw_content": "UEM-EXAMEN 30 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "42001399-531e-45d0-70d8-807eae5a1be1",
+    "name": "IN EXCALPA MONTAJE",
+    "date": "2025-09-14",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 79,
+        "room": "CURROS",
+        "raw_content": "IN EXCALPA MONTAJE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "250149c6-6d39-7097-9bfd-3f5c6eae5c70",
+    "name": "IN HISPANITAS MONTAJE",
+    "date": "2025-09-14",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 79,
+        "room": "CUNQUEIRO",
+        "raw_content": "IN HISPANITAS MONTAJE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c41888d1-f42f-6549-4fba-c5d5fdd747fd",
+    "name": "GPO. HOTUSA/MP 34 PAX",
+    "date": "2025-09-14",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 79,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/MP 34 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "82516e31-be52-7194-f9cb-16630a44c070",
+    "name": "EUROSTARS HOTEL COMPANY",
+    "date": "2025-09-15",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 80,
+        "room": "ROSALIA",
+        "raw_content": "EUROSTARS HOTEL COMPANY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "26ab2fbf-4b62-811c-9c0e-806451d23d0e",
+    "name": "BLOQUEO MATERIAL DIOR",
+    "date": "2025-09-15",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 80,
+        "room": "PONDAL",
+        "raw_content": "BLOQUEO MATERIAL DIOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e194ef1a-5dc6-eb1a-ff70-52f2ece543d2",
+    "name": "EXCALPA-EXP. CALZADO",
+    "date": "2025-09-15",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 80,
+        "room": "CURROS",
+        "raw_content": "EXCALPA-EXP. CALZADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "579d08ee-4d82-fd76-6428-425e5ec6a729",
+    "name": "HISPANITAS JC-EXP. CALZADO",
+    "date": "2025-09-15",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 80,
+        "room": "CUNQUEIRO",
+        "raw_content": "HISPANITAS JC-EXP. CALZADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "75809693-ce50-9cbc-5cca-ac2e46c16b32",
+    "name": "BLOQUEO MATERIAL DIOR",
+    "date": "2025-09-16",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 81,
+        "room": "CASTELAO",
+        "raw_content": "BLOQUEO MATERIAL DIOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "394048cd-04f0-adf1-366e-a763782765e5",
+    "name": "EXCALPA-EXP. CALZADO",
+    "date": "2025-09-16",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 81,
+        "room": "CURROS",
+        "raw_content": "EXCALPA-EXP. CALZADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9dab6901-d839-ec7e-6233-8425717f89b5",
+    "name": "HISPANITAS JC-EXP. CALZADO",
+    "date": "2025-09-16",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 81,
+        "room": "CUNQUEIRO",
+        "raw_content": "HISPANITAS JC-EXP. CALZADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "da312a05-e7f3-3a7e-f1c8-376bfe6b1630",
+    "name": "DIOR / TEATRO 86 PAX+AUDIOS",
+    "date": "2025-09-17",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 82,
+        "room": "CASTELAO",
+        "raw_content": "DIOR / TEATRO 86 PAX+AUDIOS"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 82,
+        "room": "CURROS",
+        "raw_content": "DIOR / TEATRO 86 PAX+AUDIOS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "72ae6f6d-83c0-5973-d2ca-f9ae38a38ab5",
+    "name": "COCKTAIL BIENVENIDA                                                DIOR/86 PAX- 22'00 hrs.",
+    "date": "2025-09-17",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 82,
+        "room": "HALL",
+        "raw_content": "COCKTAIL BIENVENIDA                                                DIOR/86 PAX- 22'00 hrs."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "227f5f25-047d-6b6d-9d0c-bffb07a4b768",
+    "name": "IMBRIA PHARMACEUTICALS  COCKTAIL (12'00 HRS.) 25 PAX",
+    "date": "2025-09-18",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 83,
+        "room": "CASTELAO",
+        "raw_content": "IMBRIA PHARMACEUTICALS  COCKTAIL (12'00 HRS.) 25 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "5ae8261f-e989-48c4-77c8-e92e53b01915",
+    "name": "IMBRIA PHARMACEUTICALS  PRESENTACION \"U\" 25 PAX",
+    "date": "2025-09-18",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 83,
+        "room": "CURROS",
+        "raw_content": "IMBRIA PHARMACEUTICALS  PRESENTACION \"U\" 25 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "2459b8f1-d4d0-e4a2-5190-dc814119c4a0",
+    "name": "COPA BIENVENIDA                                              GPO. GUZMAN 19'30 HRS.",
+    "date": "2025-09-18",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 83,
+        "room": "HALL",
+        "raw_content": "COPA BIENVENIDA                                              GPO. GUZMAN 19'30 HRS."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "259bd935-c112-60fd-60ec-3e3176106a43",
+    "name": "GRUPO GUZMAN (30 PAX) MP TIENEN BEBIDAS INCLUIDAS",
+    "date": "2025-09-18",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 83,
+        "room": "RESTAURANTE",
+        "raw_content": "GRUPO GUZMAN (30 PAX) MP TIENEN BEBIDAS INCLUIDAS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "81cf93e8-84d8-da64-f914-a885c5ea4e29",
+    "name": "CD NUMANCIA-CHARLA",
+    "date": "2025-09-20",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 85,
+        "room": "ROSALIA",
+        "raw_content": "CD NUMANCIA-CHARLA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "4b46e983-00ba-66b2-75c5-ac0cc3c01398",
+    "name": "CD NUMANCIA-FISIO",
+    "date": "2025-09-20",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 85,
+        "room": "PONDAL",
+        "raw_content": "CD NUMANCIA-FISIO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "447725df-9f33-6cfa-a7cc-4972ff1fb3e1",
+    "name": "UEM (EXAMEN 10 PAX) x mañana",
+    "date": "2025-09-20",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 85,
+        "room": "CASTELAO",
+        "raw_content": "UEM (EXAMEN 10 PAX) x mañana"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "4e44a477-f2ee-5f8a-a945-49aae72997a1",
+    "name": "CD NUMANCIA-COMEDOR",
+    "date": "2025-09-20",
+    "rooms": [
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 85,
+        "room": "CURROS",
+        "raw_content": "CD NUMANCIA-COMEDOR"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 85,
+        "room": "CUNQUEIRO",
+        "raw_content": "CD NUMANCIA-COMEDOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1d098cb5-0c60-e1f0-26bf-39a8c661fc80",
+    "name": "CD NUMANCIA-CHARLA",
+    "date": "2025-09-21",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 86,
+        "room": "ROSALIA",
+        "raw_content": "CD NUMANCIA-CHARLA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "7eb972cf-8e08-ff6e-0eeb-6594efcc1d1b",
+    "name": "CD NUMANCIA-FISIO",
+    "date": "2025-09-21",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 86,
+        "room": "PONDAL",
+        "raw_content": "CD NUMANCIA-FISIO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1e144229-91a5-ab5b-b6e2-d55c0f2fc608",
+    "name": "CD NUMANCIA-ACTIVACION x MAÑANA     & MONTAJE x tarde EXP. CALZADO LODI",
+    "date": "2025-09-21",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 86,
+        "room": "CASTELAO",
+        "raw_content": "CD NUMANCIA-ACTIVACION x MAÑANA     & MONTAJE x tarde EXP. CALZADO LODI"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  }
+]

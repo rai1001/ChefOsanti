@@ -1,0 +1,2340 @@
+[
+  {
+    "id": "ca29f518-e5a5-cb32-84c8-292d2bcb414a",
+    "name": "CD NUMANCIA-COMEDOR",
+    "date": "2025-09-21",
+    "rooms": [
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 86,
+        "room": "CURROS",
+        "raw_content": "CD NUMANCIA-COMEDOR"
+      },
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 86,
+        "room": "CUNQUEIRO",
+        "raw_content": "CD NUMANCIA-COMEDOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "7f5a96d6-eb27-5335-3c74-f1bcdea50467",
+    "name": "MONTAJE x tarde GIOSEPPO",
+    "date": "2025-09-22",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 87,
+        "room": "PONDAL",
+        "raw_content": "MONTAJE x tarde GIOSEPPO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "cc4e7aed-65a6-b0e8-67a0-bf0d0c70f4a7",
+    "name": "LODI-EXP. CALZADO ANABEL HDEZ.",
+    "date": "2025-09-22",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 87,
+        "room": "CASTELAO",
+        "raw_content": "LODI-EXP. CALZADO ANABEL HDEZ."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "53f5a9f8-66ca-98e5-bc59-578a859e52cc",
+    "name": "GIOSEPPO Exp. Calzado",
+    "date": "2025-09-23",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 88,
+        "room": "PONDAL",
+        "raw_content": "GIOSEPPO Exp. Calzado"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "05988fb6-61dc-8236-9aa5-d3f6433f18a4",
+    "name": "Montaje x tarde BOLERO TEKSTIL",
+    "date": "2025-09-23",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 88,
+        "room": "CUNQUEIRO",
+        "raw_content": "Montaje x tarde BOLERO TEKSTIL"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "20f4c29f-a024-0bb3-7902-1b4902bc752f",
+    "name": "GENERAL OPTICA \"U\" 25 PAX + AUDIOS",
+    "date": "2025-09-24",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 89,
+        "room": "CASTELAO",
+        "raw_content": "GENERAL OPTICA \"U\" 25 PAX + AUDIOS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "2c9b1037-76db-c654-b90f-b88538338285",
+    "name": "BOLERO TEKSTIL   Exp. Ropa",
+    "date": "2025-09-24",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 89,
+        "room": "CUNQUEIRO",
+        "raw_content": "BOLERO TEKSTIL   Exp. Ropa"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c7befb0f-64c1-0f23-c25b-c8497f4db2aa",
+    "name": "COFFEE-GENERAL OPTICA/25 PAX",
+    "date": "2025-09-24",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 89,
+        "room": "HALL",
+        "raw_content": "COFFEE-GENERAL OPTICA/25 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "70f6b4ec-926a-2959-d7e3-fab63d277244",
+    "name": "EUROSTARS HOTEL COMPANY",
+    "date": "2025-09-25",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 90,
+        "room": "ROSALIA",
+        "raw_content": "EUROSTARS HOTEL COMPANY"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "53668156-8bc8-bfe3-4753-bed610188c0a",
+    "name": "JUNTA CONGRESO GEHEP      (De 9 a 14 hrs.)",
+    "date": "2025-09-25",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 90,
+        "room": "PONDAL",
+        "raw_content": "JUNTA CONGRESO GEHEP      (De 9 a 14 hrs.)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d304058e-cc24-86be-ccd7-30767b26c490",
+    "name": "30 PAX- NOMA SYSTEMS (JC)",
+    "date": "2025-09-25",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 90,
+        "room": "CURROS",
+        "raw_content": "30 PAX- NOMA SYSTEMS (JC)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f5573a9e-a10c-b318-c759-1d905965b34f",
+    "name": "OCEANO AZUL  GEHEP COFFEES   TARDE  100 PAX",
+    "date": "2025-09-25",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 90,
+        "room": "HALL",
+        "raw_content": "OCEANO AZUL  GEHEP COFFEES   TARDE  100 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "130ef5b1-78ff-c6a7-5af2-f34da8baf7c2",
+    "name": "GPO. HOTUSA/MP 18 PAX",
+    "date": "2025-09-25",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 90,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/MP 18 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "61df4643-26ae-bc93-2ee3-60f7cc7f52a5",
+    "name": "JUNTA CONGRESO SOGUG      (De 9 a 11 hrs.)",
+    "date": "2025-09-26",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 91,
+        "room": "PONDAL",
+        "raw_content": "JUNTA CONGRESO SOGUG      (De 9 a 11 hrs.)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "fc3935b8-f76d-8690-c0bd-2dd759e0b7ca",
+    "name": "45 PAX-NOMA SYSTEMS (MJ)",
+    "date": "2025-09-26",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 91,
+        "room": "CURROS",
+        "raw_content": "45 PAX-NOMA SYSTEMS (MJ)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "a46c45d0-6f01-43db-329d-d6d8da50581e",
+    "name": "OCEANO AZUL GEHEP COFFEES  MAÑANA Y TARDE  110 PAX",
+    "date": "2025-09-26",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 91,
+        "room": "HALL",
+        "raw_content": "OCEANO AZUL GEHEP COFFEES  MAÑANA Y TARDE  110 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "60eff023-09c7-7e82-2dbc-b375c4f7a48d",
+    "name": "CENA BUFFET RAIOLA NETWORKS 130 PAX.",
+    "date": "2025-09-26",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 91,
+        "room": "RESTAURANTE",
+        "raw_content": "CENA BUFFET RAIOLA NETWORKS 130 PAX."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "329379ba-919e-3475-3d7f-7813bb4ca446",
+    "name": "OCEANO AZUL GEHEP  COFFEES   MAÑANA  80 PAX",
+    "date": "2025-09-27",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 92,
+        "room": "HALL",
+        "raw_content": "OCEANO AZUL GEHEP  COFFEES   MAÑANA  80 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "8f9d466c-a81d-05a8-e236-59335b9ec615",
+    "name": "COMIDA BUFFET RAIOLA NETWORKS 130 PAX.",
+    "date": "2025-09-27",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 92,
+        "room": "RESTAURANTE",
+        "raw_content": "COMIDA BUFFET RAIOLA NETWORKS 130 PAX."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "3167b2f9-25af-3c08-3886-af2c08e59dce",
+    "name": "CALZADOS GONZALO/MONTAJE",
+    "date": "2025-09-28",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 93,
+        "room": "CASTELAO",
+        "raw_content": "CALZADOS GONZALO/MONTAJE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "78bd3f7f-70f4-cd95-7c82-edff1f648568",
+    "name": "CALZADOS GONZALO/JC",
+    "date": "2025-09-29",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 94,
+        "room": "CASTELAO",
+        "raw_content": "CALZADOS GONZALO/JC"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "db2e1a6d-6b67-2f49-ab96-f797c0a8e2ba",
+    "name": "VILMORIN MIKADO",
+    "date": "2025-09-30",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 95,
+        "room": "ROSALIA",
+        "raw_content": "VILMORIN MIKADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "94b43cc8-7206-0c84-0036-df86eb2ae021",
+    "name": "VILMORIN MIKADO  \"U\" 17 PAX",
+    "date": "2025-09-30",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 95,
+        "room": "CUNQUEIRO",
+        "raw_content": "VILMORIN MIKADO  \"U\" 17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "77f18955-b316-7830-aeb0-a6e9379bb8e4",
+    "name": "VILMORIN COFFEE TARDE 17 PAX",
+    "date": "2025-09-30",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 95,
+        "room": "HALL",
+        "raw_content": "VILMORIN COFFEE TARDE 17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "032f9df5-af36-5077-394b-852137b51edf",
+    "name": "VILMORIN COMIDA-17 PAX",
+    "date": "2025-09-30",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-JULIO.SEPTIEMBRE",
+        "row": 95,
+        "room": "RESTAURANTE",
+        "raw_content": "VILMORIN COMIDA-17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "42b56171-8dbd-694b-04d2-da370d012422",
+    "name": "VILMORIN MIKADO",
+    "date": "2025-10-01",
+    "rooms": [
+      "ROSALIA",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 2,
+        "room": "ROSALIA",
+        "raw_content": "VILMORIN MIKADO"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 2,
+        "room": "CUNQUEIRO",
+        "raw_content": "VILMORIN MIKADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e68c0d07-6dc1-0a3b-56ff-2b844e7ab98b",
+    "name": "VILMORIN COFFEE MAÑANA Y TARDE                17 PAX",
+    "date": "2025-10-01",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 2,
+        "room": "HALL",
+        "raw_content": "VILMORIN COFFEE MAÑANA Y TARDE                17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6fe1e52f-dd3c-e6b2-787c-f176befb065d",
+    "name": "VILMORIN - COMIDA 17 PAX",
+    "date": "2025-10-01",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 2,
+        "room": "RESTAURANTE",
+        "raw_content": "VILMORIN - COMIDA 17 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c36a69b8-2544-580b-3661-9108f25d7587",
+    "name": "VILMORIN MIKADO",
+    "date": "2025-10-02",
+    "rooms": [
+      "CASTELAO",
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 3,
+        "room": "CASTELAO",
+        "raw_content": "VILMORIN MIKADO"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 3,
+        "room": "CURROS",
+        "raw_content": "VILMORIN MIKADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "8c5c078f-6775-d2b6-db76-508d51f7f54a",
+    "name": "VILMORIN  - COMIDA 61 PAX",
+    "date": "2025-10-02",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 3,
+        "room": "RESTAURANTE",
+        "raw_content": "VILMORIN  - COMIDA 61 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "db740d36-43f0-50b8-cb5a-e4a863f02314",
+    "name": "UD ALMERIA",
+    "date": "2025-10-03",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 4,
+        "room": "ROSALIA",
+        "raw_content": "UD ALMERIA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 4,
+        "room": "PONDAL",
+        "raw_content": "UD ALMERIA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 4,
+        "room": "CASTELAO",
+        "raw_content": "UD ALMERIA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 4,
+        "room": "CURROS",
+        "raw_content": "UD ALMERIA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 4,
+        "room": "CUNQUEIRO",
+        "raw_content": "UD ALMERIA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "58d0012e-2dbf-2978-e812-ef87b28c819a",
+    "name": "COMIDA JUBILACION PITUSA/72 PAX",
+    "date": "2025-10-03",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 4,
+        "room": "RESTAURANTE",
+        "raw_content": "COMIDA JUBILACION PITUSA/72 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "cc236f41-06f8-5d89-60cf-24568290bc3a",
+    "name": "CENA GPO. HOTUSA/14 PAX",
+    "date": "2025-10-03",
+    "rooms": [
+      "BAR"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 4,
+        "room": "BAR",
+        "raw_content": "CENA GPO. HOTUSA/14 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9efc1553-b100-72df-89fd-67b8fb1e12c0",
+    "name": "UD ALMERIA",
+    "date": "2025-10-04",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 5,
+        "room": "ROSALIA",
+        "raw_content": "UD ALMERIA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 5,
+        "room": "PONDAL",
+        "raw_content": "UD ALMERIA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 5,
+        "room": "CASTELAO",
+        "raw_content": "UD ALMERIA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 5,
+        "room": "CURROS",
+        "raw_content": "UD ALMERIA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 5,
+        "room": "CUNQUEIRO",
+        "raw_content": "UD ALMERIA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "d20b95b0-6f72-6464-7345-c268d693b615",
+    "name": "CENA GPO. HOTUSA/14 PAX",
+    "date": "2025-10-04",
+    "rooms": [
+      "BAR"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 5,
+        "room": "BAR",
+        "raw_content": "CENA GPO. HOTUSA/14 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f38dd957-3b4e-05c9-a426-9c2c0909370b",
+    "name": "LLEGADA Y MONTAJE x tarde GUERLAIN",
+    "date": "2025-10-06",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 7,
+        "room": "CASTELAO",
+        "raw_content": "LLEGADA Y MONTAJE x tarde GUERLAIN"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "447d164c-8cb5-10d7-4c71-efb2a18d0fea",
+    "name": "GENERAL OPTICA \"U\" 16 PAX + AUDIOS",
+    "date": "2025-10-06",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 7,
+        "room": "CUNQUEIRO",
+        "raw_content": "GENERAL OPTICA \"U\" 16 PAX + AUDIOS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ea555aa5-da07-63ce-61d7-5513692335ea",
+    "name": "FORMACION GUERLAIN 14 PAX U\" + PANTALLA Y MESA EXPOSITORA",
+    "date": "2025-10-07",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 8,
+        "room": "CASTELAO",
+        "raw_content": "FORMACION GUERLAIN 14 PAX U\" + PANTALLA Y MESA EXPOSITORA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f8d8f8ed-62e2-0d75-69f3-ffa1e412e0c3",
+    "name": "COFFEE MAÑANA Y TARDE GUERLAIN",
+    "date": "2025-10-07",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 8,
+        "room": "HALL",
+        "raw_content": "COFFEE MAÑANA Y TARDE GUERLAIN"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "dc701fe4-faff-94f4-f17c-d250a4782cc4",
+    "name": "CASTING SALTA2 GRABACION",
+    "date": "2025-10-08",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 9,
+        "room": "ROSALIA",
+        "raw_content": "CASTING SALTA2 GRABACION"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e3d6d676-c8c8-41a4-be61-650ccec7ea1b",
+    "name": "CASTING SALTA2//16 PAX-TEST",
+    "date": "2025-10-08",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 9,
+        "room": "CUNQUEIRO",
+        "raw_content": "CASTING SALTA2//16 PAX-TEST"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "170d5601-6472-7611-9a08-29931dd688e4",
+    "name": "CENA GPO. HOTUSA/14 PAX",
+    "date": "2025-10-09",
+    "rooms": [
+      "BAR"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 10,
+        "room": "BAR",
+        "raw_content": "CENA GPO. HOTUSA/14 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "2b9329f7-eae9-2f32-ba98-49a8fcdb2bff",
+    "name": "GRUPO HOTUSA /CENA 20 PAX        GRUPO HOTUSA /CENA 35 PAX",
+    "date": "2025-10-10",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 11,
+        "room": "RESTAURANTE",
+        "raw_content": "GRUPO HOTUSA /CENA 20 PAX        GRUPO HOTUSA /CENA 35 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "03f0f772-e590-bc54-026d-03fe482b65fe",
+    "name": "GRUPO HOTUSA/CENA 35 PAX",
+    "date": "2025-10-11",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 12,
+        "room": "RESTAURANTE",
+        "raw_content": "GRUPO HOTUSA/CENA 35 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0fd0c5b2-e264-2860-cbb6-52954d35b759",
+    "name": "ASISA  \"U\" 15 PAX + PANTALLA",
+    "date": "2025-10-13",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 14,
+        "room": "CASTELAO",
+        "raw_content": "ASISA  \"U\" 15 PAX + PANTALLA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c87514c3-6198-6330-30da-78a083ef90cf",
+    "name": "ASISA COFFEE 15 PAX (12 HRS.)",
+    "date": "2025-10-13",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 14,
+        "room": "HALL",
+        "raw_content": "ASISA COFFEE 15 PAX (12 HRS.)"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "2ea8b878-409e-7f80-61ab-fb7daa70bbf3",
+    "name": "GPO. HOTUSA/CENA 36 PAX",
+    "date": "2025-10-14",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 15,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/CENA 36 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "5a624c77-b296-893a-e553-c2a15aabe65d",
+    "name": "EUROSTARS HOTELS",
+    "date": "2025-10-16",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 17,
+        "room": "CASTELAO",
+        "raw_content": "EUROSTARS HOTELS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "5e1dc76d-6f05-0b2d-ca78-78d8018d56a7",
+    "name": "GPO. HOTUSA/CENA 18 PAX",
+    "date": "2025-10-17",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 18,
+        "room": "RESTAURANTE",
+        "raw_content": "GPO. HOTUSA/CENA 18 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6e6f4e1f-eb26-8082-b90f-f0722e1d7db7",
+    "name": "UEM-DEFENSAS                                         x mañana",
+    "date": "2025-10-18",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 19,
+        "room": "ROSALIA",
+        "raw_content": "UEM-DEFENSAS                                         x mañana"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "352971cb-e1a7-1fab-26a8-1a7bbaf76252",
+    "name": "UEM-TFM JC",
+    "date": "2025-10-18",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 19,
+        "room": "PONDAL",
+        "raw_content": "UEM-TFM JC"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6209df0a-b033-a080-0241-724b4f5a33f4",
+    "name": "UEM-EXAMEN JC",
+    "date": "2025-10-18",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 19,
+        "room": "CASTELAO",
+        "raw_content": "UEM-EXAMEN JC"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "dd7eb5ef-db5d-d460-cb60-5f8b1c64c5f2",
+    "name": "DIPUTACION \"ESCUELA\" 40 PAX + AUDIOS",
+    "date": "2025-10-18",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 19,
+        "room": "CURROS",
+        "raw_content": "DIPUTACION \"ESCUELA\" 40 PAX + AUDIOS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ced418b5-1e82-443a-31ae-583b408acd48",
+    "name": "UEM-TFM JC",
+    "date": "2025-10-19",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 20,
+        "room": "PONDAL",
+        "raw_content": "UEM-TFM JC"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9637503e-292e-c8e1-a92c-7a713fe1ae97",
+    "name": "UEM-EXAMEN JC",
+    "date": "2025-10-19",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 20,
+        "room": "CASTELAO",
+        "raw_content": "UEM-EXAMEN JC"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "74563c90-2f1b-cc52-e793-b0a5156681c4",
+    "name": "DIPUTACION \"ESCUELA\" 40 PAX + AUDIOS",
+    "date": "2025-10-19",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 20,
+        "room": "CURROS",
+        "raw_content": "DIPUTACION \"ESCUELA\" 40 PAX + AUDIOS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e2abf252-f605-e7bb-b550-290d874f19a0",
+    "name": "IN Y MONTAJE",
+    "date": "2025-10-19",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 20,
+        "room": "CUNQUEIRO",
+        "raw_content": "IN Y MONTAJE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "808ef312-b088-6a00-a209-fce2d6868535",
+    "name": "EUROSTARS HOTELS",
+    "date": "2025-10-20",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 21,
+        "room": "ROSALIA",
+        "raw_content": "EUROSTARS HOTELS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c8f55afe-b737-0f59-0135-d1a50ad8605e",
+    "name": "JORGE GARCIA/EXP. CALZADO",
+    "date": "2025-10-20",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 21,
+        "room": "CUNQUEIRO",
+        "raw_content": "JORGE GARCIA/EXP. CALZADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e08b776a-5611-4fb2-6176-d0852c6ea0b9",
+    "name": "REUNIÓN COSMOS ARQUITECTOS",
+    "date": "2025-10-21",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 22,
+        "room": "CURROS",
+        "raw_content": "REUNIÓN COSMOS ARQUITECTOS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "61573709-4e7e-36cc-9724-38ba294d506a",
+    "name": "JORGE GARCIA/EXP. CALZADO",
+    "date": "2025-10-21",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 22,
+        "room": "CUNQUEIRO",
+        "raw_content": "JORGE GARCIA/EXP. CALZADO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1b780c69-2bd4-a417-f191-7af130433fbe",
+    "name": "SALINERA ESPAÑOLA",
+    "date": "2025-10-22",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 23,
+        "room": "CASTELAO",
+        "raw_content": "SALINERA ESPAÑOLA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ca0eea18-f893-61c5-c1c4-27776069763b",
+    "name": "OUT Y DESMONTAJE",
+    "date": "2025-10-22",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 23,
+        "room": "CUNQUEIRO",
+        "raw_content": "OUT Y DESMONTAJE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "31e2f271-34b6-ca77-aa33-451fc60e4520",
+    "name": "GRUPO HOTUSA/17 PAX+AUDIOS",
+    "date": "2025-10-23",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 24,
+        "room": "CASTELAO",
+        "raw_content": "GRUPO HOTUSA/17 PAX+AUDIOS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "93be7bad-3dd5-ba27-ff29-6fbf149e62f8",
+    "name": "KOBHO LABS.-COCKTAIL COMIDA",
+    "date": "2025-10-23",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 24,
+        "room": "CURROS",
+        "raw_content": "KOBHO LABS.-COCKTAIL COMIDA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0253305f-e851-a62d-8241-b023193489ca",
+    "name": "KOBHO LABS./50 PAX \"TEATRO\"",
+    "date": "2025-10-23",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 24,
+        "room": "CUNQUEIRO",
+        "raw_content": "KOBHO LABS./50 PAX \"TEATRO\""
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "908170be-3cba-4235-957c-596a206ec6ff",
+    "name": "COFFEE  BIENVENIDA                      KOBHO LABS.",
+    "date": "2025-10-23",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 24,
+        "room": "HALL",
+        "raw_content": "COFFEE  BIENVENIDA                      KOBHO LABS."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e22bf03d-6740-8d98-83ce-7803a0ec8868",
+    "name": "SPEAK & TRAVEL",
+    "date": "2025-10-24",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 25,
+        "room": "PONDAL",
+        "raw_content": "SPEAK & TRAVEL"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "52ad4d40-1034-e9ce-d25a-62b53eb81bfd",
+    "name": "CENA GRUPO SAPO PORTUGAL/29 PAX",
+    "date": "2025-10-24",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 25,
+        "room": "RESTAURANTE",
+        "raw_content": "CENA GRUPO SAPO PORTUGAL/29 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "60121098-17fb-6a7c-d279-4e6c56b99495",
+    "name": "SPEAK & TRAVEL",
+    "date": "2025-10-25",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 26,
+        "room": "PONDAL",
+        "raw_content": "SPEAK & TRAVEL"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1ca8fdef-066e-39fb-52ec-554d2bf8566a",
+    "name": "COMIDA GRUPO SAPO PORTUGAL/29 PAX",
+    "date": "2025-10-25",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 26,
+        "room": "RESTAURANTE",
+        "raw_content": "COMIDA GRUPO SAPO PORTUGAL/29 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "629615ec-b2ef-b802-2a59-dba55f302af3",
+    "name": "SHISEIDO/TEATRO 60 PAX",
+    "date": "2025-10-27",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 28,
+        "room": "CUNQUEIRO",
+        "raw_content": "SHISEIDO/TEATRO 60 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "85448e0f-26f2-548c-b5b0-04ed04555157",
+    "name": "COCKTAIL SHISEIDO 22'30 hrs.",
+    "date": "2025-10-27",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 28,
+        "room": "HALL",
+        "raw_content": "COCKTAIL SHISEIDO 22'30 hrs."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "3c049871-8f1c-3f52-ee44-a0cd0e151bd2",
+    "name": "ISLE UTILITIES \"U\" 30 PAX+AUDIOS",
+    "date": "2025-10-28",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 29,
+        "room": "CASTELAO",
+        "raw_content": "ISLE UTILITIES \"U\" 30 PAX+AUDIOS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1e1644f3-8b3a-7e94-e0c8-30b7abea521b",
+    "name": "ISLE UTILITIES                                          COCKTAIL 18 PAX/14'00-15 HRS.",
+    "date": "2025-10-28",
+    "rooms": [
+      "CURROS"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 29,
+        "room": "CURROS",
+        "raw_content": "ISLE UTILITIES                                          COCKTAIL 18 PAX/14'00-15 HRS."
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c987867c-14a5-a176-8234-25938d79e653",
+    "name": "AIMEN 14 PAX \"U\"+TV",
+    "date": "2025-10-29",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 30,
+        "room": "ROSALIA",
+        "raw_content": "AIMEN 14 PAX \"U\"+TV"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6a162564-0751-f22b-64e7-a452e2a82bb7",
+    "name": "COCKTAIL AIMEN                        15 PAX",
+    "date": "2025-10-29",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 30,
+        "room": "PONDAL",
+        "raw_content": "COCKTAIL AIMEN                        15 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "8b23bc54-2df5-6c2e-705d-f95281d5643d",
+    "name": "COFFEE AIMEN 14 PAX",
+    "date": "2025-10-29",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 30,
+        "room": "HALL",
+        "raw_content": "COFFEE AIMEN 14 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "78e32331-1c57-a19d-ab77-910578a6aa78",
+    "name": "TENERIFE",
+    "date": "2025-10-31",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 32,
+        "room": "ROSALIA",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 32,
+        "room": "PONDAL",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 32,
+        "room": "CASTELAO",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 32,
+        "room": "CURROS",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 32,
+        "room": "CUNQUEIRO",
+        "raw_content": "TENERIFE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "1f65b5a6-cdf1-ca94-449f-8ccdc8dafdac",
+    "name": "TENERIFE",
+    "date": "2025-11-01",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 34,
+        "room": "ROSALIA",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 34,
+        "room": "PONDAL",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 34,
+        "room": "CASTELAO",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 34,
+        "room": "CURROS",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 34,
+        "room": "CUNQUEIRO",
+        "raw_content": "TENERIFE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "665bcd96-7138-10ed-740f-90b7216a3c5c",
+    "name": "FESTIVO",
+    "date": "2025-11-01",
+    "rooms": [
+      "RESTAURANTE"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 34,
+        "room": "RESTAURANTE",
+        "raw_content": "FESTIVO"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6ac58616-723b-f013-9f75-49fc51dd8942",
+    "name": "TENERIFE",
+    "date": "2025-11-02",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 35,
+        "room": "ROSALIA",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 35,
+        "room": "PONDAL",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 35,
+        "room": "CASTELAO",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 35,
+        "room": "CURROS",
+        "raw_content": "TENERIFE"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 35,
+        "room": "CUNQUEIRO",
+        "raw_content": "TENERIFE"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ca3a55ad-c336-ec58-22f4-b87b41a895f6",
+    "name": "EUROSTARS HOTELS",
+    "date": "2025-11-04",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 37,
+        "room": "ROSALIA",
+        "raw_content": "EUROSTARS HOTELS"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "dd278b2b-ffa6-d0a6-1e71-3c2b838cbdc3",
+    "name": "APR SALUD",
+    "date": "2025-11-05",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 38,
+        "room": "PONDAL",
+        "raw_content": "APR SALUD"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "c6c7494b-e843-e2a2-d855-52ca4e15d277",
+    "name": "CULTURAL LEONESA",
+    "date": "2025-11-07",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 40,
+        "room": "ROSALIA",
+        "raw_content": "CULTURAL LEONESA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 40,
+        "room": "PONDAL",
+        "raw_content": "CULTURAL LEONESA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 40,
+        "room": "CASTELAO",
+        "raw_content": "CULTURAL LEONESA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 40,
+        "room": "CURROS",
+        "raw_content": "CULTURAL LEONESA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 40,
+        "room": "CUNQUEIRO",
+        "raw_content": "CULTURAL LEONESA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "ca9b68ad-9e3a-1ae8-97c4-55f5900f5f9a",
+    "name": "CULTURAL LEONESA",
+    "date": "2025-11-08",
+    "rooms": [
+      "ROSALIA",
+      "PONDAL",
+      "CASTELAO",
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 41,
+        "room": "ROSALIA",
+        "raw_content": "CULTURAL LEONESA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 41,
+        "room": "PONDAL",
+        "raw_content": "CULTURAL LEONESA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 41,
+        "room": "CASTELAO",
+        "raw_content": "CULTURAL LEONESA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 41,
+        "room": "CURROS",
+        "raw_content": "CULTURAL LEONESA"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 41,
+        "room": "CUNQUEIRO",
+        "raw_content": "CULTURAL LEONESA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "96b1aafd-ce46-6dc9-fbf6-679fe2a7d30c",
+    "name": "LEONCIO/COFFEE 12 PAX",
+    "date": "2025-11-08",
+    "rooms": [
+      "BAR"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 41,
+        "room": "BAR",
+        "raw_content": "LEONCIO/COFFEE 12 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e64f8ba8-483e-16c5-77e1-07f3e71b05aa",
+    "name": "LEONARDO TEJEDOR montaje x tarde",
+    "date": "2025-11-11",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 44,
+        "room": "PONDAL",
+        "raw_content": "LEONARDO TEJEDOR montaje x tarde"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "5f324449-f747-cef2-d067-9a8d47d202f5",
+    "name": "LEONARDO TEJEDOR",
+    "date": "2025-11-12",
+    "rooms": [
+      "PONDAL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 45,
+        "room": "PONDAL",
+        "raw_content": "LEONARDO TEJEDOR"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "4d22e3e6-6c37-a073-a9c2-8ef904673c22",
+    "name": "SCHINDLER \"ESCUELA\" 20 PAX + PANTALLA",
+    "date": "2025-11-12",
+    "rooms": [
+      "CASTELAO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 45,
+        "room": "CASTELAO",
+        "raw_content": "SCHINDLER \"ESCUELA\" 20 PAX + PANTALLA"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "01147d90-3ad0-7809-e04a-ddd342c0d236",
+    "name": "PROFIRST",
+    "date": "2025-11-12",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 45,
+        "room": "CUNQUEIRO",
+        "raw_content": "PROFIRST"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "f3d4dc81-d9b8-64f9-c092-b8c26ef006c8",
+    "name": "COFFEE-BREAK SCHINDLER 20 PAX",
+    "date": "2025-11-12",
+    "rooms": [
+      "HALL"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 45,
+        "room": "HALL",
+        "raw_content": "COFFEE-BREAK SCHINDLER 20 PAX"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "2c4a51d0-e7f9-e3f9-ae87-30d4e5551b35",
+    "name": "PROFIRST",
+    "date": "2025-11-13",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 46,
+        "room": "CUNQUEIRO",
+        "raw_content": "PROFIRST"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "0e738239-e708-9a8a-6fce-e0a27426a1d4",
+    "name": "PROFIRST",
+    "date": "2025-11-14",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 47,
+        "room": "CUNQUEIRO",
+        "raw_content": "PROFIRST"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "054154c6-f470-18c8-9fc4-5ac24baccb5f",
+    "name": "UEM-TFM JC",
+    "date": "2025-11-15",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 48,
+        "room": "ROSALIA",
+        "raw_content": "UEM-TFM JC"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "9791e0d6-763d-db86-f416-f466764c78a3",
+    "name": "PROFIRST",
+    "date": "2025-11-15",
+    "rooms": [
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 48,
+        "room": "CUNQUEIRO",
+        "raw_content": "PROFIRST"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "6138f88b-a4d3-61f0-939d-858476aaabaa",
+    "name": "PROFIRST",
+    "date": "2025-11-16",
+    "rooms": [
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 49,
+        "room": "CURROS",
+        "raw_content": "PROFIRST"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 49,
+        "room": "CUNQUEIRO",
+        "raw_content": "PROFIRST"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "3bc6b296-b083-38be-8641-368ef2fd7058",
+    "name": "PROFIRST",
+    "date": "2025-11-17",
+    "rooms": [
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 50,
+        "room": "CURROS",
+        "raw_content": "PROFIRST"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 50,
+        "room": "CUNQUEIRO",
+        "raw_content": "PROFIRST"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "e4d65219-1d0a-ea79-122b-95f5f35caa49",
+    "name": "ELECNOR 11PAX / JC",
+    "date": "2025-11-18",
+    "rooms": [
+      "ROSALIA"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 51,
+        "room": "ROSALIA",
+        "raw_content": "ELECNOR 11PAX / JC"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "id": "07d1c3dd-a5ca-031d-d85a-2279a974c722",
+    "name": "PROFIRST",
+    "date": "2025-11-18",
+    "rooms": [
+      "CURROS",
+      "CUNQUEIRO"
+    ],
+    "sources": [
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 51,
+        "room": "CURROS",
+        "raw_content": "PROFIRST"
+      },
+      {
+        "sheet": "2025-OCTUBRE.DICIEMBRE",
+        "row": 51,
+        "room": "CUNQUEIRO",
+        "raw_content": "PROFIRST"
+      }
+    ],
+    "menu": {
+      "status": "pending",
+      "items": []
+    },
+    "org_id": "00000000-0000-0000-0000-000000000000"
+  }
+]
