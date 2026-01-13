@@ -421,3 +421,52 @@ where s.hotel_id = '20000000-0000-0000-0000-000000000001'
   and s.shift_type = 'desayuno'
   and s.shift_date in ('2026-01-05', '2026-01-06')
 on conflict (shift_id, staff_member_id) do nothing;
+
+-- PR3 demo datos de stock y buffer
+insert into public.purchasing_settings (org_id, default_buffer_percent, default_buffer_qty)
+values ('00000000-0000-0000-0000-000000000001', 5, 0.5)
+on conflict (org_id) do update
+set default_buffer_percent = excluded.default_buffer_percent,
+    default_buffer_qty = excluded.default_buffer_qty;
+
+insert into public.inventory_locations (id, org_id, hotel_id, name)
+values
+  ('70000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Almacen Central')
+on conflict (id) do update set name = excluded.name;
+
+insert into public.stock_levels (org_id, location_id, supplier_item_id, on_hand_qty, unit)
+values
+  ('00000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000001', 6, 'kg'),
+  ('00000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', 120, 'ud')
+on conflict (location_id, supplier_item_id) do update
+set on_hand_qty = excluded.on_hand_qty,
+    unit = excluded.unit;
+
+insert into public.purchase_orders (id, org_id, hotel_id, supplier_id, status, order_number, total_estimated)
+values (
+  '90000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-000000000001',
+  '20000000-0000-0000-0000-000000000001',
+  '30000000-0000-0000-0000-000000000001',
+  'confirmed',
+  'PO-DEMO-001',
+  0
+)
+on conflict (id) do update set status = excluded.status;
+
+insert into public.purchase_order_lines (purchase_order_id, org_id, supplier_item_id, ingredient_id, requested_qty, received_qty, purchase_unit, rounding_rule, pack_size, unit_price)
+values (
+  '90000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-000000000001',
+  '40000000-0000-0000-0000-000000000001',
+  '60000000-0000-0000-0000-000000000001',
+  10,
+  2,
+  'kg',
+  'ceil_pack',
+  5,
+  2.8
+)
+on conflict (purchase_order_id, supplier_item_id) do update
+set requested_qty = excluded.requested_qty,
+    received_qty = excluded.received_qty;

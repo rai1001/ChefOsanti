@@ -22,4 +22,10 @@
 - RLS de buckets/objetos; adaptadores de carga/lectura.
 - UI: carga/visualización básica en purchasing.
 
+## PR3 – Stock vs Compras (NetToBuy)
+- Tablas nuevas: inventory_locations, stock_levels, purchasing_settings con RLS por org.
+- Lógica de neteo: gross - stock - on_order + buffer, redondeo por pack/rounding_rule, bloqueo por unit mismatch.
+- Borradores de evento usan NetToBuy y preservan líneas congeladas.
+- UI: tabla Need/OnHand/OnOrder/Buffer/Net/Rounded en detalle de pedido y alertas por unidades incompatibles.
+
 > Cada slice debe mantener independencia de módulo y cumplir template de SLICES.

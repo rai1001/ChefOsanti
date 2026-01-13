@@ -5,13 +5,10 @@ import type { MenuTemplateItem } from '@/modules/events/domain/menu'
 import type { ServiceFormat } from '@/modules/events/domain/event'
 import { computeServiceNeedsWithOverrides, type ServiceOverrides } from '@/modules/events/domain/overrides'
 import type { SupplierItem } from '../domain/types'
-import {
-  applyRoundingToLines,
-  groupMappedNeeds,
-  mapNeedsToSupplierItems,
-  normalizeAlias,
-  type Need,
-} from '../domain/eventDraftOrder'
+import { mapNeedsToSupplierItems, normalizeAlias, type Need } from '../domain/eventDraftOrder'
+import { getStockOnHand, getOnOrderQty } from './stock'
+import { getPurchasingSettings } from './settings'
+import { computeNetLine } from '../domain/netToBuy'
 
 export type EventPurchaseOrder = {
   id: string
@@ -35,6 +32,15 @@ export type EventPurchaseOrderLine = {
   purchaseUnit: 'kg' | 'ud'
   unitPrice?: number | null
   lineTotal: number
+  freeze: boolean
+  bufferPercent: number
+  bufferQty: number
+  grossQty: number
+  onHandQty: number
+  onOrderQty: number
+  netQty: number
+  roundedQty: number
+  unitMismatch: boolean
 }
 
 function mapOrder(row: any): EventPurchaseOrder {
@@ -62,6 +68,15 @@ function mapLine(row: any): EventPurchaseOrderLine {
     purchaseUnit: row.purchase_unit,
     unitPrice: row.unit_price,
     lineTotal: row.line_total,
+    freeze: Boolean(row.freeze),
+    bufferPercent: Number(row.buffer_percent ?? 0),
+    bufferQty: Number(row.buffer_qty ?? 0),
+    grossQty: Number(row.gross_qty ?? row.qty ?? 0),
+    onHandQty: Number(row.on_hand_qty ?? 0),
+    onOrderQty: Number(row.on_order_qty ?? 0),
+    netQty: Number(row.net_qty ?? row.qty ?? 0),
+    roundedQty: Number(row.rounded_qty ?? row.qty ?? 0),
+    unitMismatch: Boolean(row.unit_mismatch ?? false),
   }
 }
 
@@ -302,11 +317,110 @@ export async function createDraftOrders(params: {
   }))
   const { mapped, unknown } = mapNeedsToSupplierItems(params.needs, normalizedAliases, params.supplierItems)
   if (unknown.length) {
-    return { unknown }
+    return { unknown, mismatches: [] as { supplierItemId: string; label: string }[] }
   }
-  const grouped = applyRoundingToLines(groupMappedNeeds(mapped))
+  const supplierItemIds = mapped.map((m) => m.supplierItem.id)
+  const [stockOnHand, onOrderMap, settings] = await Promise.all([
+    getStockOnHand(params.orgId, params.hotelId, supplierItemIds),
+    getOnOrderQty(params.orgId, supplierItemIds, params.eventId),
+    getPurchasingSettings(params.orgId),
+  ])
+
+  // Agregar necesidades por supplier_item
+  const aggregated = new Map<
+    string,
+    {
+      supplierItem: SupplierItem
+      supplierId: string
+      grossQty: number
+      needUnit: 'kg' | 'ud'
+      label: string
+      bufferPercent?: number
+      bufferQty?: number
+    }
+  >()
+  for (const need of mapped) {
+    const key = need.supplierItem.id
+    const existing = aggregated.get(key)
+    if (existing) {
+      existing.grossQty += need.qty
+    } else {
+      aggregated.set(key, {
+        supplierItem: need.supplierItem,
+        supplierId: need.supplierItem.supplierId,
+        grossQty: need.qty,
+        needUnit: need.unit,
+        label: need.label,
+      })
+    }
+  }
+
+  const grouped = new Map<
+    string,
+    {
+      supplierId: string
+      lines: {
+        supplierItem: SupplierItem
+        label: string
+        grossQty: number
+        onHandQty: number
+        onOrderQty: number
+        netQty: number
+        roundedQty: number
+        bufferPercent: number
+        bufferQty: number
+        unitMismatch: boolean
+      }[]
+    }
+  >()
+  const mismatches: { supplierItemId: string; label: string }[] = []
+
+  for (const agg of aggregated.values()) {
+    const lineBufferPercent = settings.defaultBufferPercent
+    const lineBufferQty = settings.defaultBufferQty
+
+    const netRes = computeNetLine({
+      supplierItemId: agg.supplierItem.id,
+      label: agg.label,
+      grossQty: agg.grossQty,
+      onHandQty: stockOnHand[agg.supplierItem.id] ?? 0,
+      onOrderQty: onOrderMap[agg.supplierItem.id] ?? 0,
+      bufferPercent: lineBufferPercent,
+      bufferQty: lineBufferQty,
+      needUnit: agg.needUnit,
+      purchaseUnit: agg.supplierItem.purchaseUnit,
+      roundingRule: agg.supplierItem.roundingRule,
+      packSize: agg.supplierItem.packSize,
+    })
+
+    if (netRes.kind === 'error') {
+      mismatches.push({ supplierItemId: agg.supplierItem.id, label: agg.label })
+      continue
+    }
+
+    if (!grouped.has(agg.supplierId)) {
+      grouped.set(agg.supplierId, { supplierId: agg.supplierId, lines: [] })
+    }
+    grouped.get(agg.supplierId)!.lines.push({
+      supplierItem: agg.supplierItem,
+      label: agg.label,
+      grossQty: netRes.grossQty,
+      onHandQty: netRes.onHandQty,
+      onOrderQty: netRes.onOrderQty,
+      netQty: netRes.netQty,
+      roundedQty: netRes.roundedQty,
+      bufferPercent: lineBufferPercent,
+      bufferQty: lineBufferQty,
+      unitMismatch: false,
+    })
+  }
+
+  if (mismatches.length) {
+    return { unknown, mismatches }
+  }
+
   const createdOrderIds: string[] = []
-  for (const [idx, group] of grouped.entries()) {
+  for (const [idx, group] of Array.from(grouped.values()).entries()) {
     const { data: existing, error: existingErr } = await supabase
       .from('event_purchase_orders')
       .select('id, order_number')
@@ -351,19 +465,55 @@ export async function createDraftOrders(params: {
     }
     orderId = orderRow.id as string
     createdOrderIds.push(orderId)
-    await supabase.from('event_purchase_order_lines').delete().eq('event_purchase_order_id', orderId)
-    for (const line of group.lines) {
+    const { data: existingLines, error: fetchLinesErr } = await supabase
+      .from('event_purchase_order_lines')
+      .select('*')
+      .eq('event_purchase_order_id', orderId)
+    if (fetchLinesErr) {
+      throw mapSupabaseError(fetchLinesErr, {
+        module: 'purchasing',
+        operation: 'createDraftOrders',
+        step: 'fetchExistingLines',
+        eventId: params.eventId,
+      })
+    }
+    const frozenLines = (existingLines ?? []).filter((l: any) => l.freeze)
+    const frozenIds = frozenLines.map((l: any) => l.id)
+    const frozenItemIds = new Set(frozenLines.map((l: any) => l.supplier_item_id as string))
+    if (frozenIds.length !== (existingLines ?? []).length) {
+      await supabase
+        .from('event_purchase_order_lines')
+        .delete()
+        .eq('event_purchase_order_id', orderId)
+        .eq('freeze', false)
+    }
+
+    const linesToInsert = group.lines.filter((l) => l.roundedQty > 0 && !frozenItemIds.has(l.supplierItem.id))
+    if (linesToInsert.length === 0 && frozenLines.length === 0) {
+      // No hay nada que generar ni preservar
+      await supabase.from('event_purchase_orders').delete().eq('id', orderId)
+      continue
+    }
+    for (const line of linesToInsert) {
       const price = line.supplierItem.pricePerUnit ?? null
-      const lineTotal = price ? price * line.qty : 0
+      const lineTotal = price ? price * line.roundedQty : 0
       const { error: lineErr } = await supabase.from('event_purchase_order_lines').insert({
         org_id: params.orgId,
         event_purchase_order_id: orderId,
         supplier_item_id: line.supplierItem.id,
         item_label: line.label,
-        qty: line.qty,
-        purchase_unit: line.unit,
+        qty: line.roundedQty,
+        purchase_unit: line.supplierItem.purchaseUnit,
         unit_price: price,
         line_total: lineTotal,
+        buffer_percent: line.bufferPercent,
+        buffer_qty: line.bufferQty,
+        gross_qty: line.grossQty,
+        on_hand_qty: line.onHandQty,
+        on_order_qty: line.onOrderQty,
+        net_qty: line.netQty,
+        rounded_qty: line.roundedQty,
+        unit_mismatch: line.unitMismatch,
       })
       if (lineErr) {
         throw mapSupabaseError(lineErr, {
@@ -374,8 +524,24 @@ export async function createDraftOrders(params: {
         })
       }
     }
+
+    // Reinsert frozen lines untouched (if deletion happened)
+    if ((existingLines ?? []).some((l: any) => l.freeze)) {
+      for (const frozen of existingLines ?? []) {
+        if (!frozen.freeze) continue
+        const { error: reErr } = await supabase.from('event_purchase_order_lines').upsert(frozen, { onConflict: 'id' })
+        if (reErr) {
+          throw mapSupabaseError(reErr, {
+            module: 'purchasing',
+            operation: 'createDraftOrders',
+            step: 'reinsertFrozen',
+            eventId: params.eventId,
+          })
+        }
+      }
+    }
   }
-  return { createdOrderIds, unknown: [] }
+  return { createdOrderIds, unknown: [], mismatches }
 }
 
 export function useCreateEventDraftOrders(orgId: string | undefined, hotelId: string | undefined, eventId: string | undefined) {

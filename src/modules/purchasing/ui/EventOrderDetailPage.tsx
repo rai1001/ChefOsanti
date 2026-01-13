@@ -97,23 +97,57 @@ export default function EventOrderDetailPage() {
           <h2 className="text-sm font-semibold text-slate-800">Lineas</h2>
           <span className="text-xs text-slate-500">{lines.length} items</span>
         </div>
-        <div className="divide-y divide-slate-100">
-          {lines.length ? (
-            lines.map((line) => (
-              <div key={line.id} className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">{line.itemLabel}</p>
-                  <p className="text-xs text-slate-600">
-                    Cantidad: {line.qty} {line.purchaseUnit} - Precio: {line.unitPrice ?? 'N/D'} - Total:{' '}
-                    {line.lineTotal}
-                  </p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="px-4 py-6 text-sm text-slate-600">Sin lineas.</p>
-          )}
-        </div>
+        {lines.length ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 text-xs">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">Item</th>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">Need</th>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">On hand</th>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">On order</th>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">Buffer</th>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">Net</th>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">Rounded</th>
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {lines.map((line) => (
+                  <tr key={line.id} className="hover:bg-slate-50">
+                    <td className="px-4 py-2 text-sm text-slate-900">
+                      <div className="font-semibold">{line.itemLabel}</div>
+                      <div className="text-[11px] text-slate-500">Proveedor item: {line.supplierItemId}</div>
+                    </td>
+                    <td className="px-4 py-2 font-mono text-slate-700">
+                      {Number(line.grossQty ?? line.qty).toFixed(2)} {line.purchaseUnit}
+                    </td>
+                    <td className="px-4 py-2 font-mono text-slate-700">
+                      {Number(line.onHandQty ?? 0).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2 font-mono text-slate-700">
+                      {Number(line.onOrderQty ?? 0).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2 font-mono text-slate-700">
+                      {Number(line.bufferQty ?? 0).toFixed(2)} (+{Number(line.bufferPercent ?? 0).toFixed(0)}%)
+                    </td>
+                    <td className="px-4 py-2 font-mono text-slate-700">
+                      {Number(line.netQty ?? line.qty).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2 font-mono text-slate-700">
+                      {Number(line.roundedQty ?? line.qty).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2 text-xs text-slate-700">
+                      {line.unitMismatch ? 'Unidad incompatible' : line.freeze ? 'Congelada' : 'OK'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="px-4 py-6 text-sm text-slate-600">Sin lineas.</p>
+        )}
       </div>
 
       <style>{`

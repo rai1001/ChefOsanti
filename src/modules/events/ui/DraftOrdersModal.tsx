@@ -64,6 +64,10 @@ export function DraftOrdersModal({
             setLocalError('Quedan items sin mapear.')
             return
         }
+        if (result.mismatches && result.mismatches.length) {
+            setLocalError('Existen items con unidad incompatible. Corrige las unidades o mapea otro item.')
+            return
+        }
         onCreated(result.createdOrderIds ?? [])
     }
 
@@ -95,6 +99,16 @@ export function DraftOrdersModal({
                             {localError}
                         </div>
                     )}
+                    {createDraftOrders.data?.mismatches?.length ? (
+                        <div className="rounded border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                            <p className="font-semibold">Unidades incompatibles</p>
+                            <ul className="mt-1 list-disc pl-4 space-y-1">
+                                {createDraftOrders.data.mismatches.map((m) => (
+                                    <li key={m.supplierItemId}>{m.label} (item proveedor: {m.supplierItemId})</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ) : null}
 
                     {unknown.length > 0 && (
                         <div className="rounded border border-amber-500/30 bg-amber-500/10 p-3">
