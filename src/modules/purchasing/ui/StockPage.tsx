@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Package, PlusCircle } from 'lucide-react'
+import { Package, PlusCircle, Scan, Bell } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
 import { Skeleton } from '@/modules/shared/ui/Skeleton'
@@ -15,6 +16,9 @@ import { useAssignBarcode, useBarcodeMappings } from '@/modules/inventory/data/b
 import { resolveBarcode } from '@/modules/inventory/domain/barcodeResolver'
 import { BarcodeScanner } from './components/BarcodeScanner'
 import { AssignBarcodeSection } from './components/AssignBarcodeSection'
+import { parseExpiryAndLot } from '@/modules/inventory/domain/ocrExpiryParser'
+import { ImportDeliveryNoteModal } from './components/ImportDeliveryNoteModal'
+import { useExpiryAlerts } from '@/modules/inventory/data/expiryAlerts'
 
 type EntryForm = {
   supplierItemId: string
@@ -39,8 +43,10 @@ export default function StockPage() {
   const barcodeMappings = useBarcodeMappings(activeOrgId ?? undefined)
   const assignBarcode = useAssignBarcode()
   const [showModal, setShowModal] = useState(false)
+  const [importModal, setImportModal] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
   const [pendingBarcode, setPendingBarcode] = useState<string | null>(null)
+  const [ocrSuggestion, setOcrSuggestion] = useState<{ expiresAt?: string; lotCode?: string; message?: string } | null>(null)
   const [entry, setEntry] = useState<EntryForm>({
     supplierItemId: '',
     qty: 0,
@@ -48,6 +54,7 @@ export default function StockPage() {
     expiresAt: null,
     lotCode: null,
   })
+  const expiryAlerts = useExpiryAlerts({ orgId: activeOrgId ?? undefined, status: 'open' })
 
   const hotelsOptions = hotels.data ?? []
   const locationOptions = locations.data ?? []
@@ -55,6 +62,10 @@ export default function StockPage() {
     () => locationOptions.find((l) => l.id === locationId),
     [locationId, locationOptions],
   )
+  const openAlertsCount = useMemo(() => {
+    const all = expiryAlerts.data ?? []
+    return all.filter((a) => (!hotelId || a.hotelId === hotelId) && (!locationId || a.locationId === locationId)).length
+  }, [expiryAlerts.data, hotelId, locationId])
 
   const handleSubmitEntry = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,14 +95,14 @@ export default function StockPage() {
     )
   }
   if (!session || error) {
-    return <ErrorBanner title="Inicia sesión" message={sessionError || 'Inicia sesión para ver stock.'} />
+    return <ErrorBanner title="Inicia sesion" message={sessionError || 'Inicia sesion para ver stock.'} />
   }
 
   return (
     <div className="space-y-4 animate-fade-in">
       <PageHeader
         title="Inventario por lotes (FEFO)"
-        subtitle="Controla lotes, caducidades y entradas manuales por ubicación."
+        subtitle="Controla lotes, caducidades y entradas manuales por ubicacion."
         actions={
           <div className="flex flex-wrap gap-2">
             <select className="ds-input max-w-xs" value={hotelId} onChange={(e) => { setHotelId(e.target.value); setLocationId('') }}>
@@ -103,13 +114,17 @@ export default function StockPage() {
               ))}
             </select>
             <select className="ds-input max-w-xs" value={locationId} onChange={(e) => setLocationId(e.target.value)}>
-              <option value="">Selecciona ubicación</option>
+              <option value="">Selecciona ubicacion</option>
               {locationOptions.map((loc) => (
                 <option key={loc.id} value={loc.id}>
                   {loc.name}
                 </option>
               ))}
             </select>
+            <Link to="/inventory/expiries" className="ds-btn ds-btn-ghost flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Caducidades ({openAlertsCount})
+            </Link>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -121,6 +136,15 @@ export default function StockPage() {
                 }}
               >
                 Escanear barcode
+              </button>
+              <button
+                type="button"
+                className="ds-btn ds-btn-ghost"
+                disabled={!locationId}
+                onClick={() => setImportModal(true)}
+              >
+                <Scan className="h-4 w-4" />
+                Importar albaran
               </button>
               <button
                 type="button"
@@ -140,7 +164,7 @@ export default function StockPage() {
         <div className="ds-section-header">
           <div>
             <h2 className="text-sm font-semibold text-white">Lotes</h2>
-            <p className="text-xs text-slate-400">{selectedLocation ? selectedLocation.name : 'Selecciona ubicación'}</p>
+            <p className="text-xs text-slate-400">{selectedLocation ? selectedLocation.name : 'Selecciona ubicacion'}</p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
             <input
@@ -155,7 +179,7 @@ export default function StockPage() {
                 checked={!!filters.expiringSoon}
                 onChange={(e) => setFilters((f) => ({ ...f, expiringSoon: e.target.checked, expired: false }))}
               />
-              Próximos 7d
+              Proximos 7d
             </label>
             <label className="flex items-center gap-1 text-slate-300">
               <input
@@ -220,11 +244,11 @@ export default function StockPage() {
                       <td className="font-semibold text-slate-200">{batch.supplierItemName}</td>
                       <td className="is-num">{batch.qty.toFixed(2)}</td>
                       <td>{batch.unit}</td>
-                      <td>{batch.expiresAt ? new Date(batch.expiresAt).toLocaleDateString() : '—'}</td>
+                      <td>{batch.expiresAt ? new Date(batch.expiresAt).toLocaleDateString() : '-'}</td>
                       <td>
                         <span className={badgeClass}>{statusLabel}</span>
                       </td>
-                      <td>{batch.lotCode || '—'}</td>
+                      <td>{batch.lotCode || '-'}</td>
                       <td className="uppercase text-xs text-slate-400">{batch.source}</td>
                     </tr>
                   )
@@ -237,7 +261,7 @@ export default function StockPage() {
             <EmptyState
               icon={Package}
               title="Sin lotes"
-              description={locationId ? 'Añade una entrada manual para ver lotes.' : 'Selecciona una ubicación primero.'}
+              description={locationId ? 'Anade una entrada manual para ver lotes.' : 'Selecciona una ubicacion primero.'}
             />
           </div>
         )}
@@ -250,7 +274,7 @@ export default function StockPage() {
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-bold text-white">Nueva entrada</h3>
                 <button type="button" onClick={() => { setShowModal(false); setScannerOpen(false); }} className="text-slate-400 hover:text-white">
-                  ×
+                  x
                 </button>
               </div>
               <div className="mb-1">
@@ -260,7 +284,66 @@ export default function StockPage() {
                     checked={scannerOpen}
                     onChange={(e) => setScannerOpen(e.target.checked)}
                   />
-                  Escanear con cámara
+                  Escanear con camara
+                </label>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-slate-300">Foto/archivo para sugerir caducidad/lote (OCR)</span>
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf,.txt"
+                    className="ds-input"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const text = await file.text().catch(() => '')
+                      const res = parseExpiryAndLot(text)
+                      if (res.confidence > 0) {
+                        setOcrSuggestion({
+                          expiresAt: res.expiresAt,
+                          lotCode: res.lotCode,
+                          message: 'Sugerido por OCR',
+                        })
+                        setEntry((prev) => ({
+                          ...prev,
+                          expiresAt: res.expiresAt ?? prev.expiresAt,
+                          lotCode: res.lotCode ?? prev.lotCode,
+                        }))
+                      } else {
+                        setOcrSuggestion({ message: 'No se detecto caducidad/lote' })
+                      }
+                    }}
+                  />
+                  {ocrSuggestion && (
+                    <p className="text-[11px] text-slate-400">
+                      {ocrSuggestion.message}{' '}
+                      {ocrSuggestion.expiresAt ? ` | Cad: ${ocrSuggestion.expiresAt}` : ''}{' '}
+                      {ocrSuggestion.lotCode ? ` | Lote: ${ocrSuggestion.lotCode}` : ''}
+                    </p>
+                  )}
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-slate-300">Texto OCR (pruebas)</span>
+                  <textarea
+                    className="ds-input min-h-[80px]"
+                    placeholder="Pega texto de etiqueta para sugerir"
+                    onBlur={(e) => {
+                      const res = parseExpiryAndLot(e.target.value)
+                      if (res.confidence > 0) {
+                        setEntry((prev) => ({
+                          ...prev,
+                          expiresAt: res.expiresAt ?? prev.expiresAt,
+                          lotCode: res.lotCode ?? prev.lotCode,
+                        }))
+                        setOcrSuggestion({
+                          expiresAt: res.expiresAt,
+                          lotCode: res.lotCode,
+                          message: 'Sugerido por OCR (texto pegado)',
+                        })
+                      }
+                    }}
+                  />
                 </label>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
@@ -379,6 +462,15 @@ export default function StockPage() {
           </div>
         </div>
       )}
+
+      <ImportDeliveryNoteModal
+        open={importModal}
+        onClose={() => setImportModal(false)}
+        orgId={activeOrgId ?? undefined}
+        locations={locationOptions}
+        supplierItems={supplierItems.data ?? []}
+        defaultLocationId={locationId || undefined}
+      />
     </div>
   )
 }

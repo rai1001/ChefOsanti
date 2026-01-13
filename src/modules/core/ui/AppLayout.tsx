@@ -46,6 +46,8 @@ export function AppLayout({ children }: Props) {
     { label: 'Proveedores', to: '/purchasing/suppliers', perm: 'purchasing:read' },
     { label: 'Mermas', to: '/waste', perm: 'waste:read' },
     { label: 'Stock', to: '/purchasing/stock', perm: 'purchasing:read' },
+    { label: 'Caducidades', to: '/inventory/expiries', perm: 'purchasing:read' },
+    { label: 'Elaboraciones', to: '/inventory/preparations', perm: 'purchasing:read' },
   ]
 
   const visibleNav = navItems.filter((item) => !item.perm || can(role, item.perm))

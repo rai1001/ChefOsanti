@@ -29,6 +29,8 @@ const StaffPage = lazy(() => import('./modules/staff/ui/StaffPage'))
 const WastePage = lazy(() => import('./modules/waste/ui/WastePage'))
 const ReportsPage = lazy(() => import('./modules/reporting/ui/ReportsPage'))
 const ImporterPage = lazy(() => import('./modules/importer/ui/ImporterPage'))
+const PreparationsPage = lazy(() => import('./modules/inventory/ui/PreparationsPage'))
+const ExpiryAlertsPage = lazy(() => import('./modules/inventory/ui/ExpiryAlertsPage'))
 
 function PageLoader() {
   return (
@@ -259,6 +261,26 @@ export const appRouter = createBrowserRouter([
           <RequirePermission perm="purchasing:read">
             <Suspense fallback={<PageLoader />}>
               <StockPage />
+            </Suspense>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'inventory/preparations',
+        element: (
+          <RequirePermission perm="purchasing:read">
+            <Suspense fallback={<PageLoader />}>
+              <PreparationsPage />
+            </Suspense>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'inventory/expiries',
+        element: (
+          <RequirePermission perm="purchasing:read">
+            <Suspense fallback={<PageLoader />}>
+              <ExpiryAlertsPage />
             </Suspense>
           </RequirePermission>
         ),
