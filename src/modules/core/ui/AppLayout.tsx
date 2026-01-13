@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { can } from '@/modules/auth/domain/roles'
@@ -22,6 +23,10 @@ export function AppLayout({ children }: Props) {
   const { role, loading: roleLoading } = useCurrentRole()
   const { activeOrgName, loading: orgLoading } = useActiveOrgId()
   const navigate = useNavigate()
+  const [density, setDensity] = useState<'compact' | 'comfortable'>(() => {
+    if (typeof localStorage === 'undefined') return 'compact'
+    return (localStorage.getItem('ds-density') as 'compact' | 'comfortable') || 'compact'
+  })
 
   const loading = roleLoading || orgLoading
 
@@ -44,6 +49,14 @@ export function AppLayout({ children }: Props) {
   ]
 
   const visibleNav = navItems.filter((item) => !item.perm || can(role, item.perm))
+  const densityLabel = useMemo(
+    () => (density === 'compact' ? 'Compacto' : 'Cmodo'),
+    [density],
+  )
+
+  useEffect(() => {
+    localStorage.setItem('ds-density', density)
+  }, [density])
 
   const handleLogout = async () => {
     try {
@@ -66,7 +79,7 @@ export function AppLayout({ children }: Props) {
   }
 
   return (
-    <div className="min-h-screen font-sans text-slate-200 selection:bg-nano-blue-500/30">
+    <div className="min-h-screen font-sans text-slate-200 selection:bg-nano-blue-500/30" data-density={density}>
       <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/5">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
@@ -82,6 +95,17 @@ export function AppLayout({ children }: Props) {
                 {activeOrgName}
               </span>
             )}
+            <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs text-slate-300 shadow-sm md:flex">
+              <span className="text-[10px] uppercase tracking-wide text-slate-400">Densidad</span>
+              <button
+                type="button"
+                className="rounded-md px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-nano-blue-400"
+                aria-label="Cambiar densidad"
+                onClick={() => setDensity((prev) => (prev === 'compact' ? 'comfortable' : 'compact'))}
+              >
+                {densityLabel}
+              </button>
+            </div>
           </div>
 
           <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 mask-linear-fade">

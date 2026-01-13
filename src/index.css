@@ -2,20 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #e2e8f0; /* Light text for dark mode default */
-  background-color: #0B1120; /* nano-navy-900 */
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@layer base {
+  :root {
+    --ds-bg: #0b1120;
+    --ds-surface: #151e32;
+    --ds-surface-2: #1e293b;
+    --ds-text: #e2e8f0;
+    --ds-muted: #94a3b8;
+    --ds-border: #1f2937;
+    --ds-primary: #0ea5e9;
+    --ds-primary-strong: #0284c7;
+    --ds-success: #16a34a;
+    --ds-warn: #f59e0b;
+    --ds-error: #ef4444;
+    --ds-radius: 12px;
+    --ds-radius-lg: 16px;
+    --ds-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.24);
+    --ds-shadow-md: 0 10px 30px rgba(0, 0, 0, 0.25);
+    --ds-spacing-1: 4px;
+    --ds-spacing-2: 8px;
+    --ds-spacing-3: 12px;
+    --ds-spacing-4: 16px;
+    --ds-spacing-5: 24px;
+    --ds-spacing-6: 32px;
+    --ds-control-height: 40px;
+    --ds-table-row-y: 10px;
+    --ds-gap: 12px;
+    color: var(--ds-text);
+    background-color: var(--ds-bg);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(circle at 50% 0%, #172554 0%, #0B1120 100%); /* Deep blue glow at top */
-  overflow-x: hidden;
+  [data-density='comfortable'] {
+    --ds-control-height: 48px;
+    --ds-table-row-y: 14px;
+    --ds-gap: 16px;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 50% 0%, #0f172a 0%, var(--ds-bg) 100%);
+    overflow-x: hidden;
+  }
+
+  h1 {
+    @apply text-2xl md:text-3xl font-bold tracking-tight text-white;
+    line-height: 28px;
+  }
+  h2 {
+    @apply text-lg font-semibold text-white;
+    line-height: 24px;
+  }
+  p, span, li {
+    @apply text-sm text-slate-200;
+    line-height: 20px;
+  }
 }
 
 @layer utilities {
@@ -29,6 +74,109 @@ body {
 
   .text-glow {
     text-shadow: 0 0 20px rgba(34, 211, 238, 0.5); /* nano-blue glow */
+  }
+
+  .mask-linear-fade {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10%, #000 90%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 10%, #000 90%, transparent 100%);
+  }
+}
+
+@layer components {
+  .ds-card {
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-lg);
+    box-shadow: var(--ds-shadow-sm);
+    padding: var(--ds-spacing-4);
+  }
+
+  .ds-section-header {
+    @apply flex items-center justify-between;
+    padding: var(--ds-spacing-3) var(--ds-spacing-4);
+    border-bottom: 1px solid var(--ds-border);
+  }
+
+  .ds-btn {
+    @apply inline-flex items-center justify-center font-semibold transition-colors focus:outline-none focus-visible:ring-2;
+    height: var(--ds-control-height);
+    padding: 0 var(--ds-spacing-4);
+    border-radius: var(--ds-radius);
+    gap: 8px;
+  }
+  .ds-btn-primary {
+    background: var(--ds-primary);
+    color: #0b1120;
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.25);
+  }
+  .ds-btn-primary:hover { background: var(--ds-primary-strong); }
+  .ds-btn-ghost {
+    background: transparent;
+    color: var(--ds-text);
+    border: 1px solid var(--ds-border);
+  }
+  .ds-btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fecdd3;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+  }
+
+  .ds-input {
+    @apply w-full text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-offset-0;
+    height: var(--ds-control-height);
+    padding: 0 var(--ds-spacing-3);
+    border-radius: var(--ds-radius);
+    border: 1px solid var(--ds-border);
+    background: var(--ds-surface-2);
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+  }
+  .ds-input:focus { border-color: var(--ds-primary); box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.2); }
+
+  .ds-badge {
+    @apply inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.15);
+    color: #cbd5e1;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+  }
+  .ds-badge.is-success { background: rgba(22, 163, 74, 0.15); color: #bbf7d0; border-color: rgba(22, 163, 74, 0.3); }
+  .ds-badge.is-warn { background: rgba(245, 158, 11, 0.12); color: #fcd34d; border-color: rgba(245, 158, 11, 0.3); }
+  .ds-badge.is-error { background: rgba(239, 68, 68, 0.12); color: #fecdd3; border-color: rgba(239, 68, 68, 0.32); }
+  .ds-badge.is-info { background: rgba(14, 165, 233, 0.12); color: #bae6fd; border-color: rgba(14, 165, 233, 0.35); }
+
+  .ds-table {
+    @apply w-full text-sm text-slate-200;
+  }
+  .ds-table thead th {
+    @apply text-left text-xs font-semibold uppercase tracking-wide text-slate-400;
+    background: rgba(255, 255, 255, 0.02);
+    position: sticky;
+    top: 0;
+    padding: var(--ds-spacing-3);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--ds-border);
+  }
+  .ds-table tbody td {
+    padding: var(--ds-table-row-y) var(--ds-spacing-3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  .ds-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+  .ds-table .is-num { @apply text-right font-semibold; }
+  .ds-table .is-action { @apply text-right; width: 120px; }
+
+  .ds-banner {
+    @apply flex items-center gap-3 rounded-lg border px-3 py-2 text-sm;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--ds-text);
+  }
+  .ds-banner.warn { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3); }
+  .ds-banner.error { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.32); }
+  .ds-banner.info { background: rgba(14, 165, 233, 0.08); border-color: rgba(14, 165, 233, 0.24); }
+
+  .ds-skeleton {
+    @apply animate-pulse rounded-md bg-white/10;
   }
 }
 
@@ -57,4 +205,3 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569; 
 }
-

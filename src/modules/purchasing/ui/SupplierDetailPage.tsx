@@ -139,16 +139,16 @@ export default function SupplierDetailPage() {
         />
       )}
 
-      <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
-        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+      <section className="ds-card p-0">
+        <div className="ds-section-header">
           <h2 className="text-sm font-semibold text-white">Art¡culos</h2>
           {items.isLoading && <span className="text-xs text-slate-400">Cargando art¡culos...</span>}
         </div>
         <div className="divide-y divide-white/10">
           {items.isLoading ? (
             <div className="space-y-2 p-4">
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="ds-skeleton h-4 w-1/2" />
+              <Skeleton className="ds-skeleton h-4 w-3/4" />
             </div>
           ) : items.isError ? (
             <div className="p-4">
@@ -180,13 +180,13 @@ export default function SupplierDetailPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+      <section className="ds-card">
         <h3 className="text-sm font-semibold text-white">A¤adir art¡culo</h3>
         <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-300">Nombre</span>
             <input
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
+              className="ds-input"
               placeholder="Producto"
               {...register('name')}
             />
@@ -195,10 +195,7 @@ export default function SupplierDetailPage() {
 
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-300">Unidad de compra</span>
-            <select
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
-              {...register('purchaseUnit')}
-            >
+            <select className="ds-input" {...register('purchaseUnit')}>
               <option value="ud">Unidades</option>
               <option value="kg">Kilogramos</option>
             </select>
@@ -206,10 +203,7 @@ export default function SupplierDetailPage() {
 
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-300">Regla de redondeo</span>
-            <select
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
-              {...register('roundingRule')}
-            >
+            <select className="ds-input" {...register('roundingRule')}>
               <option value="none">Sin redondeo</option>
               <option value="ceil_unit">Redondear a unidad</option>
               <option value="ceil_pack">Redondear por pack</option>
@@ -226,7 +220,7 @@ export default function SupplierDetailPage() {
             <input
               type="number"
               step="0.01"
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
+              className="ds-input"
               placeholder="Ej: 5"
               {...register('packSize', {
                 setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
@@ -243,7 +237,7 @@ export default function SupplierDetailPage() {
             <input
               type="number"
               step="0.01"
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
+              className="ds-input"
               placeholder="Ej: 2.50"
               {...register('pricePerUnit', {
                 setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
@@ -257,7 +251,7 @@ export default function SupplierDetailPage() {
           <label className="space-y-1 md:col-span-2">
             <span className="text-sm font-medium text-slate-300">Notas</span>
             <textarea
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
+              className="ds-input min-h-[96px]"
               placeholder="Detalles adicionales"
               rows={3}
               {...register('notes')}
@@ -274,7 +268,7 @@ export default function SupplierDetailPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="ds-btn ds-btn-primary w-full disabled:opacity-60"
             >
               {isSubmitting ? 'Guardando...' : 'A¤adir art¡culo'}
             </button>

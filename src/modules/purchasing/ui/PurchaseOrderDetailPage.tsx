@@ -24,7 +24,7 @@ import { Skeleton } from '@/modules/shared/ui/Skeleton'
 
 const lineSchema = z
   .object({
-    supplierItemId: z.string().min(1, 'Selecciona art¡culo proveedor'),
+    supplierItemId: z.string().min(1, 'Selecciona articulo proveedor'),
     ingredientId: z.string().min(1, 'Selecciona ingrediente'),
     requestedQty: z.number().min(0, 'Cantidad requerida'),
     purchaseUnit: z.enum(['kg', 'ud']),
@@ -133,10 +133,10 @@ export default function PurchaseOrderDetailPage() {
     const subject = `Pedido ${order.orderNumber} - ${supplierName}`
     const body =
       `Resumen del pedido:\n\n` +
-      `N£mero: ${order.orderNumber}\n` +
+      `Numero: ${order.orderNumber}\n` +
       `Proveedor: ${supplierName}\n` +
-      `Total estimado: ?${order.totalEstimated?.toFixed(2)}\n\n` +
-      `L¡neas:\n` +
+      `Total estimado: €${order.totalEstimated?.toFixed(2)}\n\n` +
+      `Lineas:\n` +
       lines
         .map(
           (l) => `- ${ingredientMap[l.ingredientId] || l.ingredientId}: ${l.requestedQty} ${l.purchaseUnit}`,
@@ -155,9 +155,7 @@ export default function PurchaseOrderDetailPage() {
     )
   }
   if (!session || error) {
-    return (
-      <ErrorBanner title="Inicia sesi¢n" message={sessionError || 'Inicia sesi¢n para ver pedidos.'} />
-    )
+    return <ErrorBanner title="Inicia sesion" message={sessionError || 'Inicia sesion para ver pedidos.'} />
   }
 
   if (purchaseOrder.isLoading) {
@@ -179,12 +177,12 @@ export default function PurchaseOrderDetailPage() {
     <div className="space-y-4 animate-fade-in">
       <PageHeader
         title={`Pedido ${order?.orderNumber ?? ''}`}
-        subtitle={`Proveedor: ${supplierName} ú Estado: ${order?.status ?? 'N/D'}`}
+        subtitle={`Proveedor: ${supplierName} - Estado: ${order?.status ?? 'N/D'}`}
         actions={
           <div className="flex gap-2 print:hidden">
             {isDraft && (
               <button
-                className="rounded-md bg-nano-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition-colors hover:bg-nano-blue-500"
+                className="ds-btn ds-btn-primary"
                 onClick={async () => {
                   await updateStatus.mutateAsync('confirmed')
                 }}
@@ -192,17 +190,11 @@ export default function PurchaseOrderDetailPage() {
                 Confirmar
               </button>
             )}
-            <button
-              onClick={() => window.print()}
-              className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20"
-            >
+            <button onClick={() => window.print()} className="ds-btn ds-btn-ghost">
               <Printer className="h-4 w-4" />
               <span className="hidden md:inline">PDF</span>
             </button>
-            <button
-              onClick={handleEmailExport}
-              className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20"
-            >
+            <button onClick={handleEmailExport} className="ds-btn ds-btn-ghost">
               <Mail className="h-4 w-4" />
               <span className="hidden md:inline">Enviar</span>
             </button>
@@ -218,10 +210,10 @@ export default function PurchaseOrderDetailPage() {
         />
       )}
 
-      <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
-        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <h2 className="text-sm font-semibold text-white">L¡neas</h2>
-          <span className="text-xs text-slate-400">Total ?{order?.totalEstimated?.toFixed(2)}</span>
+      <section className="ds-card p-0">
+        <div className="ds-section-header">
+          <h2 className="text-sm font-semibold text-white">Lineas</h2>
+          <span className="text-xs text-slate-400">Total €{order?.totalEstimated?.toFixed(2)}</span>
         </div>
         <div className="divide-y divide-white/10">
           {lines.length ? (
@@ -235,9 +227,9 @@ export default function PurchaseOrderDetailPage() {
                     {ingredientMap[l.ingredientId] ?? l.ingredientId}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Art¡culo prov: {supplierItemMap[l.supplierItemId] ?? l.supplierItemId} ú Solic:{' '}
-                    {l.requestedQty} {l.purchaseUnit} ú Regla {l.roundingRule}{' '}
-                    {l.packSize ? `(pack ${l.packSize})` : ''} ú ?{l.unitPrice ?? 0} ú Total ?
+                    Articulo prov: {supplierItemMap[l.supplierItemId] ?? l.supplierItemId} • Solic:{' '}
+                    {l.requestedQty} {l.purchaseUnit} • Regla {l.roundingRule}{' '}
+                    {l.packSize ? `(pack ${l.packSize})` : ''} • €{l.unitPrice ?? 0} • Total €
                     {l.lineTotal?.toFixed(2)}
                   </p>
                 </div>
@@ -245,7 +237,7 @@ export default function PurchaseOrderDetailPage() {
                   <input
                     type="number"
                     step="0.01"
-                    className="w-32 rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
+                    className="ds-input w-32"
                     defaultValue={l.requestedQty}
                     onChange={(e) => setReceived({ ...received, [l.id]: Number(e.target.value) })}
                   />
@@ -253,21 +245,18 @@ export default function PurchaseOrderDetailPage() {
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm italic text-slate-400">Sin l¡neas todav¡a.</p>
+            <p className="px-4 py-6 text-sm italic text-slate-400">Sin lineas todavia.</p>
           )}
         </div>
       </section>
 
       {isDraft && (
-        <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm print:hidden">
-          <h3 className="text-sm font-semibold text-white">A¤adir l¡nea</h3>
+        <section className="ds-card print:hidden">
+          <h3 className="text-sm font-semibold text-white">Anadir linea</h3>
           <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmitLine)}>
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Art¡culo proveedor</span>
-              <select
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
-                {...register('supplierItemId')}
-              >
+              <span className="text-sm font-medium text-slate-300">Articulo proveedor</span>
+              <select className="ds-input" {...register('supplierItemId')}>
                 <option value="">Selecciona</option>
                 {supplierItems.data?.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -282,10 +271,7 @@ export default function PurchaseOrderDetailPage() {
 
             <label className="space-y-1">
               <span className="text-sm font-medium text-slate-300">Ingrediente</span>
-              <select
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
-                {...register('ingredientId')}
-              >
+              <select className="ds-input" {...register('ingredientId')}>
                 <option value="">Selecciona</option>
                 {ingredients.data?.map((i) => (
                   <option key={i.id} value={i.id}>
@@ -303,7 +289,7 @@ export default function PurchaseOrderDetailPage() {
               <input
                 type="number"
                 step="0.01"
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
+                className="ds-input"
                 {...register('requestedQty', {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? 0 : Number(v)),
                 })}
@@ -315,10 +301,7 @@ export default function PurchaseOrderDetailPage() {
 
             <label className="space-y-1">
               <span className="text-sm font-medium text-slate-300">Unidad</span>
-              <select
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
-                {...register('purchaseUnit')}
-              >
+              <select className="ds-input" {...register('purchaseUnit')}>
                 <option value="ud">Unidades</option>
                 <option value="kg">Kilogramos</option>
               </select>
@@ -326,10 +309,7 @@ export default function PurchaseOrderDetailPage() {
 
             <label className="space-y-1">
               <span className="text-sm font-medium text-slate-300">Regla de redondeo</span>
-              <select
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
-                {...register('roundingRule')}
-              >
+              <select className="ds-input" {...register('roundingRule')}>
                 <option value="none">Sin redondeo</option>
                 <option value="ceil_unit">Redondear a unidad</option>
                 <option value="ceil_pack">Redondear por pack</option>
@@ -337,11 +317,11 @@ export default function PurchaseOrderDetailPage() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Tama¤o de pack</span>
+              <span className="text-sm font-medium text-slate-300">Tamano de pack</span>
               <input
                 type="number"
                 step="0.01"
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
+                className="ds-input"
                 {...register('packSize', {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
                 })}
@@ -357,19 +337,17 @@ export default function PurchaseOrderDetailPage() {
               <input
                 type="number"
                 step="0.01"
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
+                className="ds-input"
                 {...register('unitPrice', {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
                 })}
               />
-              {errors.unitPrice && (
-                <p className="text-xs text-red-500">{errors.unitPrice.message}</p>
-              )}
+              {errors.unitPrice && <p className="text-xs text-red-500">{errors.unitPrice.message}</p>}
             </label>
 
             {addLine.isError && (
               <div className="md:col-span-2">
-                <ErrorBanner title="Error al a¤adir l¡nea" message={addLineError} />
+                <ErrorBanner title="Error al anadir linea" message={addLineError} />
               </div>
             )}
 
@@ -377,9 +355,9 @@ export default function PurchaseOrderDetailPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="ds-btn ds-btn-primary w-full disabled:opacity-60"
               >
-                {isSubmitting ? 'A¤adiendo...' : 'A¤adir l¡nea'}
+                {isSubmitting ? 'Anadiendo...' : 'Anadir linea'}
               </button>
             </div>
           </form>
@@ -387,11 +365,11 @@ export default function PurchaseOrderDetailPage() {
       )}
 
       {isConfirmed && (
-        <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm print:hidden">
+        <section className="ds-card print:hidden">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Recepci¢n</h3>
+            <h3 className="text-sm font-semibold text-white">Recepcion</h3>
             <button
-              className="rounded-md bg-nano-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition-colors hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="ds-btn ds-btn-primary"
               onClick={onReceive}
               disabled={receivePo.isPending}
             >
