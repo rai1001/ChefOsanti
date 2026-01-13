@@ -11,6 +11,10 @@ import { useBatches, useCreateManualEntry, useLocations } from '@/modules/invent
 import { getExpiryState } from '@/modules/inventory/domain/batches'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { useSupplierItemsByOrg } from '../data/suppliers'
+import { useAssignBarcode, useBarcodeMappings } from '@/modules/inventory/data/barcodes'
+import { resolveBarcode } from '@/modules/inventory/domain/barcodeResolver'
+import { BarcodeScanner } from './components/BarcodeScanner'
+import { AssignBarcodeSection } from './components/AssignBarcodeSection'
 
 type EntryForm = {
   supplierItemId: string
@@ -32,7 +36,11 @@ export default function StockPage() {
   const batches = useBatches(locationId || undefined, filters)
   const supplierItems = useSupplierItemsByOrg(activeOrgId ?? undefined)
   const createEntry = useCreateManualEntry()
+  const barcodeMappings = useBarcodeMappings(activeOrgId ?? undefined)
+  const assignBarcode = useAssignBarcode()
   const [showModal, setShowModal] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
+  const [pendingBarcode, setPendingBarcode] = useState<string | null>(null)
   const [entry, setEntry] = useState<EntryForm>({
     supplierItemId: '',
     qty: 0,
@@ -63,6 +71,8 @@ export default function StockPage() {
     })
     setShowModal(false)
     setEntry({ supplierItemId: '', qty: 0, unit: 'ud', expiresAt: null, lotCode: null })
+    setPendingBarcode(null)
+    setScannerOpen(false)
   }
 
   if (loading) {
@@ -100,15 +110,28 @@ export default function StockPage() {
                 </option>
               ))}
             </select>
-            <button
-              type="button"
-              className="ds-btn ds-btn-primary"
-              disabled={!locationId}
-              onClick={() => setShowModal(true)}
-            >
-              <PlusCircle className="h-4 w-4" />
-              Nueva entrada
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="ds-btn ds-btn-ghost"
+                disabled={!locationId}
+                onClick={() => {
+                  setScannerOpen(true)
+                  setShowModal(true)
+                }}
+              >
+                Escanear barcode
+              </button>
+              <button
+                type="button"
+                className="ds-btn ds-btn-primary"
+                disabled={!locationId}
+                onClick={() => setShowModal(true)}
+              >
+                <PlusCircle className="h-4 w-4" />
+                Nueva entrada
+              </button>
+            </div>
           </div>
         }
       />
@@ -223,13 +246,23 @@ export default function StockPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-xl rounded-xl border border-white/10 bg-nano-navy-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">Nueva entrada</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
-                ×
-              </button>
-            </div>
             <form className="space-y-3" onSubmit={handleSubmitEntry}>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-bold text-white">Nueva entrada</h3>
+                <button type="button" onClick={() => { setShowModal(false); setScannerOpen(false); }} className="text-slate-400 hover:text-white">
+                  ×
+                </button>
+              </div>
+              <div className="mb-1">
+                <label className="flex items-center gap-2 text-xs text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={scannerOpen}
+                    onChange={(e) => setScannerOpen(e.target.checked)}
+                  />
+                  Escanear con cámara
+                </label>
+              </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="space-y-1">
                   <span className="text-xs font-medium text-slate-300">Producto</span>
@@ -286,24 +319,61 @@ export default function StockPage() {
               </div>
 
               {createEntry.isError && (
-                <ErrorBanner title="Error al crear entrada" message={useFormattedError(createEntry.error)} />
+                <div className="mt-2">
+                  <ErrorBanner title="Error al crear entrada" message={useFormattedError(createEntry.error)} />
+                </div>
               )}
 
-              <div className="flex justify-end gap-3 border-t border-white/10 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={createEntry.isPending}
-                  className="ds-btn ds-btn-primary disabled:opacity-60"
-                >
-                  {createEntry.isPending ? 'Guardando...' : 'Guardar'}
-                </button>
+              <div className="flex flex-col gap-3 border-t border-white/10 pt-4">
+                {scannerOpen && (
+                  <BarcodeScanner
+                    onDetected={(code) => {
+                      if (!code || !activeOrgId) return
+                      setPendingBarcode(code)
+                      const mappings = Object.fromEntries(
+                        (barcodeMappings.data ?? []).map((m) => [m.barcode, m.supplierItemId]),
+                      )
+                      const res = resolveBarcode(code, mappings)
+                      if (res.status === 'known') {
+                        setEntry((prev) => ({ ...prev, supplierItemId: res.supplierItemId }))
+                      }
+                    }}
+                  />
+                )}
+
+                {pendingBarcode && (
+                  <AssignBarcodeSection
+                    barcode={pendingBarcode}
+                    mappings={barcodeMappings.data ?? []}
+                    supplierItems={supplierItems.data ?? []}
+                    onAssign={async (supplierItemId) => {
+                      if (!activeOrgId) return
+                      await assignBarcode.mutateAsync({
+                        orgId: activeOrgId,
+                        supplierItemId,
+                        barcode: pendingBarcode,
+                      })
+                      setEntry((prev) => ({ ...prev, supplierItemId }))
+                    }}
+                  />
+                )}
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => { setShowModal(false); setScannerOpen(false) }}
+                    className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createEntry.isPending}
+                    className="ds-btn ds-btn-primary disabled:opacity-60"
+                  >
+                    {createEntry.isPending ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

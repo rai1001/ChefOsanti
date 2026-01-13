@@ -21,3 +21,4 @@
 19. (2026-01-13) PR4 Reservas: las reservas no descuentan `stock_levels.on_hand`; solo reducen el available_on_hand para neteo cuando `consider_reservations` está activo. Se crean por evento/servicio y tienen estados active/released; los conflictos (shortage) no bloquean pero se muestran en UI. Estado: Activa.
 20. (2026-01-13) Patrón UI PageHeader: encabezado reusable (título/subtítulo/acciones) para mejorar jerarquía y consistencia en pantallas de listas/detalles. Estado: Activa.
 21. (2026-01-13) Inventario por lotes: se usa `supplier_items` como producto comprable y se referencian en `stock_batches` (en lugar de crear tabla products) para minimizar impacto en purchasing. FEFO se basa en `expires_at` (NULL al final). Estado: Activa.
+22. (2026-01-13) Barcodes: se mapean a `supplier_items` (no products nuevos) en tabla `product_barcodes` para entrada rápida; flujo de UI permite asignar barcode desconocido a un ítem existente. Estado: Activa.
