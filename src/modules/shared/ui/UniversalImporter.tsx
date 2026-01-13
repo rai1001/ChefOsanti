@@ -11,13 +11,19 @@ import type { ImportEntity } from '@/modules/importer/domain/types'
 interface UniversalImporterProps {
     isOpen: boolean
     onClose: () => void
-    entity: ImportEntity
+    /**
+     * Si no se provee entity, el importador opera en modo local (sin Supabase)
+     * y llama directamente a onImport con los datos parseados.
+     */
+    entity?: ImportEntity
     title: string
-    fields: { key: string; label: string; transform?: (val: string) => any }[]
+    fields: { key: string; label: string; transform?: (val: string) => unknown }[]
+    onImport?: (rows: Record<string, unknown>[]) => Promise<unknown> | unknown
 }
 
-export function UniversalImporter({ isOpen, onClose, entity, title, fields }: UniversalImporterProps) {
+export function UniversalImporter({ isOpen, onClose, entity, title, fields, onImport = async () => undefined }: UniversalImporterProps) {
     const { activeOrgId } = useActiveOrgId()
+    const isLocalMode = !entity
     const [file, setFile] = useState<File | null>(null)
     const [step, setStep] = useState<'upload' | 'mapping' | 'preview' | 'done'>('upload')
     const [parsedData, setParsedData] = useState<any[] | null>(null)
@@ -45,38 +51,18 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
 
     const processData = (data: any[], currentMapping: Record<string, string>) => {
         return data.map((row) => {
-            const obj: any = {}
+            const obj: Record<string, unknown> = {}
             fields.forEach((field) => {
                 const targetHeader = currentMapping[field.key] || field.label
-                const val = row[targetHeader] // Helper to get case-insensitive match could be added here
+                const val = row[targetHeader]
                 obj[field.key] = field.transform ? field.transform(val) : val
             })
-            // Pass through raw for specialized use cases (like events) if needed, 
-            // though 'processData' mainly extracts mapped fields.
-            // We might need to preserve extra data for Events later.
             return obj
         })
     }
 
     const processMatrixData = (raw: any[], headerIndex: number, dateColKey: string): any[] => {
         if (!raw || raw.length <= headerIndex) return []
-
-        // 1. Identify Room Columns (Headers)
-        // Assumption: raw is array of objects from xlsx sheet_to_json.
-        // If we need true raw matrix, we typically need 'header: 1' from xlsx. 
-        // Using objects means headers are already keys.
-        // For unpivoting "Schedule" type where first row is NOT header (but maybe row 5 is):
-        // This complexity suggests we should parse with 'header:1' (array of arrays) for maximum flexibility.
-        // For now, let's assume 'standard' JSON output but we iterate keys.
-
-        // Actually, best approach for flexible matrix:
-        // Input: Array of Objects.
-        // Use raw[0] keys as potential rooms if headerIndex is 0.
-        // If headerIndex > 0 (e.g. Row 5 has room names), this logic gets tricky with `sheet_to_json`.
-        // Simplest MVP: Assume standard header row for now or user sanitized Excel.
-        // Let's implement basic Unpivot:
-        // Rows = Dates
-        // Keys = Rooms
 
         const unpivoted: any[] = []
 
@@ -91,7 +77,7 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
                         unpivoted.push({
                             name: cellValue,
                             date: dateValue,
-                            location: key, // Using Column Header as Location Name
+                            location: key,
                         })
                     }
                 }
@@ -112,7 +98,7 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
             Papa.parse(selectedFile, {
                 header: true,
                 skipEmptyLines: true,
-                preview: 0, // Read all
+                preview: 0,
                 complete: (results) => {
                     const headers = results.meta.fields || []
                     setParsedData(results.data)
@@ -122,15 +108,11 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
             })
         } else if (selectedFile.name.match(/\.xlsx?$/)) {
             try {
-                // Dynamically import to split bundle if needed, or just standard import
-                // Determine if we need multi-sheet support based on entity
-                // For now, defaulting to first sheet for standard entities
                 const { output, headers } = await parsePreviewExcel(selectedFile)
 
                 if (entity === 'events') {
                     setImportMode('schedule')
                     setRawSheet(output)
-                    // Heuristic: Try to find 'Fecha' or 'Date' column
                     const potentialDate = headers.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'))
                     if (potentialDate) setDateColumn(potentialDate)
                     setStep('mapping')
@@ -152,28 +134,27 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
             if (match) initialMapping[f.key] = match
         })
         setMapping(initialMapping)
-        setStep('mapping')
+        setStep(isLocalMode ? 'preview' : 'mapping')
     }
 
     const parsePreviewExcel = async (file: File) => {
         const { parseExcelFile } = await import('@/modules/importer/utils/excelParser')
         const { sheets, sheetNames } = await parseExcelFile(file)
 
-        // TODO: Handle 'events' multi-sheet import here specifically
-        // usage: if (entity === 'events') { return mergeSheets(sheets) ... }
-
-        // Default: First sheet
         const firstSheetName = sheetNames[0]
         const data = sheets[firstSheetName]
 
-        if (!data || data.length === 0) throw new Error('La primera hoja está vacía')
+        if (!data || data.length === 0) throw new Error('La primera hoja esta vacia')
 
-        // Get headers from first row
         const headers = Object.keys(data[0])
         return { output: data, headers }
     }
 
     const handleStage = async () => {
+        if (isLocalMode) {
+            setStep('preview')
+            return
+        }
         if (!file || !activeOrgId) return
         setError(null)
 
@@ -186,10 +167,10 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
                 const unpivoted = processMatrixData(rawSheet, 0, dateColumn)
                 mappedData = unpivoted.map(u => ({
                     title: u.name,
-                    name: u.name, // Defensive: duplicate for validation
+                    name: u.name,
                     starts_at: u.date,
                     hotel_id: selectedHotelId,
-                    space_name: u.location, // "Location" column header = Space Name
+                    space_name: u.location,
                     status: 'confirmed'
                 }))
             } else if (parsedData) {
@@ -213,14 +194,26 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
     }
 
     const handleCommit = async () => {
-        if (!jobId) return
         try {
+            if (isLocalMode) {
+                if (!parsedData) return
+                const mapped = processData(parsedData, mapping)
+                await onImport(mapped)
+                setStep('done')
+                return
+            }
+
+            if (!jobId) return
             await commit.mutateAsync(jobId)
+            await onImport(processData(parsedData ?? [], mapping))
             setStep('done')
         } catch (err) {
             setError(formatErrorMessage(err))
         }
     }
+
+    const localPreviewRows = isLocalMode && parsedData ? processData(parsedData, mapping) : null
+    const hasSupabaseRows = rows.data && rows.data.length > 0
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/50 animate-fade-in">
@@ -261,7 +254,7 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
                                 <div className="space-y-4">
                                     <div className="bg-nano-blue-500/10 p-3 rounded-md border border-nano-blue-500/20">
                                         <p className="text-sm text-nano-blue-200">
-                                            <strong>Modo Planning:</strong> Selecciona la columna de fechas. Las demás columnas se usarán como Salas.
+                                            <strong>Modo Planning:</strong> Selecciona la columna de fechas. Las demas columnas se usaran como Salas.
                                         </p>
                                     </div>
                                     <div className="space-y-2">
@@ -323,33 +316,40 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
                                             {fields.map(f => (
                                                 <th key={f.key} className="px-3 py-2 border-r border-white/5">{f.label}</th>
                                             ))}
-                                            <th className="px-3 py-2">Estado</th>
+                                            {!isLocalMode && <th className="px-3 py-2">Estado</th>}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5 text-slate-400">
-                                        {rows.data?.map((row) => (
-                                            <tr key={row.id}>
-                                                <td className="px-3 py-2 border-r border-white/5">{row.row_number}</td>
-                                                {fields.map(f => (
-                                                    <td key={f.key} className="px-3 py-2 border-r border-white/5">
-                                                        {String(row.raw[mapping[f.key] || f.label] || '')}
+                                        {(hasSupabaseRows ? rows.data : localPreviewRows ?? []).map((row, idx) => (
+                                            <tr key={hasSupabaseRows ? row.id : idx}>
+                                                <td className="px-3 py-2 border-r border-white/5">{hasSupabaseRows ? row.row_number : idx + 1}</td>
+                                                {fields.map(f => {
+                                                    const value = hasSupabaseRows
+                                                        ? row.raw[mapping[f.key] || f.label] || ''
+                                                        : (row as Record<string, unknown>)[f.key] ?? ''
+                                                    return (
+                                                        <td key={f.key} className="px-3 py-2 border-r border-white/5">
+                                                            {String(value)}
+                                                        </td>
+                                                    )
+                                                })}
+                                                {!isLocalMode && (
+                                                    <td className="px-3 py-2">
+                                                        {row.errors?.length > 0 ? (
+                                                            <span className="text-red-400 font-medium">{row.errors.join(', ')}</span>
+                                                        ) : (
+                                                            <span className="text-green-400 font-medium">Listo</span>
+                                                        )}
                                                     </td>
-                                                ))}
-                                                <td className="px-3 py-2">
-                                                    {row.errors?.length > 0 ? (
-                                                        <span className="text-red-400 font-medium">{row.errors.join(', ')}</span>
-                                                    ) : (
-                                                        <span className="text-green-400 font-medium">✓ Listo</span>
-                                                    )}
-                                                </td>
+                                                )}
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
                             <div className="flex justify-between items-center text-xs text-slate-400 px-1">
-                                <span>Total: {rows.data?.length ?? 0} filas</span>
-                                {validate.isPending && <span className="animate-pulse">Validando...</span>}
+                                <span>Total: {(hasSupabaseRows ? rows.data?.length : localPreviewRows?.length) ?? 0} filas</span>
+                                {!isLocalMode && validate.isPending && <span className="animate-pulse">Validando...</span>}
                             </div>
                         </div>
                     )}
@@ -394,7 +394,7 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields }: Un
                         {step === 'preview' && (
                             <button
                                 onClick={handleCommit}
-                                disabled={commit.isPending || (rows.data?.some(r => r.errors?.length > 0) ?? false)}
+                                disabled={commit.isPending || (!isLocalMode && (rows.data?.some(r => r.errors?.length > 0) ?? false))}
                                 className="rounded-lg bg-nano-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition-all hover:bg-nano-blue-500 disabled:opacity-50"
                             >
                                 {commit.isPending ? 'Confirmando...' : 'Confirmar Importación'}
