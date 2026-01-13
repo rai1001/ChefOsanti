@@ -9,6 +9,7 @@ import { mapNeedsToSupplierItems, normalizeAlias, type Need } from '../domain/ev
 import { getStockOnHand, getOnOrderQty } from './stock'
 import { getPurchasingSettings } from './settings'
 import { computeNetLine } from '../domain/netToBuy'
+import { getReservedQtyByItem } from '@/modules/inventory/data/reservations'
 
 export type EventPurchaseOrder = {
   id: string
@@ -302,6 +303,27 @@ export function useEventNeeds(eventId: string | undefined) {
   })
 }
 
+async function getEventWindow(eventId: string) {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('events')
+    .select('starts_at, ends_at, hotel_id')
+    .eq('id', eventId)
+    .single()
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'getEventWindow',
+      eventId,
+    })
+  }
+  return {
+    startsAt: data.starts_at as string,
+    endsAt: (data.ends_at as string | null) ?? data.starts_at,
+    hotelId: data.hotel_id as string,
+  }
+}
+
 export async function createDraftOrders(params: {
   orgId: string
   hotelId: string
@@ -320,11 +342,23 @@ export async function createDraftOrders(params: {
     return { unknown, mismatches: [] as { supplierItemId: string; label: string }[] }
   }
   const supplierItemIds = mapped.map((m) => m.supplierItem.id)
-  const [stockOnHand, onOrderMap, settings] = await Promise.all([
+  const [stockOnHand, onOrderMap, settings, eventWindow] = await Promise.all([
     getStockOnHand(params.orgId, params.hotelId, supplierItemIds),
     getOnOrderQty(params.orgId, supplierItemIds, params.eventId),
     getPurchasingSettings(params.orgId),
+    getEventWindow(params.eventId),
   ])
+
+  const reservedMap = settings.considerReservations
+    ? await getReservedQtyByItem({
+        orgId: params.orgId,
+        hotelId: params.hotelId,
+        supplierItemIds,
+        windowStart: eventWindow.startsAt,
+        windowEnd: eventWindow.endsAt,
+        excludeEventId: params.eventId,
+      })
+    : {}
 
   // Agregar necesidades por supplier_item
   const aggregated = new Map<
@@ -383,7 +417,7 @@ export async function createDraftOrders(params: {
       supplierItemId: agg.supplierItem.id,
       label: agg.label,
       grossQty: agg.grossQty,
-      onHandQty: stockOnHand[agg.supplierItem.id] ?? 0,
+      onHandQty: Math.max(0, (stockOnHand[agg.supplierItem.id] ?? 0) - (reservedMap[agg.supplierItem.id] ?? 0)),
       onOrderQty: onOrderMap[agg.supplierItem.id] ?? 0,
       bufferPercent: lineBufferPercent,
       bufferQty: lineBufferQty,

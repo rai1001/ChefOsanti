@@ -147,6 +147,17 @@ set service_type = excluded.service_type,
     pax = excluded.pax,
     notes = excluded.notes;
 
+-- Evento solapado para pruebas de reservas
+insert into public.events (id, org_id, hotel_id, title, client_name, status, starts_at, ends_at, notes)
+values
+  ('71000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Evento Solapado', 'Cliente B', 'confirmed', '2026-01-10T12:00:00Z', '2026-01-10T17:00:00Z', 'Evento que compite stock')
+on conflict (id) do update set title = excluded.title, client_name = excluded.client_name, status = excluded.status, starts_at = excluded.starts_at, ends_at = excluded.ends_at;
+
+insert into public.event_services (id, org_id, event_id, service_type, format, starts_at, ends_at, pax, notes)
+values
+  ('73000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', '71000000-0000-0000-0000-000000000002', 'comida', 'sentado', '2026-01-10T13:00:00Z', '2026-01-10T15:00:00Z', 50, 'Servicio solapado')
+on conflict (id) do update set service_type = excluded.service_type, format = excluded.format, starts_at = excluded.starts_at, ends_at = excluded.ends_at, pax = excluded.pax, notes = excluded.notes;
+
 -- E3: plantillas de menú
 insert into public.menu_templates (id, org_id, name, category, active, notes)
 values
@@ -427,7 +438,8 @@ insert into public.purchasing_settings (org_id, default_buffer_percent, default_
 values ('00000000-0000-0000-0000-000000000001', 5, 0.5)
 on conflict (org_id) do update
 set default_buffer_percent = excluded.default_buffer_percent,
-    default_buffer_qty = excluded.default_buffer_qty;
+    default_buffer_qty = excluded.default_buffer_qty,
+    consider_reservations = true;
 
 insert into public.inventory_locations (id, org_id, hotel_id, name)
 values

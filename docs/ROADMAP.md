@@ -28,4 +28,10 @@
 - Borradores de evento usan NetToBuy y preservan líneas congeladas.
 - UI: tabla Need/OnHand/OnOrder/Buffer/Net/Rounded en detalle de pedido y alertas por unidades incompatibles.
 
+## PR4 – Reservas de stock por evento/servicio
+- Tablas stock_reservations y stock_reservation_lines con RLS.
+- Disponible = on_hand - reservas activas de servicios solapados (flag consider_reservations).
+- Botones para reservar/liberar desde pedido de evento, con conflictos por shortage.
+- Reservas no descuentan stock; solo afectan disponibilidad en neteo.
+
 > Cada slice debe mantener independencia de módulo y cumplir template de SLICES.
