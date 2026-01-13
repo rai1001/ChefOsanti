@@ -3,6 +3,7 @@ import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useEventOrders } from '../data/eventOrders'
 import { useSuppliers } from '../data/suppliers'
+import { PageHeader } from '@/modules/shared/ui/PageHeader'
 
 export default function EventOrdersPage() {
   const { session, loading, error } = useSupabaseSession()
@@ -26,13 +27,10 @@ export default function EventOrdersPage() {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Pedidos evento</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Borradores por evento</h1>
-          <p className="text-sm text-slate-600">Generados desde necesidades de servicios.</p>
-        </div>
-      </header>
+      <PageHeader
+        title="Borradores por evento"
+        subtitle="Pedidos generados desde necesidades de servicios."
+      />
 
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">

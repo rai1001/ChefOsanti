@@ -9,6 +9,9 @@ import { useReservationsByEvent, releaseReservation, upsertReservationForEvent }
 import { useQuery } from '@tanstack/react-query'
 import { getStockOnHand } from '../data/stock'
 import { detectReservationConflicts } from '@/modules/inventory/domain/reservations'
+import { PageHeader } from '@/modules/shared/ui/PageHeader'
+import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
+import { useState } from 'react'
 
 export default function EventOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -17,6 +20,7 @@ export default function EventOrderDetailPage() {
   const order = useEventOrder(id)
   const suppliers = useSuppliers(activeOrgId ?? undefined)
   const reservations = useReservationsByEvent(order.data?.order.eventId)
+  const [confirmRelease, setConfirmRelease] = useState(false)
 
   const stockQuery = useQuery({
     queryKey: ['stock_on_hand_for_order', order.data?.order.hotelId, order.data?.lines.map((l) => l.supplierItemId).join(',')],
@@ -68,6 +72,7 @@ export default function EventOrderDetailPage() {
   const handleRelease = async () => {
     if (!order.data) return
     await releaseReservation(order.data.order.eventId, null)
+    setConfirmRelease(false)
     reservations.refetch()
   }
 
@@ -103,38 +108,34 @@ export default function EventOrderDetailPage() {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Pedido evento</p>
-          <h1 className="text-2xl font-semibold text-slate-900">{po.orderNumber}</h1>
-          <p className="text-sm text-slate-600">
-            Estado: {po.status} - Proveedor: {supplierName ?? 'N/D'} - Total estimado:{' '}
-            {po.totalEstimated.toFixed(2)}
-          </p>
-        </div>
-        <div className="flex gap-2 print:hidden">
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
-          >
-            <Printer className="w-4 h-4" />
-            <span className="hidden md:inline">PDF</span>
-          </button>
-          <button
-            onClick={handleEmailExport}
-            className="flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
-          >
-            <Mail className="w-4 h-4" />
-            <span className="hidden md:inline">Enviar</span>
-          </button>
-          <Link
-            to="/purchasing/event-orders"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
-          >
-            Volver
-          </Link>
-        </div>
-      </header>
+      <PageHeader
+        title={po.orderNumber}
+        subtitle={`Estado: ${po.status} · Proveedor: ${supplierName ?? 'N/D'} · Total estimado: ${po.totalEstimated.toFixed(2)}`}
+        actions={
+          <div className="flex gap-2 print:hidden">
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
+            >
+              <Printer className="w-4 h-4" />
+              <span className="hidden md:inline">PDF</span>
+            </button>
+            <button
+              onClick={handleEmailExport}
+              className="flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
+            >
+              <Mail className="w-4 h-4" />
+              <span className="hidden md:inline">Enviar</span>
+            </button>
+            <Link
+              to="/purchasing/event-orders"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
+            >
+              Volver
+            </Link>
+          </div>
+        }
+      />
 
       <ApprovalActions
         entityType="event_purchase_order"
@@ -150,7 +151,7 @@ export default function EventOrderDetailPage() {
           Reservar stock
         </button>
         <button
-          onClick={handleRelease}
+          onClick={() => setConfirmRelease(true)}
           className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
         >
           Liberar reserva
@@ -270,6 +271,15 @@ export default function EventOrderDetailPage() {
           h1, h2, h3, p, span, div { color: black !important; }
         }
       `}</style>
+
+      <ConfirmDialog
+        open={confirmRelease}
+        title="Liberar reserva"
+        description="Esto liberará el stock reservado para este evento. ¿Continuar?"
+        confirmLabel="Liberar"
+        onCancel={() => setConfirmRelease(false)}
+        onConfirm={handleRelease}
+      />
     </div>
   )
 }

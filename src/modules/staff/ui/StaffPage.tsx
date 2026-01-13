@@ -7,6 +7,9 @@ import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
+import { PageHeader } from '@/modules/shared/ui/PageHeader'
+import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
+import { Skeleton } from '@/modules/shared/ui/Skeleton'
 
 const roles: StaffRole[] = ['jefe_cocina', 'cocinero', 'ayudante', 'pasteleria', 'office', 'otros']
 const types: EmploymentType[] = ['fijo', 'eventual', 'extra']
@@ -33,13 +36,17 @@ export default function StaffPage() {
   const [shiftPattern, setShiftPattern] = useState<'mañana' | 'tarde' | 'rotativo'>('rotativo')
   const [maxShifts, setMaxShifts] = useState<number>(5)
 
-  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
+  if (loading) {
+    return (
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-6 w-52" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+    )
+  }
   if (error || !activeOrgId) {
     return (
-      <div className="p-4 rounded-md bg-red-500/10 border border-red-500/20">
-        <p className="text-sm font-semibold text-red-500">Error</p>
-        <p className="text-xs text-red-400 opacity-90">{formattedError || 'Selecciona una organización.'}</p>
-      </div>
+      <ErrorBanner title="Selecciona una organización" message={formattedError || 'Selecciona una organización.'} />
     )
   }
 
@@ -71,35 +78,34 @@ export default function StaffPage() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Personal</p>
-          <h1 className="text-2xl font-bold text-white">Staff por organización</h1>
-          <p className="text-sm text-slate-400">Gestión global de empleados, con hotel base opcional.</p>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <label className="flex items-center gap-1 text-slate-300">
-            <input
-              type="checkbox"
-              className="rounded border-white/10 bg-nano-navy-900 text-nano-blue-500 focus:ring-nano-blue-500"
-              checked={onlyActive}
-              onChange={(e) => setOnlyActive(e.target.checked)}
-            />
-            Mostrar solo activos
-          </label>
-          {canWrite && (
-            <button
-              onClick={() => setIsImporterOpen(true)}
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-nano-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-white/5 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-              </svg>
-              Importar
-            </button>
-          )}
-        </div>
-      </header>
+      <PageHeader
+        title="Staff por organización"
+        subtitle="Gestión global de empleados, con hotel base opcional."
+        actions={
+          <div className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-1 text-slate-300">
+              <input
+                type="checkbox"
+                className="rounded border-white/10 bg-nano-navy-900 text-nano-blue-500 focus:ring-nano-blue-500"
+                checked={onlyActive}
+                onChange={(e) => setOnlyActive(e.target.checked)}
+              />
+              Mostrar solo activos
+            </label>
+            {canWrite && (
+              <button
+                onClick={() => setIsImporterOpen(true)}
+                className="flex items-center gap-2 rounded-lg border border-white/10 bg-nano-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-white/5 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+                Importar
+              </button>
+            )}
+          </div>
+        }
+      />
 
       <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
         <h2 className="text-sm font-semibold text-white">Nuevo empleado</h2>
@@ -214,7 +220,13 @@ export default function StaffPage() {
 
       <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
         <h2 className="text-sm font-semibold text-white">Listado</h2>
-        {staff.isLoading && <p className="text-xs text-slate-400">Cargando staff...</p>}
+        {staff.isLoading && (
+          <div className="mt-3 space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+        )}
         <div className="mt-3 space-y-2">
           {staff.data?.map((s) => (
             <div
@@ -249,7 +261,7 @@ export default function StaffPage() {
               </div>
             </div>
           ))}
-          {!staff.data?.length && <p className="text-sm text-slate-400 italic">Sin empleados aún.</p>}
+          {!staff.isLoading && !staff.data?.length && <p className="text-sm text-slate-400 italic">Sin empleados aún.</p>}
         </div>
       </div>
 

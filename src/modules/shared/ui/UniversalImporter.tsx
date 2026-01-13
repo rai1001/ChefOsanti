@@ -214,6 +214,13 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
 
     const localPreviewRows = isLocalMode && parsedData ? processData(parsedData, mapping) : null
     const hasSupabaseRows = rows.data && rows.data.length > 0
+    const supabaseRows = (rows.data ?? []) as {
+        id: string
+        row_number: number
+        raw: Record<string, unknown>
+        errors?: string[]
+    }[]
+    const previewRows = hasSupabaseRows ? supabaseRows : (localPreviewRows ?? [])
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/50 animate-fade-in">
@@ -320,12 +327,12 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5 text-slate-400">
-                                        {(hasSupabaseRows ? rows.data : localPreviewRows ?? []).map((row, idx) => (
-                                            <tr key={hasSupabaseRows ? row.id : idx}>
-                                                <td className="px-3 py-2 border-r border-white/5">{hasSupabaseRows ? row.row_number : idx + 1}</td>
+                                        {previewRows.map((row, idx) => (
+                                            <tr key={hasSupabaseRows ? (row as any).id : idx}>
+                                                <td className="px-3 py-2 border-r border-white/5">{hasSupabaseRows ? (row as any).row_number : idx + 1}</td>
                                                 {fields.map(f => {
                                                     const value = hasSupabaseRows
-                                                        ? row.raw[mapping[f.key] || f.label] || ''
+                                                        ? (row as any).raw?.[mapping[f.key] || f.label] || ''
                                                         : (row as Record<string, unknown>)[f.key] ?? ''
                                                     return (
                                                         <td key={f.key} className="px-3 py-2 border-r border-white/5">
@@ -335,8 +342,8 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
                                                 })}
                                                 {!isLocalMode && (
                                                     <td className="px-3 py-2">
-                                                        {row.errors?.length > 0 ? (
-                                                            <span className="text-red-400 font-medium">{row.errors.join(', ')}</span>
+                                                        {(row as any).errors?.length > 0 ? (
+                                                            <span className="text-red-400 font-medium">{(row as any).errors.join(', ')}</span>
                                                         ) : (
                                                             <span className="text-green-400 font-medium">Listo</span>
                                                         )}

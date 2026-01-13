@@ -3,8 +3,10 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg';
 import { listReports } from '../../data/reportsRepository';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { FileText, Loader2, ChevronRight } from 'lucide-react';
+import { FileText, ChevronRight } from 'lucide-react';
 import type { GeneratedReport } from '../../domain/types';
+import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner';
+import { Skeleton } from '@/modules/shared/ui/Skeleton';
 
 interface Props {
     onSelectReport: (report: GeneratedReport) => void;
@@ -19,8 +21,14 @@ export function ReportList({ onSelectReport, refreshKey }: Props) {
         enabled: !!activeOrgId
     });
 
-    if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-nano-blue-500" /></div>;
-    if (error) return <div className="text-red-400 p-4 bg-red-500/10 rounded-lg">Error al cargar informes</div>;
+    if (isLoading) return (
+        <div className="space-y-3">
+            <Skeleton className="h-5 w-2/3" />
+            <Skeleton className="h-5 w-1/2" />
+            <Skeleton className="h-5 w-2/4" />
+        </div>
+    );
+    if (error) return <ErrorBanner title="Error al cargar informes" message="Intenta recargar la página." />;
 
     if (!reports?.length) {
         return (

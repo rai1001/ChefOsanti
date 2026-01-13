@@ -22,10 +22,19 @@ export async function getStockOnHand(orgId: string, hotelId: string, supplierIte
   }
 
   const result: Record<string, number> = {}
-  for (const row of data ?? []) {
-    const hotelMatch = row.inventory_locations?.hotel_id === hotelId || row.inventory_locations?.hotel_id === null
+  const rows = (data ?? []) as unknown as {
+    supplier_item_id: string
+    on_hand_qty: number
+    inventory_locations?: { hotel_id: string | null }
+  }[]
+
+  for (const row of rows) {
+    const hotelMatch =
+      row.inventory_locations?.hotel_id === hotelId ||
+      row.inventory_locations?.hotel_id === null ||
+      typeof row.inventory_locations?.hotel_id === 'undefined'
     if (!hotelMatch) continue
-    const key = row.supplier_item_id as string
+    const key = row.supplier_item_id
     const qty = Number(row.on_hand_qty ?? 0)
     result[key] = (result[key] ?? 0) + qty
   }
@@ -75,7 +84,13 @@ export async function getOnOrderQty(orgId: string, supplierItemIds: string[], ex
     result[key] = (result[key] ?? 0) + remaining
   }
 
-  for (const row of eventLines ?? []) {
+  const eventRows = (eventLines ?? []) as unknown as {
+    supplier_item_id: string
+    qty: number
+    event_purchase_orders?: { event_id?: string }
+  }[]
+
+  for (const row of eventRows) {
     const evtId = row.event_purchase_orders?.event_id as string | undefined
     if (excludeEventId && evtId === excludeEventId) continue
     const key = row.supplier_item_id as string
