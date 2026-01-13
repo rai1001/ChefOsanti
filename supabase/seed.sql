@@ -454,6 +454,16 @@ on conflict (location_id, supplier_item_id) do update
 set on_hand_qty = excluded.on_hand_qty,
     unit = excluded.unit;
 
+-- PR-I1 demo: lotes con caducidades
+insert into public.stock_batches (id, org_id, location_id, supplier_item_id, qty, unit, expires_at, lot_code, source, created_by)
+values
+  ('71000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000001', 5, 'kg', timezone('utc', now()) - interval '10 days', 'CAD-01', 'purchase', null),
+  ('71000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000001', 8, 'kg', timezone('utc', now()) + interval '2 days', 'SOON-02', 'purchase', null),
+  ('71000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', 50, 'ud', timezone('utc', now()) + interval '6 days', 'SOON-03', 'purchase', null),
+  ('71000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', 25, 'ud', timezone('utc', now()) + interval '30 days', 'OK-04', 'purchase', null),
+  ('71000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', 10, 'ud', null, 'NOEXP-05', 'adjustment', null)
+on conflict (id) do nothing;
+
 insert into public.purchase_orders (id, org_id, hotel_id, supplier_id, status, order_number, total_estimated)
 values (
   '90000000-0000-0000-0000-000000000001',
