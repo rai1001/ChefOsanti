@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import type { BookingWithDetails } from '../data/events'
 
 interface EventBookingsSectionProps {
@@ -18,48 +19,82 @@ export function EventBookingsSection({ bookings, onDeleteBooking, onAddBooking }
     const [toDelete, setToDelete] = useState<string | null>(null)
 
     return (
-        <section className="glass-panel">
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                <h2 className="text-sm font-semibold text-white">Reservas de sal¢n</h2>
-                <div className="flex items-center gap-4">
-                    <span className="text-xs text-slate-400">{bookings.length} reservas</span>
-                    <button onClick={onAddBooking} className="text-xs font-medium text-nano-blue-300 hover:text-white">
-                        + A¤adir
-                    </button>
+        <section className="ds-card">
+            <div className="ds-section-header">
+                <div>
+                    <h2 className="text-sm font-semibold text-white">Reservas de salón</h2>
+                    <p className="text-xs text-slate-400">{bookings.length} reservas</p>
                 </div>
+                <button
+                    onClick={onAddBooking}
+                    className="ds-btn ds-btn-ghost text-xs px-3 py-1"
+                >
+                    + Añadir
+                </button>
             </div>
-            <div className="divide-y divide-white/5">
-                {bookings.length ? (
-                    bookings.map((b) => (
-                        <div
-                            key={b.id}
-                            className="flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-white/5 md:flex-row md:items-center md:justify-between"
-                        >
-                            <div>
-                                <p className="text-sm font-semibold text-slate-200">
-                                    {b.spaceName ?? b.spaceId} - {formatDate(b.startsAt)} {'->'} {formatDate(b.endsAt)}
-                                </p>
-                                <p className="text-xs text-slate-400">
-                                    {b.groupLabel ? `${b.groupLabel} - ` : ''}
-                                    {b.note ?? ''}
-                                </p>
-                            </div>
+
+            {bookings.length ? (
+                <div className="overflow-x-auto">
+                    <table className="ds-table min-w-full">
+                        <thead>
+                            <tr>
+                                <th>Sala</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Grupo</th>
+                                <th>Nota</th>
+                                <th className="is-action">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {bookings.map((b) => (
+                                <tr key={b.id}>
+                                    <td>
+                                        <span className="font-semibold text-slate-200">
+                                            {b.spaceName ?? b.spaceId}
+                                        </span>
+                                    </td>
+                                    <td>{formatDate(b.startsAt)}</td>
+                                    <td>{formatDate(b.endsAt)}</td>
+                                    <td>{b.groupLabel || '—'}</td>
+                                    <td className="truncate max-w-[220px]">
+                                        <span title={b.note ?? ''}>{b.note || '—'}</span>
+                                    </td>
+                                    <td className="is-action">
+                                        <button
+                                            className="text-xs font-semibold text-red-400 transition-colors hover:text-red-300"
+                                            onClick={() => setToDelete(b.id)}
+                                        >
+                                            Borrar
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div className="p-6">
+                    <EmptyState
+                        title="Sin reservas"
+                        description="Añade reservas desde el botón superior"
+                        action={
                             <button
-                                className="text-xs font-semibold text-red-400 transition-colors hover:text-red-300"
-                                onClick={() => setToDelete(b.id)}
+                                type="button"
+                                onClick={onAddBooking}
+                                className="text-sm font-semibold text-nano-blue-400 hover:text-nano-blue-300 underline"
                             >
-                                Borrar
+                                Añadir reserva
                             </button>
-                        </div>
-                    ))
-                ) : (
-                    <p className="px-4 py-6 text-sm font-light italic text-slate-400">Sin reservas.</p>
-                )}
-            </div>
+                        }
+                    />
+                </div>
+            )}
+
             <ConfirmDialog
                 open={!!toDelete}
                 title="Eliminar reserva"
-                description="Esta acci¢n borrar  la reserva del sal¢n."
+                description="Esta acción borrará la reserva del salón."
                 confirmLabel="Eliminar"
                 onConfirm={() => {
                     if (toDelete) onDeleteBooking(toDelete)

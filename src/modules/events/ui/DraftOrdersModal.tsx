@@ -43,6 +43,18 @@ export function DraftOrdersModal({
         [needs, savedAliasList, supplierItems],
     )
     const preview = useMemo(() => applyRoundingToLines(groupMappedNeeds(mapped)), [mapped])
+    const previewRows = useMemo(
+        () =>
+            preview.flatMap((p) =>
+                p.lines.map((line) => ({
+                    supplierId: p.supplierId,
+                    label: line.label,
+                    qty: line.qty,
+                    unit: line.unit,
+                })),
+            ),
+        [preview],
+    )
 
     const supplierItemOptions = supplierItems.map((si) => ({
         value: si.id,
@@ -146,23 +158,32 @@ export function DraftOrdersModal({
                         </div>
                     )}
 
-                    {unknown.length === 0 && preview.length > 0 && (
+                    {unknown.length === 0 && previewRows.length > 0 && (
                         <div className="space-y-4">
                             <p className="text-sm font-semibold text-slate-200">Vista previa del pedido</p>
-                            <div className="max-h-[40vh] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                                {preview.map(p => (
-                                    <div key={p.supplierId} className="rounded-lg border border-white/5 bg-white/5 p-3">
-                                        <p className="text-xs font-bold text-nano-blue-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">Proveedor ID: {p.supplierId}</p>
-                                        <div className="space-y-1">
-                                            {p.lines.map((l, idx) => (
-                                                <div key={idx} className="flex items-center justify-between text-sm">
-                                                    <span className="text-slate-300">{l.label}</span>
-                                                    <span className="font-mono text-slate-400">{l.qty.toFixed(2)} {l.unit}</span>
-                                                </div>
+                            <div className="max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="overflow-x-auto rounded border border-white/10">
+                                    <table className="ds-table w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>Proveedor</th>
+                                                <th>Item</th>
+                                                <th className="is-num">Cantidad</th>
+                                                <th>Unidad</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {previewRows.map((row, idx) => (
+                                                <tr key={`${row.supplierId}-${idx}`}>
+                                                    <td className="text-xs uppercase tracking-wider text-nano-blue-300">{row.supplierId}</td>
+                                                    <td>{row.label}</td>
+                                                    <td className="is-num">{row.qty.toFixed(2)}</td>
+                                                    <td>{row.unit}</td>
+                                                </tr>
                                             ))}
-                                        </div>
-                                    </div>
-                                ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     )}
