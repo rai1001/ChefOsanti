@@ -11,6 +11,10 @@ import {
 } from '@/modules/purchasing/data/suppliers'
 import type { PurchaseUnit, RoundingRule } from '@/modules/purchasing/domain/types'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
+import { PageHeader } from '@/modules/shared/ui/PageHeader'
+import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
+import { Skeleton } from '@/modules/shared/ui/Skeleton'
+import { Tooltip } from '@/modules/shared/ui/Tooltip'
 
 const itemSchema = z
   .object({
@@ -62,6 +66,27 @@ export default function SupplierDetailPage() {
   })
 
   const roundingRule = watch('roundingRule')
+  const supplierName = supplier.data?.name ?? 'Proveedor'
+
+  const isPackRule = useMemo(() => roundingRule === 'ceil_pack', [roundingRule])
+
+  if (loading) {
+    return (
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-6 w-56" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+    )
+  }
+
+  if (!session || error) {
+    return (
+      <ErrorBanner
+        title="Inicia sesi¢n"
+        message={sessionError || 'Inicia sesi¢n para gestionar proveedores.'}
+      />
+    )
+  }
 
   const onSubmit = async (values: ItemForm) => {
     const packSize =
@@ -91,89 +116,77 @@ export default function SupplierDetailPage() {
     })
   }
 
-  const isPackRule = useMemo(() => roundingRule === 'ceil_pack', [roundingRule])
-
-  if (loading) {
-    return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
-  }
-
-  if (!session || error) {
-    return (
-      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-        <p className="text-sm text-red-500">Inicia sesión para gestionar proveedores.</p>
-        <div className="mt-2 text-xs text-slate-400">
-          <p className="font-semibold text-red-400">Error</p>
-          <p>{sessionError}</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (supplier.isError) {
-    return (
-      <div className="rounded-lg border border-red-500/10 bg-red-500/5 p-4 m-4">
-        <p className="font-semibold text-red-400">Error al cargar proveedor</p>
-        <p className="text-sm text-red-400/80">{supplierError}</p>
-      </div>
-    )
-  }
-
-
-
   return (
     <div className="space-y-6 animate-fade-in">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Compras</p>
-          <div className="flex items-center gap-2">
-            <Link to="/purchasing/suppliers" className="text-sm text-nano-blue-400 hover:text-nano-blue-300 underline transition-colors">
-              Proveedores
-            </Link>
-            <span className="text-slate-400">/</span>
-            <h1 className="text-2xl font-bold text-white">
-              {supplier.data?.name ?? 'Proveedor'}
-            </h1>
-          </div>
-          <p className="text-sm text-slate-400">
-            Añade artículos con reglas de redondeo y unidades de compra.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title={supplierName}
+        subtitle="A¤ade art¡culos con reglas de redondeo y unidades de compra."
+        actions={
+          <Link
+            to="/purchasing/suppliers"
+            className="text-sm font-semibold text-nano-blue-400 underline transition-colors hover:text-nano-blue-300"
+          >
+            Volver a proveedores
+          </Link>
+        }
+      />
+
+      {supplier.isError && (
+        <ErrorBanner
+          title="Error al cargar proveedor"
+          message={supplierError}
+          onRetry={() => supplier.refetch()}
+        />
+      )}
 
       <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <h2 className="text-sm font-semibold text-white">Artículos</h2>
-          {items.isLoading && (
-            <span className="text-xs text-slate-400">Cargando artículos...</span>
-          )}
+          <h2 className="text-sm font-semibold text-white">Art¡culos</h2>
+          {items.isLoading && <span className="text-xs text-slate-400">Cargando art¡culos...</span>}
         </div>
         <div className="divide-y divide-white/10">
-          {items.data?.length ? (
+          {items.isLoading ? (
+            <div className="space-y-2 p-4">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          ) : items.isError ? (
+            <div className="p-4">
+              <ErrorBanner
+                title="Error al cargar art¡culos"
+                message={useFormattedError(items.error)}
+                onRetry={() => items.refetch()}
+              />
+            </div>
+          ) : items.data?.length ? (
             items.data.map((item) => (
-              <div key={item.id} className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors">
+              <div
+                key={item.id}
+                className="flex items-center justify-between px-4 py-3 transition-colors hover:bg-white/5"
+              >
                 <div>
                   <p className="text-sm font-semibold text-slate-200">{item.name}</p>
                   <p className="text-xs text-slate-500">
-                    Unidad: {item.purchaseUnit} · Regla: {item.roundingRule}
-                    {item.packSize ? ` · Pack: ${item.packSize}` : ''}{' '}
-                    {item.pricePerUnit ? `· Precio: €${item.pricePerUnit}` : ''}
+                    Unidad: {item.purchaseUnit} ú Regla: {item.roundingRule}
+                    {item.packSize ? ` ú Pack: ${item.packSize}` : ''}{' '}
+                    {item.pricePerUnit ? `ú Precio: ?${item.pricePerUnit}` : ''}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-400 italic">Sin artículos aún.</p>
+            <p className="px-4 py-6 text-sm italic text-slate-400">Sin art¡culos a£n.</p>
           )}
         </div>
       </section>
 
       <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
-        <h3 className="text-sm font-semibold text-white">Añadir artículo</h3>
+        <h3 className="text-sm font-semibold text-white">A¤adir art¡culo</h3>
         <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-300">Nombre</span>
             <input
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
               placeholder="Producto"
               {...register('name')}
             />
@@ -183,7 +196,7 @@ export default function SupplierDetailPage() {
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-300">Unidad de compra</span>
             <select
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
               {...register('purchaseUnit')}
             >
               <option value="ud">Unidades</option>
@@ -194,7 +207,7 @@ export default function SupplierDetailPage() {
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-300">Regla de redondeo</span>
             <select
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
               {...register('roundingRule')}
             >
               <option value="none">Sin redondeo</option>
@@ -204,11 +217,16 @@ export default function SupplierDetailPage() {
           </label>
 
           <label className="space-y-1">
-            <span className="text-sm font-medium text-slate-300">Tamaño de pack</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-slate-300">Tama¤o de pack</span>
+              <Tooltip content="Usado cuando la regla es por pack.">
+                <span className="text-xs text-slate-400 underline decoration-dotted">i</span>
+              </Tooltip>
+            </div>
             <input
               type="number"
               step="0.01"
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
               placeholder="Ej: 5"
               {...register('packSize', {
                 setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
@@ -225,7 +243,7 @@ export default function SupplierDetailPage() {
             <input
               type="number"
               step="0.01"
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
               placeholder="Ej: 2.50"
               {...register('pricePerUnit', {
                 setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
@@ -239,7 +257,7 @@ export default function SupplierDetailPage() {
           <label className="space-y-1 md:col-span-2">
             <span className="text-sm font-medium text-slate-300">Notas</span>
             <textarea
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
               placeholder="Detalles adicionales"
               rows={3}
               {...register('notes')}
@@ -247,9 +265,8 @@ export default function SupplierDetailPage() {
           </label>
 
           {createItem.isError && (
-            <div className="md:col-span-2 rounded-md bg-red-500/10 p-2">
-              <p className="text-xs font-medium text-red-400">Error</p>
-              <p className="text-[10px] text-red-400/80">{createError}</p>
+            <div className="md:col-span-2">
+              <ErrorBanner title="Error al crear art¡culo" message={createError} />
             </div>
           )}
 
@@ -259,7 +276,7 @@ export default function SupplierDetailPage() {
               disabled={isSubmitting}
               className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSubmitting ? 'Guardando...' : 'Añadir artículo'}
+              {isSubmitting ? 'Guardando...' : 'A¤adir art¡culo'}
             </button>
           </div>
         </form>

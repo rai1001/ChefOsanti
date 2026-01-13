@@ -18,10 +18,13 @@ import {
 import { ApprovalActions } from './ApprovalActions'
 import type { PurchaseUnit, RoundingRule } from '../domain/types'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
+import { PageHeader } from '@/modules/shared/ui/PageHeader'
+import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
+import { Skeleton } from '@/modules/shared/ui/Skeleton'
 
 const lineSchema = z
   .object({
-    supplierItemId: z.string().min(1, 'Selecciona artículo proveedor'),
+    supplierItemId: z.string().min(1, 'Selecciona art¡culo proveedor'),
     ingredientId: z.string().min(1, 'Selecciona ingrediente'),
     requestedQty: z.number().min(0, 'Cantidad requerida'),
     purchaseUnit: z.enum(['kg', 'ud']),
@@ -128,34 +131,45 @@ export default function PurchaseOrderDetailPage() {
     const order = purchaseOrder.data.order
     const lines = purchaseOrder.data.lines
     const subject = `Pedido ${order.orderNumber} - ${supplierName}`
-    const body = `Resumen del pedido:\n\n` +
-      `Número: ${order.orderNumber}\n` +
+    const body =
+      `Resumen del pedido:\n\n` +
+      `N£mero: ${order.orderNumber}\n` +
       `Proveedor: ${supplierName}\n` +
-      `Total estimado: €${order.totalEstimated?.toFixed(2)}\n\n` +
-      `Líneas:\n` +
-      lines.map(l => `- ${ingredientMap[l.ingredientId] || l.ingredientId}: ${l.requestedQty} ${l.purchaseUnit}`).join('\n')
+      `Total estimado: ?${order.totalEstimated?.toFixed(2)}\n\n` +
+      `L¡neas:\n` +
+      lines
+        .map(
+          (l) => `- ${ingredientMap[l.ingredientId] || l.ingredientId}: ${l.requestedQty} ${l.purchaseUnit}`,
+        )
+        .join('\n')
 
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 
-  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando sesión...</p>
-  if (!session || error) {
+  if (loading) {
     return (
-      <div className="rounded border border-red-500/20 bg-red-500/10 p-4">
-        <p className="text-sm font-semibold text-red-500">Error</p>
-        <p className="text-xs text-red-400 opacity-90">{sessionError || 'Inicia sesión para ver pedidos.'}</p>
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-6 w-52" />
+        <Skeleton className="h-4 w-64" />
       </div>
     )
   }
-
-  if (purchaseOrder.isLoading) return <p className="p-4 text-sm text-slate-400">Cargando pedido...</p>
-  if (purchaseOrder.isError) {
+  if (!session || error) {
     return (
-      <div className="p-4 text-sm text-red-500">
-        <span className="font-semibold block">Error al cargar pedido</span>
-        <span className="text-xs opacity-90">{poError}</span>
+      <ErrorBanner title="Inicia sesi¢n" message={sessionError || 'Inicia sesi¢n para ver pedidos.'} />
+    )
+  }
+
+  if (purchaseOrder.isLoading) {
+    return (
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-6 w-56" />
+        <Skeleton className="h-4 w-3/4" />
       </div>
     )
+  }
+  if (purchaseOrder.isError) {
+    return <ErrorBanner title="Error al cargar pedido" message={poError} onRetry={() => purchaseOrder.refetch()} />
   }
 
   const order = purchaseOrder.data?.order
@@ -163,41 +177,38 @@ export default function PurchaseOrderDetailPage() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Compras</p>
-          <h1 className="text-2xl font-bold text-white">
-            Pedido {order?.orderNumber} · {supplierName}
-          </h1>
-          <p className="text-sm text-slate-400">Estado: {order?.status}</p>
-        </div>
-        <div className="flex gap-2 print:hidden">
-          {isDraft && (
+      <PageHeader
+        title={`Pedido ${order?.orderNumber ?? ''}`}
+        subtitle={`Proveedor: ${supplierName} ú Estado: ${order?.status ?? 'N/D'}`}
+        actions={
+          <div className="flex gap-2 print:hidden">
+            {isDraft && (
+              <button
+                className="rounded-md bg-nano-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition-colors hover:bg-nano-blue-500"
+                onClick={async () => {
+                  await updateStatus.mutateAsync('confirmed')
+                }}
+              >
+                Confirmar
+              </button>
+            )}
             <button
-              className="rounded-md bg-nano-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 hover:bg-nano-blue-500 transition-colors"
-              onClick={async () => {
-                await updateStatus.mutateAsync('confirmed')
-              }}
+              onClick={() => window.print()}
+              className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20"
             >
-              Confirmar
+              <Printer className="h-4 w-4" />
+              <span className="hidden md:inline">PDF</span>
             </button>
-          )}
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
-          >
-            <Printer className="w-4 h-4" />
-            <span className="hidden md:inline">PDF</span>
-          </button>
-          <button
-            onClick={handleEmailExport}
-            className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
-          >
-            <Mail className="w-4 h-4" />
-            <span className="hidden md:inline">Enviar</span>
-          </button>
-        </div>
-      </header>
+            <button
+              onClick={handleEmailExport}
+              className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20"
+            >
+              <Mail className="h-4 w-4" />
+              <span className="hidden md:inline">Enviar</span>
+            </button>
+          </div>
+        }
+      />
 
       {order && (
         <ApprovalActions
@@ -209,21 +220,24 @@ export default function PurchaseOrderDetailPage() {
 
       <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <h2 className="text-sm font-semibold text-white">Líneas</h2>
-          <span className="text-xs text-slate-400">Total €{order?.totalEstimated?.toFixed(2)}</span>
+          <h2 className="text-sm font-semibold text-white">L¡neas</h2>
+          <span className="text-xs text-slate-400">Total ?{order?.totalEstimated?.toFixed(2)}</span>
         </div>
         <div className="divide-y divide-white/10">
           {lines.length ? (
             lines.map((l) => (
-              <div key={l.id} className="flex flex-col gap-1 px-4 py-3 md:flex-row md:items-center md:justify-between hover:bg-white/5 transition-colors">
+              <div
+                key={l.id}
+                className="flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-white/5 md:flex-row md:items-center md:justify-between"
+              >
                 <div>
                   <p className="text-sm font-semibold text-slate-200">
                     {ingredientMap[l.ingredientId] ?? l.ingredientId}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Artículo prov: {supplierItemMap[l.supplierItemId] ?? l.supplierItemId} · Solic:{' '}
-                    {l.requestedQty} {l.purchaseUnit} · Regla {l.roundingRule}{' '}
-                    {l.packSize ? `(pack ${l.packSize})` : ''} · €{l.unitPrice ?? 0} · Total €
+                    Art¡culo prov: {supplierItemMap[l.supplierItemId] ?? l.supplierItemId} ú Solic:{' '}
+                    {l.requestedQty} {l.purchaseUnit} ú Regla {l.roundingRule}{' '}
+                    {l.packSize ? `(pack ${l.packSize})` : ''} ú ?{l.unitPrice ?? 0} ú Total ?
                     {l.lineTotal?.toFixed(2)}
                   </p>
                 </div>
@@ -231,7 +245,7 @@ export default function PurchaseOrderDetailPage() {
                   <input
                     type="number"
                     step="0.01"
-                    className="w-32 rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+                    className="w-32 rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
                     defaultValue={l.requestedQty}
                     onChange={(e) => setReceived({ ...received, [l.id]: Number(e.target.value) })}
                   />
@@ -239,19 +253,19 @@ export default function PurchaseOrderDetailPage() {
               </div>
             ))
           ) : (
-            <p className="px-4 py-6 text-sm text-slate-400 italic">Sin líneas todavía.</p>
+            <p className="px-4 py-6 text-sm italic text-slate-400">Sin l¡neas todav¡a.</p>
           )}
         </div>
       </section>
 
       {isDraft && (
         <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm print:hidden">
-          <h3 className="text-sm font-semibold text-white">Añadir línea</h3>
+          <h3 className="text-sm font-semibold text-white">A¤adir l¡nea</h3>
           <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmitLine)}>
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Artículo proveedor</span>
+              <span className="text-sm font-medium text-slate-300">Art¡culo proveedor</span>
               <select
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
                 {...register('supplierItemId')}
               >
                 <option value="">Selecciona</option>
@@ -269,7 +283,7 @@ export default function PurchaseOrderDetailPage() {
             <label className="space-y-1">
               <span className="text-sm font-medium text-slate-300">Ingrediente</span>
               <select
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
                 {...register('ingredientId')}
               >
                 <option value="">Selecciona</option>
@@ -289,7 +303,7 @@ export default function PurchaseOrderDetailPage() {
               <input
                 type="number"
                 step="0.01"
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
                 {...register('requestedQty', {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? 0 : Number(v)),
                 })}
@@ -302,7 +316,7 @@ export default function PurchaseOrderDetailPage() {
             <label className="space-y-1">
               <span className="text-sm font-medium text-slate-300">Unidad</span>
               <select
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
                 {...register('purchaseUnit')}
               >
                 <option value="ud">Unidades</option>
@@ -313,7 +327,7 @@ export default function PurchaseOrderDetailPage() {
             <label className="space-y-1">
               <span className="text-sm font-medium text-slate-300">Regla de redondeo</span>
               <select
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
                 {...register('roundingRule')}
               >
                 <option value="none">Sin redondeo</option>
@@ -323,11 +337,11 @@ export default function PurchaseOrderDetailPage() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Tamaño de pack</span>
+              <span className="text-sm font-medium text-slate-300">Tama¤o de pack</span>
               <input
                 type="number"
                 step="0.01"
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
                 {...register('packSize', {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
                 })}
@@ -343,7 +357,7 @@ export default function PurchaseOrderDetailPage() {
               <input
                 type="number"
                 step="0.01"
-                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-nano-blue-500"
                 {...register('unitPrice', {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
                 })}
@@ -354,9 +368,8 @@ export default function PurchaseOrderDetailPage() {
             </label>
 
             {addLine.isError && (
-              <div className="md:col-span-2 text-sm text-red-500">
-                <span className="font-semibold block">Error:</span>
-                <span className="text-xs opacity-90">{addLineError}</span>
+              <div className="md:col-span-2">
+                <ErrorBanner title="Error al a¤adir l¡nea" message={addLineError} />
               </div>
             )}
 
@@ -366,7 +379,7 @@ export default function PurchaseOrderDetailPage() {
                 disabled={isSubmitting}
                 className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isSubmitting ? 'Añadiendo...' : 'Añadir línea'}
+                {isSubmitting ? 'A¤adiendo...' : 'A¤adir l¡nea'}
               </button>
             </div>
           </form>
@@ -376,9 +389,9 @@ export default function PurchaseOrderDetailPage() {
       {isConfirmed && (
         <section className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm print:hidden">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Recepción</h3>
+            <h3 className="text-sm font-semibold text-white">Recepci¢n</h3>
             <button
-              className="rounded-md bg-nano-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md bg-nano-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition-colors hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={onReceive}
               disabled={receivePo.isPending}
             >
@@ -386,9 +399,8 @@ export default function PurchaseOrderDetailPage() {
             </button>
           </div>
           {receivePo.isError && (
-            <div className="mt-2 text-sm text-red-500">
-              <span className="font-semibold block">Error:</span>
-              <span className="text-xs opacity-90">{receiveError}</span>
+            <div className="mt-2">
+              <ErrorBanner title="Error al recibir" message={receiveError} />
             </div>
           )}
         </section>

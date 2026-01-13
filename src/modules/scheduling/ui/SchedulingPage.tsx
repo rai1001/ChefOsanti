@@ -7,6 +7,10 @@ import { useAssignStaff, useShifts, useUnassignStaff, useUpsertShift, type Shift
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
+import { PageHeader } from '@/modules/shared/ui/PageHeader'
+import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
+import { Skeleton } from '@/modules/shared/ui/Skeleton'
+import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
 
 const shiftDefaults: Record<ShiftType, { starts: string; ends: string }> = {
   desayuno: { starts: '07:00', ends: '15:00' },
@@ -39,8 +43,10 @@ export default function SchedulingPage() {
   const unassign = useUnassignStaff(selectedHotel, weekStart)
   const [assignTarget, setAssignTarget] = useState<{ shiftId: string; staffId: string }>({ shiftId: '', staffId: '' })
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [unassignTarget, setUnassignTarget] = useState<{ assignmentId: string; staffName?: string } | null>(null)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'scheduling:write')
+  const shiftsError = useFormattedError(shifts.error)
 
   const days = useMemo(() => getWeekDays(weekStart), [weekStart])
 
@@ -54,13 +60,17 @@ export default function SchedulingPage() {
     return map
   }, [shifts.data])
 
-  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
+  if (loading) {
+    return (
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+    )
+  }
   if (error || !activeOrgId) {
     return (
-      <div className="p-4 rounded-md bg-red-500/10 border border-red-500/20">
-        <p className="text-sm font-semibold text-red-500">Error</p>
-        <p className="text-xs text-red-400 opacity-90">{formattedError || 'Selecciona una organización válida.'}</p>
-      </div>
+      <ErrorBanner title="Selecciona organizaci¢n" message={formattedError || 'Selecciona una organizaci¢n v lida.'} />
     )
   }
 
@@ -89,29 +99,39 @@ export default function SchedulingPage() {
       setAssignTarget({ shiftId: '', staffId: '' })
     } catch (e: any) {
       if (String(e?.message || '').includes('already assigned')) {
-        setErrorMsg('Este empleado ya tiene turno ese día en este hotel.')
+        setErrorMsg('Este empleado ya tiene turno ese d¡a en este hotel.')
       } else {
         setErrorMsg('Error al asignar empleado')
       }
     }
   }
 
+  const handleUnassign = () => {
+    if (unassignTarget && canWrite) {
+      unassign.mutate(unassignTarget.assignmentId)
+      setUnassignTarget(null)
+    }
+  }
+
   return (
     <div className="space-y-4 animate-fade-in">
-      <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Horarios</p>
-          <h1 className="text-2xl font-bold text-white">Planificación de turnos</h1>
-          <p className="text-sm text-slate-400">Turnos por hotel y semana, con asignación de personal.</p>
-        </div>
-        {errorMsg && <p className="rounded bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-400">{errorMsg}</p>}
-      </header>
+      <PageHeader
+        title="Planificaci¢n de turnos"
+        subtitle="Turnos por hotel y semana, con asignaci¢n de personal."
+        actions={
+          errorMsg ? (
+            <span className="rounded bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-400">
+              {errorMsg}
+            </span>
+          ) : null
+        }
+      />
 
       <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm md:flex-row md:items-end md:justify-between">
         <label className="flex flex-col text-sm">
           <span className="text-xs font-semibold text-slate-300">Hotel</span>
           <select
-            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white focus:border-nano-blue-500 outline-none transition-colors"
+            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white outline-none transition-colors focus:border-nano-blue-500"
             value={selectedHotel}
             onChange={(e) => setSelectedHotel(e.target.value)}
           >
@@ -127,7 +147,7 @@ export default function SchedulingPage() {
           <span className="text-xs font-semibold text-slate-300">Semana (lunes)</span>
           <input
             type="date"
-            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white focus:border-nano-blue-500 outline-none transition-colors"
+            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white outline-none transition-colors focus:border-nano-blue-500"
             value={weekStart}
             onChange={(e) => setWeekStart(e.target.value)}
           />
@@ -135,7 +155,7 @@ export default function SchedulingPage() {
         <div className="flex gap-2 text-sm">
           <button
             type="button"
-            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white hover:bg-white/5 transition-colors"
+            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white transition-colors hover:bg-white/5"
             onClick={() => {
               const d = new Date(weekStart + 'T00:00:00')
               d.setDate(d.getDate() - 7)
@@ -146,7 +166,7 @@ export default function SchedulingPage() {
           </button>
           <button
             type="button"
-            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white hover:bg-white/5 transition-colors"
+            className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-white transition-colors hover:bg-white/5"
             onClick={() => {
               const d = new Date(weekStart + 'T00:00:00')
               d.setDate(d.getDate() + 7)
@@ -161,7 +181,13 @@ export default function SchedulingPage() {
       {!selectedHotel ? (
         <p className="text-sm text-slate-400">Selecciona un hotel para ver turnos.</p>
       ) : shifts.isLoading ? (
-        <p className="text-sm text-slate-400">Cargando turnos...</p>
+        <div className="space-y-2 rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+      ) : shifts.isError ? (
+        <ErrorBanner title="Error al cargar turnos" message={shiftsError} onRetry={() => shifts.refetch()} />
       ) : (
         <div className="overflow-auto rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
           <table className="min-w-full text-sm">
@@ -177,7 +203,7 @@ export default function SchedulingPage() {
             </thead>
             <tbody className="divide-y divide-white/10">
               {shiftOrder.map((type) => (
-                <tr key={type} className="align-top hover:bg-white/5 transition-colors">
+                <tr key={type} className="align-top transition-colors hover:bg-white/5">
                   <td className="px-3 py-2 font-semibold text-white">{type}</td>
                   {days.map((day) => {
                     const key = `${day}-${type}`
@@ -188,31 +214,29 @@ export default function SchedulingPage() {
                         {shift ? (
                           <div className="space-y-2 rounded border border-white/10 bg-nano-navy-900/50 p-2" data-testid={`shift-${shift.id}`}>
                             <p className="text-xs text-slate-300">
-                              {shift.startsAt} - {shift.endsAt} · Req {shift.requiredCount}
+                              {shift.startsAt} - {shift.endsAt} ú Req {shift.requiredCount}
                             </p>
                             <div className="flex flex-wrap gap-2">
                               {shift.assignments.map((a: any) => (
                                 <span
                                   key={a.id}
-                                  className="flex items-center gap-1 rounded-full bg-nano-blue-500/20 border border-nano-blue-500/30 px-2 py-1 text-xs text-nano-blue-100"
+                                  className="flex items-center gap-1 rounded-full border border-nano-blue-500/30 bg-nano-blue-500/20 px-2 py-1 text-xs text-nano-blue-100"
                                 >
                                   {a.staffName}
                                   <button
                                     type="button"
-                                    className="text-red-400 hover:text-red-300 disabled:text-slate-600 ml-1"
-                                    onClick={() => canWrite && unassign.mutate(a.id)}
+                                    className="ml-1 text-red-400 transition-colors hover:text-red-300 disabled:text-slate-600"
+                                    onClick={() => canWrite && setUnassignTarget({ assignmentId: a.id, staffName: a.staffName })}
                                     aria-label="Quitar asignacion"
                                     disabled={!canWrite}
                                   >
-                                    ×
+                                    ž
                                   </button>
                                 </span>
                               ))}
                               {!shift.assignments.length && <span className="text-xs text-slate-500">Sin asignar</span>}
                             </div>
-                            {missing > 0 && (
-                              <p className="text-xs font-semibold text-amber-500">Faltan {missing}</p>
-                            )}
+                            {missing > 0 && <p className="text-xs font-semibold text-amber-500">Faltan {missing}</p>}
                             <div className="flex flex-col gap-1">
                               <select
                                 className="rounded border border-white/10 bg-nano-navy-900 px-2 py-1 text-xs text-white outline-none focus:border-nano-blue-500"
@@ -232,7 +256,7 @@ export default function SchedulingPage() {
                               </select>
                               <button
                                 type="button"
-                                className="rounded bg-nano-blue-600 px-2 py-1 text-xs font-semibold text-white hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+                                className="rounded bg-nano-blue-600 px-2 py-1 text-xs font-semibold text-white transition-colors hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
                                 disabled={
                                   assign.isPending ||
                                   !assignTarget.staffId ||
@@ -248,7 +272,7 @@ export default function SchedulingPage() {
                         ) : (
                           <button
                             type="button"
-                            className="rounded border border-dashed border-white/20 px-3 py-2 text-xs font-semibold text-slate-400 hover:border-white/40 hover:text-white transition-colors"
+                            className="rounded border border-dashed border-white/20 px-3 py-2 text-xs font-semibold text-slate-400 transition-colors hover:border-white/40 hover:text-white"
                             onClick={() => handleCreate(day, type)}
                             disabled={!canWrite}
                           >
@@ -264,6 +288,19 @@ export default function SchedulingPage() {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!unassignTarget}
+        title="Quitar asignaci¢n"
+        description={
+          unassignTarget?.staffName
+            ? `Quitar a ${unassignTarget.staffName} de este turno.`
+            : 'Quitar asignaci¢n de este turno.'
+        }
+        confirmLabel="Quitar"
+        onConfirm={handleUnassign}
+        onCancel={() => setUnassignTarget(null)}
+      />
     </div>
   )
 }
