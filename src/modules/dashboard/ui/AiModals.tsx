@@ -35,8 +35,11 @@ export function DailyBriefModal({ onClose, weekStart }: { onClose: () => void; w
                 setLoading(false)
             }
         }
-        if (activeOrgId) fetchBrief()
-    }, [activeOrgId, weekStart])
+        if (!activeOrgId || !session?.access_token) return
+        setLoading(true)
+        setError(null)
+        fetchBrief()
+    }, [activeOrgId, session?.access_token, weekStart])
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-nano-navy-900/80 backdrop-blur-sm p-4 animate-fade-in">
@@ -113,8 +116,11 @@ export function OrderAuditModal({ onClose, orderId }: { onClose: () => void; ord
                 setLoading(false)
             }
         }
-        if (orderId) runAudit()
-    }, [orderId])
+        if (!orderId || !session?.access_token) return
+        setLoading(true)
+        setError(null)
+        runAudit()
+    }, [orderId, session?.access_token])
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-nano-navy-900/80 backdrop-blur-sm p-4 animate-fade-in">

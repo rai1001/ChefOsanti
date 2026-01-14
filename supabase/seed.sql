@@ -1,7 +1,160 @@
+-- Seed auth admin user (idempotent)
+do $$
+declare
+  admin_id uuid := '11111111-1111-1111-1111-111111111111';
+  tester_id uuid := '33333333-3333-3333-3333-333333333333';
+  instance_id uuid;
+begin
+  select id into instance_id from auth.instances limit 1;
+  if instance_id is null then
+    instance_id := gen_random_uuid();
+    insert into auth.instances (id, uuid, raw_base_config, created_at, updated_at)
+    values (
+      instance_id,
+      instance_id,
+      '{}'::text,
+      timezone('utc', now()),
+      timezone('utc', now())
+    );
+  end if;
+
+  insert into auth.users (
+    id,
+    instance_id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    last_sign_in_at
+  )
+  values (
+    admin_id,
+    instance_id,
+    'authenticated',
+    'authenticated',
+    'admin@chefos.com',
+    crypt('password123', gen_salt('bf')),
+    timezone('utc', now()),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{}'::jsonb,
+    timezone('utc', now()),
+    timezone('utc', now()),
+    timezone('utc', now())
+  )
+  on conflict (id) do update
+  set email = excluded.email,
+      encrypted_password = excluded.encrypted_password,
+      email_confirmed_at = excluded.email_confirmed_at,
+      raw_app_meta_data = excluded.raw_app_meta_data,
+      raw_user_meta_data = excluded.raw_user_meta_data,
+      updated_at = excluded.updated_at;
+
+  insert into auth.identities (
+    id,
+    user_id,
+    provider,
+    provider_id,
+    identity_data,
+    last_sign_in_at,
+    created_at,
+    updated_at
+  )
+  values (
+    gen_random_uuid(),
+    admin_id,
+    'email',
+    admin_id::text,
+    jsonb_build_object(
+      'sub', admin_id::text,
+      'email', 'admin@chefos.com',
+      'email_verified', true
+    ),
+    timezone('utc', now()),
+    timezone('utc', now()),
+    timezone('utc', now())
+  )
+  on conflict (provider, provider_id) do update
+  set user_id = excluded.user_id,
+      identity_data = excluded.identity_data,
+      last_sign_in_at = excluded.last_sign_in_at,
+      updated_at = excluded.updated_at;
+
+  insert into auth.users (
+    id,
+    instance_id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    last_sign_in_at
+  )
+  values (
+    tester_id,
+    instance_id,
+    'authenticated',
+    'authenticated',
+    'test@example.com',
+    crypt('password', gen_salt('bf')),
+    timezone('utc', now()),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{}'::jsonb,
+    timezone('utc', now()),
+    timezone('utc', now()),
+    timezone('utc', now())
+  )
+  on conflict (id) do update
+  set email = excluded.email,
+      encrypted_password = excluded.encrypted_password,
+      email_confirmed_at = excluded.email_confirmed_at,
+      raw_app_meta_data = excluded.raw_app_meta_data,
+      raw_user_meta_data = excluded.raw_user_meta_data,
+      updated_at = excluded.updated_at;
+
+  insert into auth.identities (
+    id,
+    user_id,
+    provider,
+    provider_id,
+    identity_data,
+    last_sign_in_at,
+    created_at,
+    updated_at
+  )
+  values (
+    gen_random_uuid(),
+    tester_id,
+    'email',
+    tester_id::text,
+    jsonb_build_object(
+      'sub', tester_id::text,
+      'email', 'test@example.com',
+      'email_verified', true
+    ),
+    timezone('utc', now()),
+    timezone('utc', now()),
+    timezone('utc', now())
+  )
+  on conflict (provider, provider_id) do update
+  set user_id = excluded.user_id,
+      identity_data = excluded.identity_data,
+      last_sign_in_at = excluded.last_sign_in_at,
+      updated_at = excluded.updated_at;
+end $$;
+
 -- Seed A0: orgs, memberships, hotels (idempotente)
 insert into public.orgs (id, name, slug)
 values
-  ('00000000-0000-0000-0000-000000000001', 'Demo Org', 'demo-org'),
+  ('00000000-0000-0000-0000-000000000001', 'ChefOS Demo', 'chefos-demo'),
   ('00000000-0000-0000-0000-000000000002', 'Org Demo Sur', 'org-demo-sur')
 on conflict (id) do update
 set name = excluded.name,
@@ -10,6 +163,7 @@ set name = excluded.name,
 insert into public.org_memberships (org_id, user_id, role)
 values
   ('00000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'admin'),
+  ('00000000-0000-0000-0000-000000000001', '33333333-3333-3333-3333-333333333333', 'admin'),
   ('00000000-0000-0000-0000-000000000002', '22222222-2222-2222-2222-222222222222', 'admin')
 on conflict (org_id, user_id) do update
 set role = excluded.role;
@@ -18,7 +172,10 @@ set role = excluded.role;
 update public.org_memberships
 set is_active = true
 where org_id = '00000000-0000-0000-0000-000000000001'
-  and user_id = '11111111-1111-1111-1111-111111111111';
+  and user_id in (
+    '11111111-1111-1111-1111-111111111111',
+    '33333333-3333-3333-3333-333333333333'
+  );
 
 insert into public.hotels (id, org_id, name, city, country, currency)
 values
@@ -34,7 +191,8 @@ set name = excluded.name,
 
 insert into public.suppliers (id, org_id, name)
 values
-  ('30000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Proveedor Demo')
+  ('30000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Proveedor Demo'),
+  ('30000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Proveedor E2E')
 on conflict (id) do update
 set name = excluded.name,
     org_id = excluded.org_id;
@@ -42,7 +200,10 @@ set name = excluded.name,
 insert into public.supplier_items (id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes)
 values
   ('40000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000001', 'Tomate rama', 'kg', 5, 'ceil_pack', 2.8, 'Caja de 5kg'),
-  ('40000000-0000-0000-0000-000000000002', '30000000-0000-0000-0000-000000000001', 'Huevos L', 'ud', null, 'ceil_unit', 0.18, null)
+  ('40000000-0000-0000-0000-000000000002', '30000000-0000-0000-0000-000000000001', 'Huevos L', 'ud', null, 'ceil_unit', 0.18, null),
+  ('40000000-0000-0000-0000-000000000003', '30000000-0000-0000-0000-000000000002', 'Item E2E 1', 'kg', null, 'ceil_unit', 4.5, null),
+  ('40000000-0000-0000-0000-000000000004', '30000000-0000-0000-0000-000000000002', 'Item E2E 2', 'ud', null, 'ceil_unit', 1.2, null),
+  ('40000000-0000-0000-0000-000000000005', '30000000-0000-0000-0000-000000000002', 'Item E2E 3', 'kg', null, 'ceil_unit', 3.9, null)
 on conflict (id) do update
 set name = excluded.name,
     purchase_unit = excluded.purchase_unit,
@@ -54,7 +215,10 @@ set name = excluded.name,
 insert into public.ingredients (id, org_id, hotel_id, name, base_unit, stock, par_level)
 values
   ('60000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Tomate', 'kg', 0, null),
-  ('60000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Huevos', 'ud', 0, null)
+  ('60000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Huevos', 'ud', 0, null),
+  ('60000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Ingrediente E2E 1', 'kg', 0, null),
+  ('60000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Ingrediente E2E 2', 'ud', 0, null),
+  ('60000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Ingrediente E2E 3', 'kg', 0, null)
 on conflict (id) do update
 set name = excluded.name,
     base_unit = excluded.base_unit,
@@ -161,7 +325,8 @@ on conflict (id) do update set service_type = excluded.service_type, format = ex
 -- E3: plantillas de menú
 insert into public.menu_templates (id, org_id, name, category, active, notes)
 values
-  ('74000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Coffee break estandar', 'coffee_break', true, 'Plantilla demo')
+  ('74000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Coffee break estandar', 'coffee_break', true, 'Plantilla demo'),
+  ('74000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Menu E2E', 'empresa', true, 'Menu base E2E')
 on conflict (id) do update
 set name = excluded.name,
     category = excluded.category,
@@ -172,7 +337,8 @@ insert into public.menu_template_items (id, org_id, template_id, section, name, 
 values
   ('75000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '74000000-0000-0000-0000-000000000001', 'Solidos', 'Mini bocadillo', 'ud', 1, 2, 'ceil_unit', null, null),
   ('75000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', '74000000-0000-0000-0000-000000000001', 'Bebidas', 'Cafe', 'ud', 1, 1, 'none', null, null),
-  ('75000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', '74000000-0000-0000-0000-000000000001', 'Bebidas', 'Zumo', 'ud', 0, 1, 'ceil_unit', null, null)
+  ('75000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', '74000000-0000-0000-0000-000000000001', 'Bebidas', 'Zumo', 'ud', 0, 1, 'ceil_unit', null, null),
+  ('75000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', '74000000-0000-0000-0000-000000000002', 'Principal', 'Receta Test', 'kg', 0.2, 0, 'none', null, null)
 on conflict (id) do update
 set section = excluded.section,
     name = excluded.name,
@@ -185,7 +351,8 @@ set section = excluded.section,
 
 insert into public.event_service_menus (id, org_id, event_service_id, template_id)
 values
-  ('76000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '73000000-0000-0000-0000-000000000001', '74000000-0000-0000-0000-000000000001')
+  ('76000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '73000000-0000-0000-0000-000000000001', '74000000-0000-0000-0000-000000000001'),
+  ('76000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', '73000000-0000-0000-0000-000000000002', '74000000-0000-0000-0000-000000000002')
 on conflict (id) do update
 set event_service_id = excluded.event_service_id,
     template_id = excluded.template_id;
@@ -303,7 +470,10 @@ values
   ('90000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Tomate', 'kg', 'vegetal', true),
   ('90000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Huevos', 'ud', 'lacteo', true),
   ('90000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', 'Aceite', 'kg', 'basicos', true),
-  ('90000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000002', 'Prod Sur', 'ud', 'demo', true)
+  ('90000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000002', 'Prod Sur', 'ud', 'demo', true),
+  ('90000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', 'Ingrediente E2E 1', 'kg', 'e2e', true),
+  ('90000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000001', 'Ingrediente E2E 2', 'ud', 'e2e', true),
+  ('90000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000001', 'Ingrediente E2E 3', 'kg', 'e2e', true)
 on conflict (id) do update
 set name = excluded.name,
     base_unit = excluded.base_unit,
@@ -319,7 +489,8 @@ where i.org_id = p.org_id
 
 insert into public.recipes (id, org_id, name, category, default_servings, notes)
 values
-  ('90000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000001', 'Tortilla basica', 'demo', 10, 'Receta demo')
+  ('90000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000001', 'Tortilla basica', 'demo', 10, 'Receta demo'),
+  ('90000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000001', 'Receta Test', 'e2e', 10, 'Receta base E2E')
 on conflict (id) do update
 set name = excluded.name,
     category = excluded.category,
@@ -329,12 +500,29 @@ set name = excluded.name,
 insert into public.recipe_lines (id, org_id, recipe_id, product_id, qty, unit, notes)
 values
   ('90000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000010', '90000000-0000-0000-0000-000000000002', 10, 'ud', null),
-  ('90000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000010', '90000000-0000-0000-0000-000000000003', 0.2, 'kg', null)
+  ('90000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000010', '90000000-0000-0000-0000-000000000003', 0.2, 'kg', null),
+  ('90000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000020', '90000000-0000-0000-0000-000000000005', 2, 'kg', null),
+  ('90000000-0000-0000-0000-000000000022', '00000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000020', '90000000-0000-0000-0000-000000000006', 4, 'ud', null),
+  ('90000000-0000-0000-0000-000000000023', '00000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000020', '90000000-0000-0000-0000-000000000007', 1, 'kg', null)
 on conflict (id) do update
 set qty = excluded.qty,
     unit = excluded.unit,
     notes = excluded.notes,
     product_id = excluded.product_id;
+
+-- PR2 mapping for menu -> recipe
+insert into public.menu_item_recipe_aliases (id, org_id, alias_name, recipe_id)
+values
+  ('80000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Receta Test', '90000000-0000-0000-0000-000000000020')
+on conflict (org_id, alias_name) do update
+set recipe_id = excluded.recipe_id;
+
+insert into public.recipe_production_meta (id, org_id, recipe_id, station, lead_time_minutes)
+values
+  ('80000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000020', 'caliente', 60)
+on conflict (recipe_id) do update
+set station = excluded.station,
+    lead_time_minutes = excluded.lead_time_minutes;
 
 -- S1 staff demo
 insert into public.staff_members (id, org_id, home_hotel_id, full_name, role, employment_type, active)
@@ -433,6 +621,14 @@ where s.hotel_id = '20000000-0000-0000-0000-000000000001'
   and s.shift_date in ('2026-01-05', '2026-01-06')
 on conflict (shift_id, staff_member_id) do nothing;
 
+-- W1 waste demo
+insert into public.waste_reasons (id, org_id, name, is_active)
+values
+  ('b0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Deterioro', true)
+on conflict (id) do update
+set name = excluded.name,
+    is_active = excluded.is_active;
+
 -- PR3 demo datos de stock y buffer
 insert into public.purchasing_settings (org_id, default_buffer_percent, default_buffer_qty)
 values ('00000000-0000-0000-0000-000000000001', 5, 0.5)
@@ -488,7 +684,7 @@ values (
   '20000000-0000-0000-0000-000000000001',
   '30000000-0000-0000-0000-000000000001',
   'confirmed',
-  'PO-DEMO-001',
+  'PO-DEMO-002',
   0
 )
 on conflict (id) do update set status = excluded.status;

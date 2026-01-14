@@ -52,7 +52,7 @@ export default function PurchaseOrderDetailPage() {
   const suppliers = useSuppliersLite(activeOrgId ?? undefined)
   const supplierId = purchaseOrder.data?.order.supplierId
   const supplierItems = useSupplierItemsList(supplierId)
-  const ingredients = useIngredients(purchaseOrder.data?.order.hotelId)
+  const ingredients = useIngredients(purchaseOrder.data?.order.orgId, purchaseOrder.data?.order.hotelId)
   const addLine = useAddPurchaseOrderLine(id)
   const updateStatus = useUpdatePurchaseOrderStatus(id)
   const receivePo = useReceivePurchaseOrder(id)

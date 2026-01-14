@@ -15,8 +15,7 @@ create table if not exists public.preparations (
   shelf_life_days int not null default 0,
   storage public.storage_type not null default 'fridge',
   allergens text null,
-  created_at timestamptz not null default timezone('utc', now()),
-  unique (org_id, lower(name))
+  created_at timestamptz not null default timezone('utc', now())
 );
 
 create table if not exists public.preparation_runs (
@@ -48,6 +47,8 @@ alter table public.stock_batches
   add constraint stock_batches_product_or_prep check (supplier_item_id is not null or preparation_id is not null);
 
 create index if not exists preparations_org_idx on public.preparations (org_id);
+create unique index if not exists preparations_org_name_uniq
+  on public.preparations (org_id, lower(name));
 create index if not exists preparation_runs_org_idx on public.preparation_runs (org_id);
 create index if not exists preparation_runs_prep_idx on public.preparation_runs (preparation_id);
 create index if not exists preparation_runs_location_idx on public.preparation_runs (location_id);

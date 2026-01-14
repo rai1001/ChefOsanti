@@ -15,7 +15,7 @@ function supabaseForUser(req: Request) {
     })
 }
 
-serve(async (req) => {
+export async function handler(req: Request) {
     if (req.method === 'OPTIONS') {
         return new Response('ok', {
             headers: {
@@ -101,4 +101,8 @@ serve(async (req) => {
         }
         return new Response(JSON.stringify({ error: String(err?.message || err) }), { status: 500 })
     }
-})
+}
+
+if (import.meta.main) {
+    serve(handler)
+}

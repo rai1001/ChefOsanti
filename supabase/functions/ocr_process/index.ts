@@ -184,7 +184,7 @@ async function handleRun(req: Request) {
   }
 }
 
-serve(async (req) => {
+export async function handler(req: Request) {
   const url = new URL(req.url)
   // Headers CORS for browser direct calls if needed, though usually proxied
   if (req.method === 'OPTIONS') {
@@ -203,4 +203,8 @@ serve(async (req) => {
     return handleRun(req)
   }
   return new Response(JSON.stringify({ error: 'not found' }), { status: 404 })
-})
+}
+
+if (import.meta.main) {
+  serve(handler)
+}

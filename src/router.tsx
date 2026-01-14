@@ -315,6 +315,10 @@ export const appRouter = createBrowserRouter([
           </RequirePermission>
         ),
       },
+      {
+        path: 'reporting',
+        element: <Navigate to="/reports" replace />,
+      },
     ],
   },
   { path: '/login', element: <LoginPage /> },

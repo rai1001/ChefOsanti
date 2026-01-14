@@ -102,7 +102,7 @@ export function AppLayout({ children }: Props) {
               <button
                 type="button"
                 className="rounded-md px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-nano-blue-400"
-                aria-label="Cambiar densidad"
+                aria-label={densityLabel}
                 onClick={() => setDensity((prev) => (prev === 'compact' ? 'comfortable' : 'compact'))}
               >
                 {densityLabel}

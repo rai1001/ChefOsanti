@@ -151,7 +151,7 @@ export default function MenuTemplatesPage() {
           <div className="col-span-full py-12">
             <EmptyState
               icon={FileText}
-              title="Sin plantillas"
+              title="Sin menus"
               description="Crea plantillas de menú para agilizar la planificación de eventos."
             />
           </div>

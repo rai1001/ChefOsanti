@@ -6,12 +6,13 @@ create table if not exists public.inventory_locations (
   org_id uuid not null references public.orgs (id) on delete cascade,
   hotel_id uuid null references public.hotels (id) on delete set null,
   name text not null,
-  created_at timestamptz not null default timezone('utc', now()),
-  unique (org_id, coalesce(hotel_id, '00000000-0000-0000-0000-000000000000'::uuid), name)
+  created_at timestamptz not null default timezone('utc', now())
 );
 
 create index if not exists inventory_locations_org_idx on public.inventory_locations (org_id);
 create index if not exists inventory_locations_hotel_idx on public.inventory_locations (hotel_id);
+create unique index if not exists inventory_locations_org_hotel_name_uniq
+  on public.inventory_locations (org_id, (coalesce(hotel_id, '00000000-0000-0000-0000-000000000000'::uuid)), name);
 
 -- 2) Niveles de stock por supplier_item y localizacion
 create table if not exists public.stock_levels (
@@ -39,7 +40,7 @@ create table if not exists public.purchasing_settings (
 
 -- 4) Enriquecer lineas de borrador de evento
 alter table public.event_purchase_order_lines
-  add column if not exists freeze boolean not null default false,
+  add column if not exists "freeze" boolean not null default false,
   add column if not exists buffer_percent numeric not null default 0,
   add column if not exists buffer_qty numeric not null default 0,
   add column if not exists gross_qty numeric not null default 0,

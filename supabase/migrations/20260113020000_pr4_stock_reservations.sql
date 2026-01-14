@@ -21,8 +21,7 @@ create table if not exists public.stock_reservations (
   status public.reservation_status not null default 'active',
   reserved_at timestamptz not null default timezone('utc', now()),
   released_at timestamptz null,
-  created_by uuid null,
-  unique (event_id, event_service_id, status) where (status = 'active')
+  created_by uuid null
 );
 
 create index if not exists stock_reservations_org_idx on public.stock_reservations (org_id);
@@ -30,6 +29,9 @@ create index if not exists stock_reservations_hotel_idx on public.stock_reservat
 create index if not exists stock_reservations_location_idx on public.stock_reservations (location_id);
 create index if not exists stock_reservations_service_idx on public.stock_reservations (event_service_id);
 create index if not exists stock_reservations_status_idx on public.stock_reservations (status);
+create unique index if not exists stock_reservations_active_uniq
+  on public.stock_reservations (event_id, event_service_id, status)
+  where status = 'active';
 
 -- Líneas de reserva
 create table if not exists public.stock_reservation_lines (

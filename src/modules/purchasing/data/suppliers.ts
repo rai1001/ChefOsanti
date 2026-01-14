@@ -64,6 +64,7 @@ async function fetchSuppliersInfinite({
     .select('id, org_id, name, created_at')
     .eq('org_id', orgId)
     .order('created_at', { ascending: false })
+    .order('name', { ascending: false })
     .range(from, to)
 
   if (error) {
@@ -220,6 +221,9 @@ export function useCreateSupplier(orgId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] })
+      if (orgId) {
+        queryClient.invalidateQueries({ queryKey: ['suppliers', 'infinite', orgId] })
+      }
     },
   })
 }

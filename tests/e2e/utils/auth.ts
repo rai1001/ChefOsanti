@@ -110,10 +110,19 @@ export async function injectSession(
 
   if (creds) {
     await page.goto('/login')
-    if (page.url().includes('/login')) {
-      await page.getByLabel(/Correo/i).fill(creds.email)
-      await page.getByLabel(/Contrase/i).fill(creds.password)
-      await page.getByRole('button', { name: /Entrar/i }).click()
+    const emailField = page.getByLabel(/Correo/i)
+    try {
+      await emailField.waitFor({ state: 'visible', timeout: 5000 })
+    } catch (_err) {
+      return
     }
+
+    await emailField.fill(creds.email)
+    const passwordField = page.getByLabel(/Contrase/i)
+    await passwordField.fill(creds.password)
+    await Promise.all([
+      page.waitForURL((url) => !url.pathname.includes('/login')),
+      passwordField.press('Enter'),
+    ])
   }
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
+import { canUseFeature } from '@/modules/auth/domain/aiAccess'
 import { useOrgPlan } from '@/modules/orgs/data/orgPlans'
 import { useBriefs, useGenerateBrief } from '../data/briefs'
 import type { BriefPeriod } from '../domain/briefs'
@@ -15,10 +16,11 @@ export function DailyBriefWidget() {
     const briefs = useBriefs(activeOrgId ?? undefined, period)
     const generate = useGenerateBrief(activeOrgId ?? undefined)
 
-    // Logic mirrors DB: PRO+ and MANAGER+
-    const isPlanValid = plan === 'pro' || plan === 'vip'
-    const isRoleValid = role === 'manager' || role === 'admin'
-    const canUse = isPlanValid && isRoleValid
+    const planTier = plan ?? 'basic'
+    const canDailyBrief = canUseFeature(role, planTier, 'daily_brief')
+    const canOcrReview = canUseFeature(role, planTier, 'ocr_review')
+    const canOrderAudit = canUseFeature(role, planTier, 'order_audit')
+    const canUse = canDailyBrief
 
     const currentBrief = briefs.data?.[0]
 
@@ -27,7 +29,7 @@ export function DailyBriefWidget() {
     }
 
     return (
-        <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-6 shadow-xl backdrop-blur-sm animate-fade-in relative overflow-hidden group">
+        <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-6 shadow-xl backdrop-blur-sm animate-fade-in relative overflow-hidden group" data-testid="ai-access-panel">
             {/* Background decoration */}
             <div className="absolute top-0 right-0 -tr-16 w-32 h-32 bg-nano-blue-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -41,6 +43,33 @@ export function DailyBriefWidget() {
                         PRO
                     </span>
                 )}
+            </div>
+
+            <div className="grid gap-2 mb-4">
+                <button
+                    type="button"
+                    data-testid="btn-daily_brief"
+                    disabled={!canDailyBrief}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 py-2 text-xs font-semibold text-slate-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Daily Brief
+                </button>
+                <button
+                    type="button"
+                    data-testid="btn-ocr_review"
+                    disabled={!canOcrReview}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 py-2 text-xs font-semibold text-slate-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    OCR Review
+                </button>
+                <button
+                    type="button"
+                    data-testid="btn-order_audit"
+                    disabled={!canOrderAudit}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 py-2 text-xs font-semibold text-slate-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Order Audit
+                </button>
             </div>
 
             {!canUse ? (

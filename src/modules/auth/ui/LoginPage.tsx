@@ -71,7 +71,7 @@ export function LoginPage() {
             id="login-email"
             autoComplete="email"
             className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white shadow-sm focus:border-nano-blue-500 focus:outline-none focus:ring-2 focus:ring-nano-blue-500/20 placeholder-slate-500 transition-colors"
-            placeholder="operaciones@hotel.com"
+            placeholder="tucorreo@empresa.com"
             {...register('email')}
           />
           {errors.email && <p id="email-error" className="text-sm text-red-500">{errors.email.message}</p>}
@@ -84,7 +84,7 @@ export function LoginPage() {
             id="login-password"
             autoComplete="current-password"
             className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white shadow-sm focus:border-nano-blue-500 focus:outline-none focus:ring-2 focus:ring-nano-blue-500/20 placeholder-slate-500 transition-colors"
-            placeholder="********"
+            placeholder="••••••••"
             {...register('password')}
           />
           {errors.password && <p id="password-error" className="text-sm text-red-500">{errors.password.message}</p>}
@@ -93,6 +93,7 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={isSubmitting}
+          aria-label="Entrar Iniciar Sesión"
           className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting ? 'Accediendo...' : 'Entrar'}

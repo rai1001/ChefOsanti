@@ -15,7 +15,7 @@ function supabaseForUser(req: Request) {
     })
 }
 
-serve(async (req) => {
+export async function handler(req: Request) {
     // CORS
     if (req.method === 'OPTIONS') {
         return new Response('ok', {
@@ -96,4 +96,8 @@ serve(async (req) => {
         }
         return new Response(JSON.stringify({ error: String(err?.message || err) }), { status: 500 })
     }
-})
+}
+
+if (import.meta.main) {
+    serve(handler)
+}

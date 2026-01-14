@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ClipboardList } from 'lucide-react'
-import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useHotels, usePurchaseOrders } from '../data/orders'
@@ -40,27 +38,28 @@ export default function PurchaseOrdersPage() {
       </div>
     )
   }
-  if (!session || error) {
-    return (
-      <ErrorBanner
-        title="Inicia sesi¢n"
-        message={sessionError || 'Inicia sesi¢n para ver pedidos.'}
-      />
-    )
-  }
+  const isGuest = !session || Boolean(error)
 
   return (
     <div className="space-y-4 animate-fade-in">
+      {isGuest && (
+        <ErrorBanner
+          title="Sesión requerida"
+          message={sessionError || 'Necesitas iniciar sesión para ver pedidos.'}
+        />
+      )}
       <PageHeader
         title="Pedidos de compra"
         subtitle="Filtra por estado u hotel."
         actions={
-          <Link
-            to="/purchasing/orders/new"
-            className="rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition-colors hover:bg-nano-blue-500"
-          >
-            Nuevo pedido
-          </Link>
+          session ? (
+            <Link
+              to="/purchasing/orders/new"
+              className="rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition-colors hover:bg-nano-blue-500"
+            >
+              Nuevo pedido
+            </Link>
+          ) : undefined
         }
       />
 
@@ -95,34 +94,38 @@ export default function PurchaseOrdersPage() {
           <h2 className="text-sm font-semibold text-white">Listado</h2>
           {orders.isLoading && <span className="text-xs text-slate-400">Cargando...</span>}
         </div>
-        {orders.isLoading ? (
-          <div className="space-y-2 p-4">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
-            <Skeleton className="h-4 w-2/3" />
-          </div>
-        ) : orders.isError ? (
-          <div className="p-4">
-            <ErrorBanner
-              title="Error al cargar pedidos"
-              message={useFormattedError(orders.error)}
-              onRetry={() => orders.refetch()}
-            />
-          </div>
-        ) : orders.data?.length ? (
-          <div className="overflow-x-auto">
-            <table className="ds-table min-w-full">
-              <thead>
+        <div className="overflow-x-auto">
+          <table className="ds-table min-w-full">
+            <thead>
+              <tr>
+                <th>Pedido</th>
+                <th>Hotel</th>
+                <th>Estado</th>
+                <th className="is-num">Total</th>
+                <th className="is-action">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.isLoading ? (
+                Array.from({ length: 3 }, (_, idx) => (
+                  <tr key={`loading-${idx}`}>
+                    <td colSpan={5}>
+                      <Skeleton className="h-4 w-full" />
+                    </td>
+                  </tr>
+                ))
+              ) : orders.isError ? (
                 <tr>
-                  <th>Pedido</th>
-                  <th>Hotel</th>
-                  <th>Estado</th>
-                  <th className="is-num">Total</th>
-                  <th className="is-action">Acciones</th>
+                  <td colSpan={5}>
+                    <ErrorBanner
+                      title="Error al cargar pedidos"
+                      message={useFormattedError(orders.error)}
+                      onRetry={() => orders.refetch()}
+                    />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {orders.data.map((po) => (
+              ) : orders.data?.length ? (
+                orders.data.map((po) => (
                   <tr key={po.id}>
                     <td className="font-semibold text-white">{po.orderNumber}</td>
                     <td>{hotelMap[po.hotelId] ?? 'N/D'}</td>
@@ -139,27 +142,17 @@ export default function PurchaseOrdersPage() {
                       </Link>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="py-8">
-            <EmptyState
-              icon={ClipboardList}
-              title="Sin pedidos"
-              description="Crea pedidos de compra para reponer tu stock."
-              action={
-                <Link
-                  to="/purchasing/orders/new"
-                  className="text-sm font-semibold text-nano-blue-400 underline hover:text-nano-blue-300"
-                >
-                  Crear pedido
-                </Link>
-              }
-            />
-          </div>
-        )}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-6 text-center text-sm text-slate-400">
+                    Sin pedidos
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

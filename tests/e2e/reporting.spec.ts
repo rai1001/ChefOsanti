@@ -1,60 +1,90 @@
-import { test, expect } from '@playwright/test';
+import { randomUUID } from 'node:crypto'
+import { test, expect, type Page } from '@playwright/test'
+import {
+  createUserWithRetry,
+  getAnonStorageKey,
+  getServiceClients,
+  injectSession,
+  signInWithRetry,
+} from './utils/auth'
+import { mockEdgeFunction } from './utils/edge'
+
+async function setupReporting(page: Page) {
+  const { admin, anon, anonKey, url } = getServiceClients()
+  const email = `e2e+reporting+${Date.now()}@chefos.test`
+  const password = 'Test1234!'
+  const orgId = randomUUID()
+  const user = await createUserWithRetry(admin, email, password)
+
+  await admin.from('orgs').insert({
+    id: orgId,
+    name: 'Org Reports',
+    slug: `org-reports-${orgId.slice(0, 6)}`,
+  })
+
+  await admin.from('org_memberships').insert({
+    org_id: orgId,
+    user_id: user.id,
+    role: 'admin',
+    is_active: true,
+  })
+
+  const session = await signInWithRetry(anon, email, password)
+  const storageKey = getAnonStorageKey(url, anon)
+  await injectSession(page, storageKey, session, url, anonKey, { email, password })
+  await page.addInitScript(({ org }) => localStorage.setItem('activeOrgId', org), { org: orgId })
+}
 
 test.describe('Reporting Module', () => {
-    test.beforeEach(async ({ page }) => {
-        // Login logic (assuming reused state or custom login helper, simplified here if global setup exists)
-        // If no global setup, we might need to login. 
-        // Assuming 'storageState' is configured in playwright.config.ts or we use a helper.
-        // For now, let's assume we need to bypass auth or login.
-        // Actually, let's just use the standar login flow if needed, or assume unauthenticated redirect if not.
-        // Best practice in this repo seems to be using `test.use({ storageState: 'playwright/.auth/admin.json' })` if setup.
-        // Let's check playwright config or existing tests.
+  test.beforeEach(async ({ page }) => {
+    await setupReporting(page)
+  })
 
-        // For now, I'll write a generic test assuming authenticated state is handled or I'll implement a quick login
-        await page.goto('/');
-    });
+  test('should navigate to reports and generate a new report', async ({ page }) => {
+    await mockEdgeFunction(page, 'reporting_generate', {
+      payload: {
+        success: true,
+        report: {
+          id: 'mock-report-id',
+          type: 'weekly',
+          status: 'generated',
+          created_at: new Date().toISOString(),
+          period_start: new Date().toISOString(),
+          period_end: new Date().toISOString(),
+          metrics_json: { events: { total: 10 } },
+          report_md: '# Mock Report\n\nAnalysis here.',
+        },
+      },
+    })
 
-    test('should navigate to reports and generate a new report', async ({ page }) => {
-        // Mock the Edge Function call
-        await page.route('**/functions/v1/reporting_generate', async route => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
-                    success: true,
-                    report: {
-                        id: 'mock-report-id',
-                        type: 'weekly',
-                        status: 'generated',
-                        created_at: new Date().toISOString(),
-                        period_start: new Date().toISOString(),
-                        period_end: new Date().toISOString(),
-                        metrics_json: { events: { total: 10 } },
-                        report_md: '# Mock Report\n\nAnalysis here.'
-                    }
-                })
-            });
-        });
+    await page.goto('/dashboard')
+    await page.getByRole('link', { name: /reportes/i }).click()
+    await expect(page).toHaveURL(/\/reports/)
+    await expect(page.getByRole('heading', { name: 'Reportes' })).toBeVisible()
 
-        // 1. Navigate to Reports
-        await page.getByRole('link', { name: /reportes/i }).click();
-        await expect(page).toHaveURL(/\/reports/);
-        await expect(page.getByRole('heading', { name: 'Reportes' })).toBeVisible();
+    await page.getByRole('button', { name: /generar informe/i }).click()
+    await expect(page.getByText('Generar Nuevo Informe')).toBeVisible()
 
-        // 2. Open Generate Dialog
-        await page.getByRole('button', { name: /generar informe/i }).click();
-        await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByText('Generar Nuevo Informe')).toBeVisible();
+    await page.getByRole('button', { name: 'Generar', exact: true }).click()
 
-        // 3. Select type and submit
-        await page.getByLabel('Semanal').click();
-        // Helper to find the submit button inside the dialog
-        await page.getByRole('button', { name: 'Generar' }).click();
+    await expect(page.getByText('Informe generado correctamente')).toBeVisible()
+  })
 
-        // 4. Verify Success
-        await expect(page.getByText('Informe generado correctamente')).toBeVisible();
+  test('shows error toast when report generation fails', async ({ page }) => {
+    await mockEdgeFunction(page, 'reporting_generate', {
+      status: 500,
+      payload: { error: 'AI Service not configured' },
+    })
 
-        // 5. Verify List updates (Mocking list response might be needed if we want to see the new item immediately without real DB)
-        // For now, just verifying the toast confirms the UI handled the "success" response correctly.
-    });
-});
+    await page.goto('/dashboard')
+    await page.getByRole('link', { name: /reportes/i }).click()
+    await expect(page).toHaveURL(/\/reports/)
+
+    await page.getByRole('button', { name: /generar informe/i }).click()
+    await expect(page.getByText('Generar Nuevo Informe')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Generar', exact: true }).click()
+
+    await expect(page.getByText(/Error al generar el informe/i)).toBeVisible()
+  })
+})

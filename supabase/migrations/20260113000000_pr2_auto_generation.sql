@@ -39,26 +39,32 @@ drop policy if exists "aliases_read_member" on public.menu_item_recipe_aliases;
 create policy "aliases_read_member" on public.menu_item_recipe_aliases
   for select using (public.is_org_member(org_id));
 
-drop policy if exists "aliases_write_member" on public.menu_item_recipe_aliases
+drop policy if exists "aliases_write_member" on public.menu_item_recipe_aliases;
+create policy "aliases_write_member" on public.menu_item_recipe_aliases
   for insert with check (public.is_org_member(org_id));
 
-drop policy if exists "aliases_update_member" on public.menu_item_recipe_aliases
+drop policy if exists "aliases_update_member" on public.menu_item_recipe_aliases;
+create policy "aliases_update_member" on public.menu_item_recipe_aliases
   for update using (public.is_org_member(org_id));
 
-drop policy if exists "aliases_delete_member" on public.menu_item_recipe_aliases
+drop policy if exists "aliases_delete_member" on public.menu_item_recipe_aliases;
+create policy "aliases_delete_member" on public.menu_item_recipe_aliases
   for delete using (public.is_org_member(org_id));
 
 drop policy if exists "meta_read_member" on public.recipe_production_meta;
 create policy "meta_read_member" on public.recipe_production_meta
   for select using (public.is_org_member(org_id));
 
-drop policy if exists "meta_write_member" on public.recipe_production_meta
+drop policy if exists "meta_write_member" on public.recipe_production_meta;
+create policy "meta_write_member" on public.recipe_production_meta
   for insert with check (public.is_org_member(org_id));
 
-drop policy if exists "meta_update_member" on public.recipe_production_meta
+drop policy if exists "meta_update_member" on public.recipe_production_meta;
+create policy "meta_update_member" on public.recipe_production_meta
   for update using (public.is_org_member(org_id));
 
-drop policy if exists "meta_delete_member" on public.recipe_production_meta
+drop policy if exists "meta_delete_member" on public.recipe_production_meta;
+create policy "meta_delete_member" on public.recipe_production_meta
   for delete using (public.is_org_member(org_id));
 
 -- 5. RPC: generate_production_plan

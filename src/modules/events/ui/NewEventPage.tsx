@@ -110,6 +110,7 @@ export default function NewEventPage() {
             <input
               className="w-full rounded-lg border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white shadow-sm focus:border-nano-blue-500 focus:outline-none focus:ring-1 focus:ring-nano-blue-500/50 placeholder:text-slate-600"
               placeholder="Ej. Convención Interna 2024"
+              aria-label="Titulo"
               {...register('title')}
             />
             {errors.title && <p className="text-xs text-red-400">{errors.title.message}</p>}

@@ -45,7 +45,7 @@ function getRanges(type: 'weekly' | 'monthly', refDateStr?: string) {
     };
 }
 
-serve(async (req) => {
+export async function handler(req: Request) {
     // CORS headers - Enable for all responses
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
@@ -189,4 +189,8 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
     }
-})
+}
+
+if (import.meta.main) {
+    serve(handler)
+}

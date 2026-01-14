@@ -22,8 +22,7 @@ create table if not exists public.inbound_shipments (
   file_url text null,
   dedupe_key text null,
   created_at timestamptz not null default timezone('utc', now()),
-  created_by uuid null,
-  unique (org_id, coalesce(supplier_name, ''), coalesce(delivery_note_number, ''), coalesce(delivered_at, date '0001-01-01'))
+  created_by uuid null
 );
 
 create table if not exists public.inbound_shipment_lines (
@@ -43,6 +42,13 @@ create table if not exists public.inbound_shipment_lines (
 create index if not exists inbound_shipments_org_idx on public.inbound_shipments (org_id);
 create index if not exists inbound_shipments_location_idx on public.inbound_shipments (location_id);
 create index if not exists inbound_shipments_dedupe_idx on public.inbound_shipments (org_id, dedupe_key);
+create unique index if not exists inbound_shipments_org_dedupe_uniq
+  on public.inbound_shipments (
+    org_id,
+    (coalesce(supplier_name, '')),
+    (coalesce(delivery_note_number, '')),
+    (coalesce(delivered_at, date '0001-01-01'))
+  );
 
 create index if not exists inbound_lines_org_idx on public.inbound_shipment_lines (org_id);
 create index if not exists inbound_lines_shipment_idx on public.inbound_shipment_lines (shipment_id);
