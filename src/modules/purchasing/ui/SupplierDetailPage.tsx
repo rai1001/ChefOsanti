@@ -46,6 +46,7 @@ export default function SupplierDetailPage() {
   const sessionError = useFormattedError(error)
   const createError = useFormattedError(createItem.error)
   const supplierError = useFormattedError(supplier.error)
+  const itemsError = useFormattedError(items.error)
 
   const {
     register,
@@ -154,7 +155,7 @@ export default function SupplierDetailPage() {
             <div className="p-4">
               <ErrorBanner
                 title="Error al cargar art¡culos"
-                message={useFormattedError(items.error)}
+                message={itemsError}
                 onRetry={() => items.refetch()}
               />
             </div>

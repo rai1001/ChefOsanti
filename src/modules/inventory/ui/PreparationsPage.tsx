@@ -88,6 +88,8 @@ export default function PreparationsPage() {
   })
 
   const formattedError = useFormattedError(preps.error || createPrep.error || createRun.error)
+  const createPrepError = useFormattedError(createPrep.error)
+  const createRunError = useFormattedError(createRun.error)
 
   const locationOptions = locations.data ?? []
   const locationNameById = useMemo(
@@ -236,7 +238,7 @@ export default function PreparationsPage() {
                 />
               </label>
             </div>
-            {createPrep.isError && <ErrorBanner title="Error al crear" message={useFormattedError(createPrep.error)} />}
+            {createPrep.isError && <ErrorBanner title="Error al crear" message={createPrepError} />}
             <div className="mt-4 flex justify-end gap-3">
               <button className="ds-btn ds-btn-ghost" onClick={() => setShowForm(false)}>
                 Cancelar
@@ -329,7 +331,7 @@ export default function PreparationsPage() {
                 />
               </label>
             </div>
-            {createRun.isError && <ErrorBanner title="Error al producir" message={useFormattedError(createRun.error)} />}
+            {createRun.isError && <ErrorBanner title="Error al producir" message={createRunError} />}
             <div className="mt-4 flex justify-end gap-3">
               <button className="ds-btn ds-btn-ghost" onClick={() => setShowProduceFor(null)}>
                 Cancelar

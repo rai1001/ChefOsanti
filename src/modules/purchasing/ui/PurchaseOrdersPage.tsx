@@ -20,6 +20,7 @@ export default function PurchaseOrdersPage() {
     status: status || undefined,
     hotelId: hotelId || undefined,
   })
+  const ordersError = useFormattedError(orders.error)
 
   const hotelMap = useMemo(
     () =>
@@ -119,7 +120,7 @@ export default function PurchaseOrdersPage() {
                   <td colSpan={5}>
                     <ErrorBanner
                       title="Error al cargar pedidos"
-                      message={useFormattedError(orders.error)}
+                      message={ordersError}
                       onRetry={() => orders.refetch()}
                     />
                   </td>

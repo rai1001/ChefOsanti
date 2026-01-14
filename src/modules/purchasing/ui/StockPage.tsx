@@ -55,6 +55,8 @@ export default function StockPage() {
     lotCode: null,
   })
   const expiryAlerts = useExpiryAlerts({ orgId: activeOrgId ?? undefined, status: 'open' })
+  const batchesError = useFormattedError(batches.error)
+  const createEntryError = useFormattedError(createEntry.error)
 
   const hotelsOptions = hotels.data ?? []
   const locationOptions = locations.data ?? []
@@ -200,7 +202,7 @@ export default function StockPage() {
           <div className="p-4">
             <ErrorBanner
               title="Error al cargar lotes"
-              message={useFormattedError(batches.error)}
+              message={batchesError}
               onRetry={() => batches.refetch()}
             />
           </div>
@@ -403,7 +405,7 @@ export default function StockPage() {
 
               {createEntry.isError && (
                 <div className="mt-2">
-                  <ErrorBanner title="Error al crear entrada" message={useFormattedError(createEntry.error)} />
+                  <ErrorBanner title="Error al crear entrada" message={createEntryError} />
                 </div>
               )}
 

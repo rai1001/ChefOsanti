@@ -45,6 +45,7 @@ export default function ExpiryAlertsPage() {
   const [newRuleDays, setNewRuleDays] = useState<number>(3)
 
   const formattedError = useFormattedError(error || alerts.error || rules.error)
+  const rulesError = useFormattedError(rules.error)
 
   const filteredAlerts = useMemo(() => {
     return (alerts.data ?? []).filter((a) => {
@@ -125,7 +126,7 @@ export default function ExpiryAlertsPage() {
         {rules.isLoading ? (
           <Skeleton className="h-10 w-full" />
         ) : rules.isError ? (
-          <ErrorBanner title="Error al cargar reglas" message={useFormattedError(rules.error)} onRetry={() => rules.refetch()} />
+          <ErrorBanner title="Error al cargar reglas" message={rulesError || formattedError} onRetry={() => rules.refetch()} />
         ) : rules.data?.length ? (
           <div className="flex flex-wrap gap-2">
             {rules.data.map((rule) => (
