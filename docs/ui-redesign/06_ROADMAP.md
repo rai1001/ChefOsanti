@@ -38,3 +38,8 @@ Prioridad: reproducir referencias 1:1 sin inventar estilo. Cada sprint entrega p
 - Kitchen mode y selector de sucursal visibles donde aplica.
 - Loading/empty/error presentes; acciones criticas con confirm dialog.
 - Performance aceptable en tablas largas y scheduling (virtualizacion si procede).
+
+## Next Up (pendiente)
+- Sprint 0: tokens unificados, AppShell completo, componentes base y KitchenMode/Command Palette.
+- Sprint 1: Login, Executive Dashboard, Inventory & Expiry Control, Expiry & Stock Alerts.
+- Sprint 4: Reports/Insights, Recipe & Product Catalog, QA visual final (tokens/estados/responsive/kitchen mode) y skeletons/empty/error/confirm dialogs coherentes.
