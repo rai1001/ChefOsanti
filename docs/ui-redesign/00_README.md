@@ -14,6 +14,12 @@ Entregables:
 5) Prompts para Codex (VS Code)
 6) Checklist de QA visual
 
+Estado base (Fundación listos):
+- Tokens consolidados en `src/styles/theme.css` + Tailwind (colores, radios, sombras, spacing, densidad, kitchen mode).
+- AppShell unificado con topbar + sidebar, search, selector de sucursal, notificaciones, toggles de kitchen/densidad y Command Palette (Ctrl/Cmd+K).
+- Componentes base disponibles en `src/modules/shared/ui`: Card, Button, Badge, FormField/Input, Select, Table, PageHeader, Modal, Drawer, Skeleton/Banner/DataState.
+- KitchenMode aplicado via `body.kitchen`; densidad guardada en `data-density` y localStorage.
+
 Reglas anti-desvio (obligatorias):
 - Antes de tocar una pantalla, abre `/docs/ui-redesign/reference/INDEX.md`, la imagen PNG correspondiente y `src/router.tsx` para confirmar la ruta real (ver `CODEX_CONTEXT.md`). No renombres ni crees paginas nuevas.
 - Usa solo tokens de `src/styles/theme.css` + Tailwind; sin hex sueltos ni estilos inline (salvo widths/progress puntuales).

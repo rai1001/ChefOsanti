@@ -3,11 +3,11 @@
 Prioridad: reproducir referencias 1:1 sin inventar estilo. Cada sprint entrega pantallas completas con tokens, estados y toggles funcionando.
 
 ## Sprint 0 - Fundacion
-- [ ] Consolidar tokens en `theme.css` + Tailwind (colores, radios, sombras, spacing, densidad, kitchen mode).
-- [ ] AppShell unificado (topbar+sidebar) con search, selector de sucursal, notificaciones, kitchen toggle, densidad toggle.
-- [ ] Componentes base: Card, Button, Badge, Input/Search, Select, Table, PageHeader, Modal/Drawer, Skeleton/Banner.
-- [ ] KitchenMode wiring (clase body.kitchen) y Command Palette UI (Ctrl/Cmd+K).
-- [ ] Doc/guia de uso (este folder) actualizada y lista.
+- [x] Consolidar tokens en `theme.css` + Tailwind (colores, radios, sombras, spacing, densidad, kitchen mode).
+- [x] AppShell unificado (topbar+sidebar) con search, selector de sucursal, notificaciones, kitchen toggle, densidad toggle.
+- [x] Componentes base: Card, Button, Badge, Input/Search, Select, Table, PageHeader, Modal/Drawer, Skeleton/Banner.
+- [x] KitchenMode wiring (clase body.kitchen) y Command Palette UI (Ctrl/Cmd+K).
+- [x] Doc/guia de uso (este folder) actualizada y lista.
 
 ## Sprint 1 - Core visual
 - [ ] Login redisen 1:1 (glass, glow, jerarquia exacta).

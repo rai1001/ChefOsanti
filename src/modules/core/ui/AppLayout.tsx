@@ -6,6 +6,7 @@ import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { queryClient } from '@/lib/queryClient'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
+import { createPortal } from 'react-dom'
 
 type Props = {
   children: ReactNode
@@ -33,6 +34,8 @@ export function AppLayout({ children }: Props) {
     if (typeof localStorage === 'undefined') return false
     return localStorage.getItem('kitchen-mode') === '1'
   })
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const [paletteQuery, setPaletteQuery] = useState('')
 
   const loading = roleLoading || orgLoading
 
@@ -102,6 +105,20 @@ export function AppLayout({ children }: Props) {
     document.body.classList.toggle('kitchen', kitchenMode)
     localStorage.setItem('kitchen-mode', kitchenMode ? '1' : '0')
   }, [kitchenMode])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen((prev) => !prev)
+      }
+      if (e.key === 'Escape') {
+        setPaletteOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const handleLogout = async () => {
     try {
@@ -228,6 +245,9 @@ export function AppLayout({ children }: Props) {
                       type="search"
                       placeholder="Buscar eventos, compras, recetas..."
                       className="h-11 w-full rounded-full border border-border/30 bg-surface2/70 pl-10 pr-16 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-brand-500/50"
+                      onFocus={() => setPaletteOpen(true)}
+                      onChange={(e) => setPaletteQuery(e.target.value)}
+                      value={paletteQuery}
                     />
                     <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 text-[11px] text-muted-foreground sm:flex">
                       Ctrl K
@@ -317,6 +337,67 @@ export function AppLayout({ children }: Props) {
           </main>
         </div>
       </div>
+      {paletteOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/40 backdrop-blur-sm pt-20">
+            <div className="w-full max-w-2xl rounded-2xl border border-border/30 bg-surface/90 shadow-[0_20px_80px_rgba(3,7,18,0.6)]">
+              <div className="flex items-center gap-2 border-b border-border/20 px-4 py-3">
+                <span className="text-muted-foreground">⌘K</span>
+                <input
+                  autoFocus
+                  className="w-full bg-transparent text-sm text-foreground outline-none"
+                  placeholder="Buscar o ejecutar acción..."
+                  value={paletteQuery}
+                  onChange={(e) => setPaletteQuery(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => setPaletteOpen(false)}
+                >
+                  Esc
+                </button>
+              </div>
+              <div className="max-h-80 overflow-y-auto">
+                {visibleSections
+                  .flatMap((section) =>
+                    section.items.map((item) => ({
+                      ...item,
+                      section: section.label,
+                    })),
+                  )
+                  .filter((item) => item.label.toLowerCase().includes(paletteQuery.toLowerCase()))
+                  .map((item) => (
+                    <button
+                      key={item.to}
+                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-foreground hover:bg-white/5"
+                      onClick={() => {
+                        setPaletteOpen(false)
+                        navigate(item.to)
+                      }}
+                    >
+                      <div>
+                        <p className="font-semibold">{item.label}</p>
+                        <p className="text-xs text-muted-foreground">{item.section}</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{item.to}</span>
+                    </button>
+                  ))}
+                <button
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-foreground hover:bg-white/5"
+                  onClick={() => {
+                    setKitchenMode((prev) => !prev)
+                    setPaletteOpen(false)
+                  }}
+                >
+                  <span>Toggle Kitchen Mode</span>
+                  <span className="text-xs text-muted-foreground">{kitchenMode ? 'On' : 'Off'}</span>
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }
