@@ -99,7 +99,7 @@ export function TaskForm({ planId, orgId, onSubmit, onCancel, defaultStation = '
                 <Button variant="ghost" type="button" onClick={onCancel}>
                     Cancelar
                 </Button>
-                <Button variant="default" type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? 'Guardando...' : 'Guardar'}
                 </Button>
             </div>

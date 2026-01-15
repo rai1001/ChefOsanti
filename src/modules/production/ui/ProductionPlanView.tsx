@@ -101,7 +101,6 @@ export function ProductionPlanView({ serviceId, orgId, hotelId, eventId }: Produ
                 <p className="text-slate-500 mb-4">No hay plan de producción para este servicio.</p>
                 <div className="flex gap-2">
                     <Button
-                        variant="default"
                         onClick={() => createPlan.mutate({ orgId, hotelId, eventId, eventServiceId: serviceId })}
                         disabled={createPlan.isPending}
                     >

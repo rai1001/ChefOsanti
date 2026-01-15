@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { can } from '@/modules/auth/domain/roles'
+import { can, type Permission } from '@/modules/auth/domain/roles'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { queryClient } from '@/lib/queryClient'
@@ -13,14 +13,13 @@ type Props = {
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
+    'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all',
     isActive
-      ? 'bg-accent/10 text-accent border border-accent/30 shadow-[0_0_24px_rgb(var(--accent)/0.2)]'
-      : 'text-muted-foreground hover:text-foreground hover:bg-surface/60',
+      ? 'bg-brand-100/10 text-brand-600 border border-brand-500/40 shadow-[0_0_28px_rgb(var(--accent)/0.25)]'
+      : 'text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent',
   ].join(' ')
 
-const navSectionLabel =
-  'px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80'
+const navSectionLabel = 'px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80'
 
 export function AppLayout({ children }: Props) {
   const { role, loading: roleLoading } = useCurrentRole()
@@ -37,7 +36,7 @@ export function AppLayout({ children }: Props) {
 
   const loading = roleLoading || orgLoading
 
-  const navSections = [
+  const navSections: { label: string; items: { label: string; to: string; perm?: Permission }[] }[] = [
     {
       label: 'Overview',
       items: [
@@ -125,9 +124,13 @@ export function AppLayout({ children }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-bg text-foreground selection:bg-accent/20" data-density={density}>
-      <div className="flex min-h-screen">
-        <aside className="hidden w-64 flex-col border-r border-border/30 bg-surface/40 backdrop-blur-2xl lg:flex">
+    <div className="relative min-h-screen bg-bg text-foreground selection:bg-accent/20" data-density={density}>
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[-10%] top-[-10%] h-80 w-80 rounded-full bg-brand-500/10 blur-[120px]" />
+        <div className="absolute right-[-5%] bottom-[-5%] h-96 w-96 rounded-full bg-accent-alt/10 blur-[160px]" />
+      </div>
+      <div className="relative z-10 flex min-h-screen">
+        <aside className="hidden w-[270px] flex-col border-r border-border/25 bg-surface/40 backdrop-blur-2xl lg:flex">
           <div className="px-6 pt-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10 text-lg font-semibold text-accent shadow-[0_0_24px_rgb(var(--accent)/0.3)]">
@@ -204,13 +207,13 @@ export function AppLayout({ children }: Props) {
 
         <div className="flex min-h-screen flex-1 flex-col">
           <header className="sticky top-0 z-40 w-full">
-            <div className="glass-panel border-b border-border/30">
+            <div className="border-b border-white/5 bg-surface/60 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
               <div className="mx-auto flex max-w-[1400px] flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex flex-1 items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10 text-lg font-semibold text-accent lg:hidden">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10 text-lg font-semibold text-accent shadow-[0_0_24px_rgb(var(--accent)/0.3)] lg:hidden">
                     C
                   </div>
-                  <div className="relative w-full max-w-md">
+                  <div className="relative w-full max-w-lg">
                     <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path
@@ -224,7 +227,7 @@ export function AppLayout({ children }: Props) {
                     <input
                       type="search"
                       placeholder="Buscar eventos, compras, recetas..."
-                      className="h-10 w-full rounded-full border border-border/40 bg-surface/70 pl-10 pr-16 text-sm text-foreground outline-none transition focus:border-accent focus:bg-surface2"
+                      className="h-11 w-full rounded-full border border-border/30 bg-surface2/70 pl-10 pr-16 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-brand-500/50"
                     />
                     <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 text-[11px] text-muted-foreground sm:flex">
                       Ctrl K
@@ -268,7 +271,7 @@ export function AppLayout({ children }: Props) {
 
                   <button
                     type="button"
-                    className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border/30 bg-surface/70 text-muted-foreground hover:text-foreground"
+                    className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-surface/70 text-muted-foreground transition hover:-translate-y-0.5 hover:text-foreground"
                     aria-label="Notificaciones"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

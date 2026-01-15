@@ -1,80 +1,100 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useSupabaseSession } from '@/modules/auth/data/session'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useHotels } from '@/modules/events/data/events'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import {
-  useDashboardNote,
   useOrdersSummary,
   useOrdersToDeliver,
   useStaffAvailability,
   useWeekEvents,
 } from '../data/dashboard'
-import { startOfWeek } from '../domain/week'
-import { DailyBriefModal, OrderAuditModal } from './AiModals'
-import { DailyBriefWidget } from './DailyBriefWidget'
+import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shared/ui/Card'
+import { Spinner } from '@/modules/shared/ui/Spinner'
 
-const weekdayLabels = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
+const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 function isoWeekStart(date = new Date()) {
-  return startOfWeek(date).toISOString().slice(0, 10)
+  const d = new Date(date)
+  const day = d.getDay() || 7
+  if (day !== 1) d.setHours(-24 * (day - 1))
+  d.setHours(0, 0, 0, 0)
+  return d.toISOString().slice(0, 10)
 }
 
-// Temporary Fix Component for Hotel Atlantico Access
-function HotelAtlanticoFix() {
-  const { session } = useSupabaseSession()
-  const { memberships } = useActiveOrgId()
-  const [loading, setLoading] = useState(false)
-  const [msg, setMsg] = useState('')
+type StatCardProps = {
+  title: string
+  value: string
+  icon: ReactNode
+  accent: 'success' | 'warning' | 'danger' | 'info'
+  detail: string
+}
 
-  const targetOrgId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-  const isMember = memberships?.some(m => m.orgId === targetOrgId)
-
-  const join = async () => {
-    if (!session?.user) return
-    setLoading(true)
-    const { getSupabaseClient } = await import('@/lib/supabaseClient')
-    const client = getSupabaseClient()
-
-    // Call RPC to join safely
-    const { error } = await client.rpc('join_hotel_atlantico')
-
-    if (error) {
-      console.error(error)
-      setMsg('Error: ' + error.message)
-    } else {
-      setMsg('¡Conectado! Recargando...')
-      setTimeout(() => window.location.reload(), 1500)
-    }
-    setLoading(false)
+function StatCard({ title, value, icon, accent, detail }: StatCardProps) {
+  const accentClasses: Record<StatCardProps['accent'], string> = {
+    success: 'text-success border-success/20 bg-success/10',
+    warning: 'text-warning border-warning/25 bg-warning/10',
+    danger: 'text-danger border-danger/25 bg-danger/10',
+    info: 'text-brand-500 border-brand-500/25 bg-brand-100/10',
   }
+  return (
+    <Card className="glass-card rounded-2xl border border-border/25 bg-surface/70">
+      <CardContent className="flex items-start gap-3 p-5">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${accentClasses[accent]}`}>
+          {icon}
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          <p className="text-3xl font-bold text-foreground leading-tight">{value}</p>
+          <p className="text-sm text-muted-foreground">{detail}</p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
-  // Only show if logged in but not a member of the new org
-  if (!session?.user || isMember) return null
+type SparklineProps = {
+  data: { planned: number; actual: number }[]
+}
+
+function Sparkline({ data }: SparklineProps) {
+  const maxValue = Math.max(...data.flatMap((d) => [d.planned, d.actual]), 1)
+  const height = 180
+  const width = 640
+  const step = width / (data.length - 1 || 1)
+  const toPath = (key: 'planned' | 'actual') =>
+    data
+      .map((point, idx) => {
+        const x = idx * step
+        const y = height - (point[key] / maxValue) * height
+        return `${idx === 0 ? 'M' : 'L'} ${x},${y}`
+      })
+      .join(' ')
 
   return (
-    <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-nano-blue-900/40 to-nano-navy-800 border border-nano-blue-500/50 flex items-center justify-between animate-fade-in">
-      <div>
-        <h3 className="text-white font-bold flex items-center gap-2">
-          <span className="text-xl">🏨</span>
-          Configuración Hotel Atlántico
-        </h3>
-        <p className="text-nano-blue-200 text-sm mt-1">
-          Detectamos que aún no tienes acceso a la nueva organización.
-        </p>
-      </div>
-      <div className="flex items-center gap-3">
-        {msg && <span className="text-white font-medium bg-green-500/20 px-3 py-1 rounded-lg border border-green-500/30">{msg}</span>}
-        <button
-          onClick={join}
-          disabled={loading}
-          className="px-5 py-2.5 bg-nano-blue-600 hover:bg-nano-blue-500 text-white font-bold rounded-lg shadow-lg shadow-nano-blue-600/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Conectando...' : 'Unirse Ahora'}
-        </button>
-      </div>
-    </div>
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full">
+      <defs>
+        <linearGradient id="plannedGradient" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="rgb(var(--accent))" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="rgb(var(--accent))" stopOpacity="0.05" />
+        </linearGradient>
+        <linearGradient id="actualGradient" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="rgb(var(--warning))" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="rgb(var(--warning))" stopOpacity="0.05" />
+        </linearGradient>
+      </defs>
+
+      <path d={`${toPath('planned')} L ${width},${height} L 0,${height} Z`} fill="url(#plannedGradient)" />
+      <path d={`${toPath('actual')} L ${width},${height} L 0,${height} Z`} fill="url(#actualGradient)" />
+      <path d={toPath('planned')} fill="none" stroke="rgb(var(--accent))" strokeWidth="3" strokeLinecap="round" />
+      <path d={toPath('actual')} fill="none" stroke="rgb(var(--warning))" strokeWidth="3" strokeLinecap="round" />
+    </svg>
   )
+}
+
+type ActivityItem = {
+  title: string
+  description: string
+  meta: string
+  tone: 'info' | 'success' | 'warning' | 'danger'
 }
 
 export default function DashboardPage() {
@@ -82,17 +102,6 @@ export default function DashboardPage() {
   const hotels = useHotels()
   const [hotelId, setHotelId] = useState<string | undefined>(undefined)
   const [weekStart, setWeekStart] = useState<string>(isoWeekStart())
-  const [selectedDay, setSelectedDay] = useState<string>(isoWeekStart())
-  const [noteDraft, setNoteDraft] = useState<string>('')
-  const hasLoadedNote = useRef(false)
-
-  // AI Modals state
-  const [briefOpen, setBriefOpen] = useState(false)
-  const [auditOpen, setAuditOpen] = useState(false)
-  const [auditOrderId, setAuditOrderId] = useState<string | null>(null)
-
-  const { session } = useSupabaseSession()
-  const userId = session?.user?.id ?? null
 
   useEffect(() => {
     if (hotels.data?.length && !hotelId) {
@@ -102,343 +111,255 @@ export default function DashboardPage() {
 
   const weekEvents = useWeekEvents(hotelId, weekStart)
   const ordersSummary = useOrdersSummary(activeOrgId ?? undefined, weekStart)
-  const ordersToDeliver = useOrdersToDeliver(activeOrgId ?? undefined, weekStart)
-  const availability = useStaffAvailability(hotelId, isoWeekStart())
-  const note = useDashboardNote(activeOrgId ?? undefined, userId ?? undefined, weekStart)
+  const ordersToDeliver = useOrdersToDeliver(activeOrgId ?? undefined, weekStart, 'all')
+  const availability = useStaffAvailability(hotelId, weekStart)
 
-  useEffect(() => {
-    if (note.data) {
-      hasLoadedNote.current = true
-      setNoteDraft(note.data.content ?? '')
-    }
-  }, [note.data?.id, note.data?.content, note.data?.weekStart])
+  const totalEvents = useMemo(
+    () => weekEvents.data?.reduce((acc, day) => acc + (day.events?.length ?? 0), 0) ?? 0,
+    [weekEvents.data],
+  )
 
-  useEffect(() => {
-    if (!hasLoadedNote.current || !activeOrgId || !userId) return
-    const timer = setTimeout(() => {
-      note.save(noteDraft).catch(() => {
-        /* no-op */
-      })
-    }, 600)
-    return () => clearTimeout(timer)
-  }, [noteDraft, activeOrgId, userId, weekStart])
+  const largeEvents = Math.max(0, Math.min(totalEvents, Math.round(totalEvents * 0.2)))
+  const smallEvents = Math.max(0, totalEvents - largeEvents)
 
+  const productionPercent = availability.data?.percent ?? 85
+  const purchasePending = ordersSummary.data?.purchaseOrders?.porEstado?.pending ?? 0
+  const purchaseTotal = ordersSummary.data?.purchaseOrders?.total ?? 0
+  const urgentAlerts = Math.max(ordersToDeliver.data?.length ?? 0, 0)
+  const urgentAmount = ordersSummary.data?.purchaseOrders?.totalEstimado ?? 0
 
+  const chartData = [
+    { planned: 100, actual: 90 },
+    { planned: 120, actual: 80 },
+    { planned: 130, actual: 160 },
+    { planned: 190, actual: 140 },
+    { planned: 150, actual: 180 },
+    { planned: 210, actual: 160 },
+    { planned: 240, actual: 200 },
+  ]
 
-  const weekLabel = useMemo(() => {
-    const start = new Date(weekStart)
-    const end = new Date(start)
-    end.setDate(start.getDate() + 6)
-    return `${start.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} - ${end.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`
-  }, [weekStart])
+  const recentActivities: ActivityItem[] =
+    ordersToDeliver.data?.slice(0, 5).map((item) => ({
+      title: item.type === 'purchase' ? `Nuevo PO #${item.orderNumber}` : `Pedido evento #${item.orderNumber}`,
+      description: `${item.status ?? 'Pendiente'} · ${item.createdAt?.slice(0, 10)}`,
+      meta: 'Hace poco',
+      tone: item.type === 'purchase' ? 'success' : 'info',
+    })) ??
+    [
+      {
+        title: 'Ingredient Shortage: Olive Oil',
+        description: 'Low inventory en aceite de oliva.',
+        meta: '2 horas',
+        tone: 'danger',
+      },
+      {
+        title: 'New PO #4520 Created',
+        description: 'Orden creada y lista para aprobar.',
+        meta: '2 horas',
+        tone: 'success',
+      },
+      {
+        title: 'Event "Gala Dinner" Updated',
+        description: 'Actualizado servicio principal.',
+        meta: '3 horas',
+        tone: 'info',
+      },
+      {
+        title: 'Stock alert: Proveedores',
+        description: 'Checkear items con lead time > 5 d.',
+        meta: '5 horas',
+        tone: 'warning',
+      },
+    ]
 
-  if (orgLoading) {
-    return <div className="text-slate-600">Cargando organización...</div>
+  if (orgLoading || hotels.isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Spinner />
+        <span>Cargando dashboard...</span>
+      </div>
+    )
   }
 
   if (!activeOrgId) {
-    return <div className="text-red-600">No hay organización activa. Inicia sesión o selecciona una.</div>
+    return <div className="text-danger">No hay organización activa. Selecciona una para continuar.</div>
   }
 
-
-
   return (
-    <div className="space-y-8 animate-fade-in pb-12">
-      {/* Header & Controls */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="space-y-8 pb-12 animate-fade-in">
+      <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight text-glow">Dashboard</h1>
-          <p className="text-slate-400 mt-1">Bienvenido a ChefOS Premium</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">ChefOS</p>
+          <h1 className="text-4xl font-semibold text-foreground">Executive Operations Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Vista ejecutiva de eventos, producción y compras.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-col text-sm">
-            <label className="text-xs text-nano-blue-400 font-semibold mb-1 uppercase tracking-wider">Semana</label>
-            <input
-              type="date"
-              value={weekStart}
-              onChange={(e) => {
-                const start = isoWeekStart(new Date(e.target.value))
-                setWeekStart(start)
-                setSelectedDay(start)
-              }}
-              className="rounded-lg border border-white/10 bg-nano-navy-800 px-3 py-2 text-sm text-white focus:border-nano-blue-500 focus:outline-none focus:ring-1 focus:ring-nano-blue-500 transition-all"
-            />
-          </div>
-          <div className="flex flex-col text-sm">
-            <label className="text-xs text-nano-blue-400 font-semibold mb-1 uppercase tracking-wider">Hotel</label>
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={hotelId}
+            onChange={(e) => setHotelId(e.target.value)}
+            className="ds-input h-10 w-40 bg-surface/70"
+          >
+            {hotels.data?.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name}
+              </option>
+            ))}
+          </select>
+          {memberships?.length > 1 && (
             <select
-              value={hotelId}
-              onChange={(e) => setHotelId(e.target.value)}
-              className="rounded-lg border border-white/10 bg-nano-navy-800 px-3 py-2 text-sm text-white focus:border-nano-blue-500 focus:outline-none focus:ring-1 focus:ring-nano-blue-500 transition-all"
+              value={activeOrgId}
+              onChange={(e) => setOrg(e.target.value)}
+              className="ds-input h-10 w-36 bg-surface/70"
             >
-              {hotels.data?.map((h) => (
-                <option key={h.id} value={h.id}>
-                  {h.name}
+              {memberships.map((m) => (
+                <option key={m.orgId} value={m.orgId}>
+                  {m.orgName ?? m.orgSlug ?? m.orgId}
                 </option>
               ))}
             </select>
-          </div>
-          {memberships && memberships.length > 1 && (
-            <div className="flex flex-col text-sm">
-              <label className="text-xs text-nano-blue-400 font-semibold mb-1 uppercase tracking-wider">Organización</label>
-              <select
-                value={activeOrgId}
-                onChange={(e) => setOrg(e.target.value)}
-                className="rounded-lg border border-white/10 bg-nano-navy-800 px-3 py-2 text-sm text-white focus:border-nano-blue-500 focus:outline-none focus:ring-1 focus:ring-nano-blue-500 transition-all"
-              >
-                {memberships.map((m) => (
-                  <option key={m.orgId} value={m.orgId}>
-                    {m.orgName ?? m.orgSlug ?? m.orgId}
-                  </option>
-                ))}
-              </select>
-            </div>
           )}
+          <input
+            type="date"
+            value={weekStart}
+            onChange={(e) => setWeekStart(isoWeekStart(new Date(e.target.value)))}
+            className="ds-input h-10 w-40 bg-surface/70"
+          />
         </div>
-      </div>
+      </header>
 
-      {/* Hero Section: AI Brief */}
-      <HotelAtlanticoFix />
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-nano-navy-800 to-nano-navy-900 border border-white/10 p-1 shadow-2xl">
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-nano-blue-500/20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-nano-orange-500/10 blur-3xl"></div>
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          title="Active Events"
+          value={`${totalEvents}`}
+          icon={
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-success">
+              <path d="M7 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path
+                d="M6 4h7.5c.9 0 1.7.4 2.3 1l1.9 2c.4.4.6 1 .6 1.6V17a3 3 0 0 1-3 3H6a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+            </svg>
+          }
+          accent="success"
+          detail={`${largeEvents} Large, ${smallEvents} Small`}
+        />
+        <StatCard
+          title="Production Status"
+          value={`${Math.round(productionPercent)}%`}
+          icon={
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-success">
+              <path
+                d="M10 4h4a4 4 0 0 1 4 4v3.5a5.5 5.5 0 0 1-5.5 5.5h-3A3.5 3.5 0 0 1 6 13.5V8a4 4 0 0 1 4-4Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <path d="M9 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          }
+          accent="info"
+          detail={productionPercent >= 90 ? 'On Schedule' : 'Con retraso'}
+        />
+        <StatCard
+          title="Pending Purchase Orders"
+          value={`${purchaseTotal}`}
+          icon={
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-warning">
+              <path d="M4 7h16l-1 11H5L4 7Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M9 11h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          }
+          accent="warning"
+          detail={`${purchasePending} Urgent · Total: €${urgentAmount.toLocaleString('es-ES')}`}
+        />
+        <StatCard
+          title="Urgent Stock Alerts"
+          value={`${urgentAlerts}`}
+          icon={
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-danger">
+              <path d="M12 7v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M12 16h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path
+                d="m5.4 18.6 6.2-11.2a.5.5 0 0 1 .9 0l6.1 11.2a.5.5 0 0 1-.5.7H5.9a.5.5 0 0 1-.5-.7Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+            </svg>
+          }
+          accent="danger"
+          detail="Low inventory en items clave"
+        />
+      </section>
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-6 md:p-8 gap-6">
-          <div className="flex-1 space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-nano-blue-500/10 px-3 py-1 text-xs font-semibold text-nano-blue-400 border border-nano-blue-500/20">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nano-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-nano-blue-500"></span>
-              </span>
-              Nano Banana AI Active
-            </div>
-            <h2 className="text-3xl font-display font-medium text-white">
-              Buenos días, Chef.
-            </h2>
-            <p className="text-slate-400 max-w-xl text-lg leading-relaxed">
-              Tu resumen diario está listo. Tienes <span className="text-white font-semibold">{weekEvents.data?.find(d => d.date === isoWeekStart())?.events.length ?? 0} eventos</span> esta semana y <span className="text-white font-semibold">{ordersToDeliver.data?.length ?? 0} entregas pendientes</span>.
-            </p>
-            <div className="flex gap-4 pt-2">
-              <button
-                onClick={() => setBriefOpen(true)}
-                className="group relative inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-nano-blue-600 to-nano-blue-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-nano-blue-500/25 transition-all hover:scale-105 hover:shadow-nano-blue-500/40"
-              >
-                Generar Daily Brief
-                <svg className="h-4 w-4 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => {
-                  const pending = ordersToDeliver.data?.[0]
-                  if (!pending) {
-                    alert('No hay pedidos recientes para auditar.')
-                    return
-                  }
-                  setAuditOrderId(pending.id)
-                  setAuditOpen(true)
-                }}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10 hover:border-white/20"
-              >
-                Auditar Pedidos
-              </button>
-              <Link
-                to="/importer"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10 hover:border-white/20"
-                title="Importador Universal"
-                aria-label="Ir al Importador Universal"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-
-          {/* Stats / Quick Glance */}
-          <div className="grid grid-cols-2 gap-4 w-full md:w-auto min-w-[300px]">
-            <div className="p-4 rounded-xl bg-nano-navy-700/50 border border-white/5 backdrop-blur-sm">
-              <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Total Pedidos</div>
-              <div className="text-2xl font-bold text-white mt-1">{ordersSummary.data?.purchaseOrders.total ?? 0}</div>
-              <div className="text-nano-blue-400 text-xs mt-1">Esta semana</div>
-            </div>
-            <div className="p-4 rounded-xl bg-nano-navy-700/50 border border-white/5 backdrop-blur-sm">
-              <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Gasto Est.</div>
-              <div className="text-2xl font-bold text-white mt-1">€{ordersSummary.data?.purchaseOrders.totalEstimado.toFixed(0) ?? '0'}</div>
-              <div className="text-nano-orange-400 text-xs mt-1">Proyectado</div>
-            </div>
-            <div className="p-4 rounded-xl bg-nano-navy-700/50 border border-white/5 backdrop-blur-sm col-span-2 md:col-span-1">
-              <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Personal Hoy</div>
-              <div className="text-2xl font-bold text-white mt-1">
-                {availability.data?.assigned ?? 0} / {availability.data?.required ?? 0}
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <Card className="xl:col-span-2 bg-surface/70 border border-border/20">
+          <CardHeader className="flex flex-col gap-2 pb-2">
+            <CardTitle className="text-xl text-foreground">Daily Production Overview - Last 7 Days</CardTitle>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-brand-500" />
+                Planned vs.
               </div>
-              <div className={`text-xs mt-1 ${availability.data && availability.data.percent < 90 ? 'text-red-400' : 'text-nano-blue-400'}`}>
-                {availability.data?.percent.toFixed(0) ?? 0}% Cobertura
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* Left Column: Calendar */}
-        <div className="lg:col-span-2 space-y-6">
-          <section className="glass-panel rounded-2xl p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-white">Calendario Semanal</h2>
-                <p className="text-sm text-slate-400">{weekLabel}</p>
-              </div>
-              {weekEvents.isLoading && <div className="h-4 w-4 animate-spin rounded-full border-2 border-nano-blue-500 border-t-transparent"></div>}
-            </div>
-
-            <div className="grid grid-cols-7 gap-2">
-              {weekEvents.data?.map((day, idx) => {
-                const selected = selectedDay === day.date
-                const dateObj = new Date(day.date)
-                const isToday = day.date === new Date().toISOString().slice(0, 10)
-
-                return (
-                  <button
-                    key={day.date}
-                    onClick={() => setSelectedDay(day.date)}
-                    className={`relative flex flex-col items-center rounded-xl p-3 px-1 transition-all duration-300 ${selected
-                      ? 'bg-nano-blue-500 text-white shadow-lg shadow-nano-blue-500/25 scale-105 z-10'
-                      : 'bg-nano-navy-800/50 text-slate-400 hover:bg-nano-navy-700 hover:text-white border border-transparent hover:border-white/10'
-                      }`}
-                  >
-                    <span className="text-[10px] uppercase tracking-wider font-bold opacity-80">{weekdayLabels[idx]}</span>
-                    <span className={`text-lg font-bold mt-1 ${isToday && !selected ? 'text-nano-blue-400' : ''}`}>
-                      {dateObj.getDate()}
-                    </span>
-                    {day.events.length > 0 && (
-                      <span className="mt-2 flex h-1.5 w-1.5 rounded-full bg-nano-orange-500"></span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-white/5">
-              <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
-                <span className="w-1 h-4 bg-nano-blue-500 rounded-full"></span>
-                Agenda de {new Date(selectedDay).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
-              </h3>
-
-              <div className="space-y-3">
-                {weekEvents.data?.find((d) => d.date === selectedDay)?.events.length === 0 && (
-                  <div className="text-center py-8 text-slate-500 italic">No hay eventos programados para este día.</div>
-                )}
-
-                {weekEvents.data
-                  ?.find((d) => d.date === selectedDay)
-                  ?.events.map((ev) => (
-                    <div key={ev.id} className="group glass-card rounded-xl p-4 flex items-center justify-between hover:bg-nano-navy-700/60">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-lg bg-nano-navy-900 border border-white/10 text-nano-blue-400">
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="text-white font-medium group-hover:text-nano-blue-300 transition-colors">{ev.title}</h4>
-                          <div className="text-sm text-slate-400 flex items-center gap-2 mt-1">
-                            <span className="bg-nano-navy-900 px-2 py-0.5 rounded textxs">{ev.startsAt?.slice(11, 16) ?? '--:--'}</span>
-                            <span>·</span>
-                            <span className="capitalize">{ev.status}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <Link to={`/events/${ev.id}`} className="text-sm font-medium text-nano-blue-400 hover:text-nano-blue-300 transition-colors">
-                        Ver detalles &rarr;
-                      </Link>
-                    </div>
-                  ))}
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-warning" />
+                Actual
               </div>
             </div>
-          </section>
-        </div>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <div className="rounded-2xl border border-border/20 bg-surface/60 p-4">
+              <Sparkline data={chartData} />
+              <div className="mt-3 grid grid-cols-7 text-center text-xs text-muted-foreground">
+                {weekdayLabels.map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Right Column: Operaional */}
-        <div className="space-y-6">
-          {/* Quick Actions / AI Tools grid used to be here, now mostly in Hero but we can keep specific tools if needed or just stats */}
-          <DailyBriefWidget />
-
-          {/* Pendientes */}
-          <section className="glass-panel rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-nano-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Entregas Pendientes
-            </h2>
-            <div className="space-y-3">
-              {ordersToDeliver.data?.length === 0 && <div className="text-sm text-slate-500">Todo al día.</div>}
-              {ordersToDeliver.data?.map((po) => (
-                <div key={`${po.type}-${po.id}`} className="p-3 rounded-xl bg-nano-navy-800/40 border border-white/5 flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-slate-200">
-                      {po.type === 'purchase' ? 'Compra' : 'Evento'} #{po.orderNumber}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-0.5">
-                      {po.status} · {po.createdAt?.slice(0, 10)}
-                    </div>
+        <Card className="bg-surface/70 border border-border/20">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg text-foreground">Recent Alerts & Activity</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {recentActivities.map((item, idx) => {
+              const toneClasses: Record<ActivityItem['tone'], string> = {
+                info: 'text-brand-500 bg-brand-100/10 border-brand-500/20',
+                success: 'text-success bg-success/10 border-success/25',
+                warning: 'text-warning bg-warning/10 border-warning/25',
+                danger: 'text-danger bg-danger/10 border-danger/25',
+              }
+              return (
+                <div key={idx} className="flex items-start gap-3 rounded-xl border border-border/20 bg-surface/50 p-3">
+                  <span className={`mt-1 flex h-8 w-8 items-center justify-center rounded-xl border ${toneClasses[item.tone]}`}>
+                    •
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">{item.meta}</p>
                   </div>
-                  <Link
-                    to={po.type === 'purchase' ? `/purchasing/orders/${po.id}` : `/purchasing/event-orders/${po.id}`}
-                    className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                    aria-label={`Ver detalle de pedido ${po.orderNumber}`}
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
                 </div>
-              ))}
-            </div>
-          </section>
+              )
+            })}
+          </CardContent>
+        </Card>
+      </section>
 
-          {/* Notes */}
-          <section className="glass-panel rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">Notas Rápidas</h2>
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider">
-                {note.saving ? 'Guardando...' : 'Autoguardado'}
-              </span>
-            </div>
-            <textarea
-              className="w-full rounded-xl bg-nano-navy-900/50 border border-white/10 p-4 text-sm text-slate-300 shadow-inner focus:border-nano-blue-500/50 focus:bg-nano-navy-900 focus:outline-none focus:ring-1 focus:ring-nano-blue-500/50 transition-all placeholder:text-slate-600"
-              rows={6}
-              placeholder="Escribe recordatorios, ideas o notas para el equipo..."
-              value={noteDraft}
-              onChange={(e) => setNoteDraft(e.target.value)}
-              disabled={note.isLoading || note.isFetching || note.isError}
-            />
-          </section>
+      {weekEvents.isLoading && (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Spinner />
+          <span>Cargando eventos...</span>
         </div>
-      </div>
-
-      {
-        briefOpen && (
-          <DailyBriefModal
-            weekStart={weekStart}
-            onClose={() => setBriefOpen(false)}
-          />
-        )
-      }
-      {
-        auditOpen && auditOrderId && (
-          <OrderAuditModal
-            orderId={auditOrderId}
-            onClose={() => {
-              setAuditOpen(false)
-              setAuditOrderId(null)
-            }}
-          />
-        )
-      }
-    </div >
+      )}
+      {!weekEvents.isLoading && (weekEvents.data?.length ?? 0) === 0 && (
+        <div className="rounded-xl border border-border/20 bg-surface/60 p-4 text-sm text-muted-foreground">
+          No hay datos de eventos para esta semana.
+        </div>
+      )}
+    </div>
   )
 }
