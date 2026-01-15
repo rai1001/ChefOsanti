@@ -29,7 +29,7 @@ Prioridad: reproducir referencias 1:1 sin inventar estilo. Cada sprint entrega p
 ## Sprint 4 - Reports + Catologo + Hardening
 - [x] Operational Insights & Reports 1:1 (donut waste, stacked bars costos, line ventas, heatmap).
 - [x] Recipe & Product Catalog 1:1 (cards con imagen + side panel scaling).
-- [ ] QA visual completa: tokens consistentes, estados hover/focus, responsive, kitchen mode, multi-branch visible.
+- [x] QA visual completa: tokens consistentes, estados hover/focus, responsive, kitchen mode, multi-branch visible.
 - [x] Skeletons/empty/error coherentes en todas las tablas/listas; confirm dialogs para acciones criticas.
 
 ## Definicion de "Done"
@@ -40,4 +40,4 @@ Prioridad: reproducir referencias 1:1 sin inventar estilo. Cada sprint entrega p
 - Performance aceptable en tablas largas y scheduling (virtualizacion si procede).
 
 ## Next Up (pendiente)
-- Sprint 4: QA visual final (tokens/estados/responsive/kitchen mode).
+- Backlog libre: nuevas pantallas o iteraciones.
