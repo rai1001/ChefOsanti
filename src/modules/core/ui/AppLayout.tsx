@@ -16,8 +16,8 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
   [
     'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all',
     isActive
-      ? 'bg-brand-100/10 text-brand-600 border border-brand-500/40 shadow-[0_0_28px_rgb(var(--accent)/0.25)]'
-      : 'text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent',
+      ? 'bg-accent/10 text-accent border border-accent/40 shadow-[0_0_28px_rgb(var(--accent)/0.25)]'
+      : 'text-muted-foreground hover:text-foreground hover:bg-surface/50 border border-transparent',
   ].join(' ')
 
 const navSectionLabel = 'px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80'
@@ -224,7 +224,7 @@ export function AppLayout({ children }: Props) {
 
         <div className="flex min-h-screen flex-1 flex-col">
           <header className="sticky top-0 z-40 w-full">
-            <div className="border-b border-white/5 bg-surface/60 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+            <div className="border-b border-border/20 bg-surface/60 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
               <div className="mx-auto flex max-w-[1400px] flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex flex-1 items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10 text-lg font-semibold text-accent shadow-[0_0_24px_rgb(var(--accent)/0.3)] lg:hidden">
@@ -370,7 +370,7 @@ export function AppLayout({ children }: Props) {
                   .map((item) => (
                     <button
                       key={item.to}
-                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-foreground hover:bg-white/5"
+                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-foreground hover:bg-surface/60"
                       onClick={() => {
                         setPaletteOpen(false)
                         navigate(item.to)
@@ -384,7 +384,7 @@ export function AppLayout({ children }: Props) {
                     </button>
                   ))}
                 <button
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-foreground hover:bg-white/5"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-foreground hover:bg-surface/60"
                   onClick={() => {
                     setKitchenMode((prev) => !prev)
                     setPaletteOpen(false)
