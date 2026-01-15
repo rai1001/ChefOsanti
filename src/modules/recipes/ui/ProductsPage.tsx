@@ -13,6 +13,7 @@ import { Card } from '@/modules/shared/ui/Card'
 import { Badge } from '@/modules/shared/ui/Badge'
 import { Button } from '@/modules/shared/ui/Button'
 import { Spinner } from '@/modules/shared/ui/Spinner'
+import { DataState } from '@/modules/shared/ui/DataState'
 
 export default function ProductsPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
@@ -97,17 +98,18 @@ export default function ProductsPage() {
             <Badge variant="neutral">Total: {filtered.length}</Badge>
           </div>
 
-          {products.isLoading ? (
-            <div className="flex justify-center py-10">
-              <Spinner />
-            </div>
-          ) : filtered.length === 0 ? (
-            <EmptyState
-              icon={Package}
-              title="Sin productos"
-              description="Crea o importa productos para ver el catálogo."
-            />
-          ) : (
+          <DataState
+            loading={products.isLoading}
+            error={products.error}
+            empty={filtered.length === 0}
+            emptyState={
+              <EmptyState
+                icon={Package}
+                title="Sin productos"
+                description="Crea o importa productos para ver el catálogo."
+              />
+            }
+          >
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map((p) => {
                 const isActive = p.id === selected?.id
@@ -138,7 +140,7 @@ export default function ProductsPage() {
                 )
               })}
             </div>
-          )}
+          </DataState>
         </Card>
 
         <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 space-y-4">

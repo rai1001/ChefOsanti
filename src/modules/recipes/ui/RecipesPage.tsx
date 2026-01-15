@@ -13,6 +13,7 @@ import { Card } from '@/modules/shared/ui/Card'
 import { Badge } from '@/modules/shared/ui/Badge'
 import { Button } from '@/modules/shared/ui/Button'
 import { Spinner } from '@/modules/shared/ui/Spinner'
+import { DataState } from '@/modules/shared/ui/DataState'
 
 export default function RecipesPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
@@ -97,13 +98,12 @@ export default function RecipesPage() {
             <Badge variant="neutral">Total: {filtered.length}</Badge>
           </div>
 
-          {recipes.isLoading ? (
-            <div className="flex justify-center py-10">
-              <Spinner />
-            </div>
-          ) : filtered.length === 0 ? (
-            <EmptyState title="Sin recetas" description="Crea tu primera receta para empezar a calcular costes." />
-          ) : (
+          <DataState
+            loading={recipes.isLoading}
+            error={recipes.error}
+            empty={filtered.length === 0}
+            emptyState={<EmptyState title="Sin recetas" description="Crea tu primera receta para empezar a calcular costes." />}
+          >
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map((r) => {
                 const isActive = r.id === selected?.id
@@ -138,7 +138,7 @@ export default function RecipesPage() {
                 )
               })}
             </div>
-          )}
+          </DataState>
         </Card>
 
         <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 space-y-4">
