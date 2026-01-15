@@ -8,6 +8,8 @@ import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { Badge } from '@/modules/shared/ui/Badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/modules/shared/ui/Table'
+import { DataState } from '@/modules/shared/ui/DataState'
+import { Skeleton } from '@/modules/shared/ui/Skeleton'
 
 type Status = 'Confirmed' | 'Draft' | 'Completed'
 
@@ -55,6 +57,7 @@ export default function EventsBoardPage() {
   }, [bookings.data])
 
   const sessionError = useFormattedError(error)
+  const bookingsError = useFormattedError(bookings.error)
 
   if (loading) return <p className="p-4 text-sm text-muted-foreground">Cargando sesión...</p>
   if (!session || error) {
@@ -140,24 +143,37 @@ export default function EventsBoardPage() {
         </div>
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-border/20 bg-surface/40 backdrop-blur-lg">
-          {bookings.isLoading ? (
-            <div className="p-6 text-sm text-muted-foreground">Cargando eventos...</div>
-          ) : events.length === 0 ? (
-            <div className="p-6">
-              <EmptyState
-                title="Sin eventos"
-                description="Crea un nuevo evento para empezar a planificar."
-                action={
-                  <Link
-                    to="/events/new"
-                    className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-bg shadow-[0_10px_24px_rgb(var(--accent)/0.25)]"
-                  >
-                    Nuevo evento
-                  </Link>
-                }
-              />
-            </div>
-          ) : (
+          <DataState
+            loading={bookings.isLoading}
+            error={bookings.error}
+            errorTitle="Error al cargar eventos"
+            errorMessage={bookingsError}
+            onRetry={() => bookings.refetch()}
+            empty={events.length === 0}
+            emptyState={
+              <div className="p-6">
+                <EmptyState
+                  title="Sin eventos"
+                  description="Crea un nuevo evento para empezar a planificar."
+                  action={
+                    <Link
+                      to="/events/new"
+                      className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-bg shadow-[0_10px_24px_rgb(var(--accent)/0.25)]"
+                    >
+                      Nuevo evento
+                    </Link>
+                  }
+                />
+              </div>
+            }
+            skeleton={
+              <div className="space-y-2 p-6">
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-4 w-3/5" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            }
+          >
             <Table>
               <TableHeader>
                 <TableRow className="bg-surface/60">
@@ -193,7 +209,7 @@ export default function EventsBoardPage() {
                 ))}
               </TableBody>
             </Table>
-          )}
+          </DataState>
         </div>
 
         <div className="mt-3 flex items-center justify-between text-sm text-muted-foreground">

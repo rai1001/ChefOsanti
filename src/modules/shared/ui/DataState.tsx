@@ -7,6 +7,7 @@ interface Props {
   error?: unknown
   errorTitle?: string
   errorMessage?: string
+  onRetry?: () => void
   empty?: boolean
   emptyState?: ReactNode
   skeleton?: ReactNode
@@ -14,7 +15,17 @@ interface Props {
 }
 
 // Small helper to render consistent loading/error/empty blocks across lists and tables.
-export function DataState({ loading, error, errorTitle, errorMessage, empty, emptyState, skeleton, children }: Props) {
+export function DataState({
+  loading,
+  error,
+  errorTitle,
+  errorMessage,
+  onRetry,
+  empty,
+  emptyState,
+  skeleton,
+  children,
+}: Props) {
   if (loading) {
     return (
       <>
@@ -30,7 +41,13 @@ export function DataState({ loading, error, errorTitle, errorMessage, empty, emp
   }
 
   if (error) {
-    return <ErrorBanner title={errorTitle ?? 'Error al cargar'} message={errorMessage ?? (error as Error).message} />
+    return (
+      <ErrorBanner
+        title={errorTitle ?? 'Error al cargar'}
+        message={errorMessage ?? (error as Error).message}
+        onRetry={onRetry}
+      />
+    )
   }
 
   if (empty) {
