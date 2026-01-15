@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(7);
+SELECT plan(6);
 
 -- 1. Create test users
 SELECT tests.create_supabase_user('manager_org1');

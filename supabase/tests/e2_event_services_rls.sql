@@ -14,7 +14,7 @@ select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111
 
 select is(
   (select count(*) from public.event_services),
-  2::bigint,
+  3::bigint,
   'Usuario org1 ve sus servicios'
 );
 

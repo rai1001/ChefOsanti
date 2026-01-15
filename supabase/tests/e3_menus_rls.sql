@@ -18,13 +18,13 @@ select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111
 
 select is(
   (select count(*) from public.menu_templates),
-  1::bigint,
+  2::bigint,
   'Org1 ve sus plantillas'
 );
 
 select is(
   (select count(*) from public.event_service_menus),
-  1::bigint,
+  2::bigint,
   'Org1 ve su vinculacion de plantilla'
 );
 

@@ -8,18 +8,29 @@ select tests.create_supabase_user('user2', 'user2@example.com');
 
 insert into public.orgs (id, name, slug) values 
   ('00000000-0000-0000-0000-000000000001', 'Org 1', 'org-1'),
-  ('00000000-0000-0000-0000-000000000002', 'Org 2', 'org-2');
+  ('00000000-0000-0000-0000-000000000002', 'Org 2', 'org-2')
+on conflict (id) do update
+set name = excluded.name,
+    slug = excluded.slug;
 
 insert into public.org_memberships (org_id, user_id, role) values 
-  ('00000000-0000-0000-0000-000000000001', tests.get_user_id('user1'), 'member'),
-  ('00000000-0000-0000-0000-000000000002', tests.get_user_id('user2'), 'member');
+  ('00000000-0000-0000-0000-000000000001', tests.get_user_id('user1'), 'staff'),
+  ('00000000-0000-0000-0000-000000000002', tests.get_user_id('user2'), 'staff');
 
 -- Setup hotel and ingredient
 insert into public.hotels (id, org_id, name) values 
-  ('11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000001', 'Hotel 1');
+  ('11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000001', 'Hotel 1')
+on conflict (id) do update
+set name = excluded.name,
+    org_id = excluded.org_id;
 
 insert into public.ingredients (id, org_id, hotel_id, name, base_unit) values 
-  ('22222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'Ing 1', 'kg');
+  ('22222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'Ing 1', 'kg')
+on conflict (id) do update
+set name = excluded.name,
+    org_id = excluded.org_id,
+    hotel_id = excluded.hotel_id,
+    base_unit = excluded.base_unit;
 
 -- 2. Test inventory_snapshots RLS
 set local role authenticated;

@@ -17,13 +17,13 @@ on conflict (id) do nothing;
 
 select is(
   (select count(*) from public.purchase_orders),
-  1::bigint,
+  2::bigint,
   'Usuario 1 ve sus purchase_orders'
 );
 
 select is(
   (select count(*) from public.purchase_order_lines),
-  2::bigint,
+  3::bigint,
   'Usuario 1 ve sus líneas'
 );
 

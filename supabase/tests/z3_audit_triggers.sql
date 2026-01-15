@@ -7,8 +7,8 @@ select plan(7);
 insert into public.orgs (id, name, slug) values ('00000000-0000-0000-0000-000000000003', 'Audit Org', 'audit-org');
 
 -- 2. Test Insert on Suppliers
-insert into public.suppliers (id, org_id, name, contact_email)
-values (gen_random_uuid(), '00000000-0000-0000-0000-000000000003', 'Audit Supplier', 'audit@test.com');
+insert into public.suppliers (id, org_id, name)
+values (gen_random_uuid(), '00000000-0000-0000-0000-000000000003', 'Audit Supplier');
 
 select is(
   (select count(*) from public.audit_logs where org_id = '00000000-0000-0000-0000-000000000003' and event = 'suppliers insert'),
@@ -17,8 +17,8 @@ select is(
 );
 
 -- 3. Test Update on Suppliers
-update public.suppliers 
-set contact_email = 'updated@test.com' 
+update public.suppliers
+set name = 'Audit Supplier Updated'
 where name = 'Audit Supplier';
 
 select is(
@@ -28,13 +28,13 @@ select is(
 );
 
 select is(
-  (select (metadata->'new'->>'contact_email') from public.audit_logs where event = 'suppliers update' order by created_at desc limit 1),
-  'updated@test.com',
+  (select (metadata->'new'->>'name') from public.audit_logs where event = 'suppliers update' order by created_at desc limit 1),
+  'Audit Supplier Updated',
   'Audit log should contain the updated value in metadata'
 );
 
 -- 4. Test Delete on Suppliers
-delete from public.suppliers where name = 'Audit Supplier';
+delete from public.suppliers where name = 'Audit Supplier Updated';
 
 select is(
   (select count(*) from public.audit_logs where org_id = '00000000-0000-0000-0000-000000000003' and event = 'suppliers delete'),

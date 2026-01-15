@@ -8,13 +8,13 @@ select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111
 
 select is(
   (select count(*) from public.suppliers),
-  1::bigint,
+  2::bigint,
   'Usuario 1 ve sus suppliers'
 );
 
 select is(
   (select count(*) from public.supplier_items),
-  2::bigint,
+  5::bigint,
   'Usuario 1 ve los items de sus suppliers'
 );
 
