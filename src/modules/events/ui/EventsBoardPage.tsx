@@ -147,7 +147,7 @@ export default function EventsBoardPage() {
             loading={bookings.isLoading}
             error={bookings.error}
             errorTitle="Error al cargar eventos"
-            errorMessage={bookingsError}
+            errorMessage={bookingsError ?? undefined}
             onRetry={() => bookings.refetch()}
             empty={events.length === 0}
             emptyState={

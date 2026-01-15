@@ -176,7 +176,7 @@ export default function WastePage() {
           rangeLabel={RANGE_LABELS[range]}
           loading={entriesQuery.isLoading}
           error={entriesQuery.error}
-          errorMessage={entriesError}
+          errorMessage={entriesError ?? undefined}
           onRetry={() => entriesQuery.refetch()}
         />
 
