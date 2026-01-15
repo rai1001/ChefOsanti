@@ -68,7 +68,7 @@ export default function EventsBoardPage() {
         id: booking.id,
         title: booking.eventTitle || 'Evento',
         startsAt: booking.startsAt as string,
-        status: booking.status ?? 'confirmed',
+        status: 'confirmed',
       }))
   }, [bookings.data])
 
