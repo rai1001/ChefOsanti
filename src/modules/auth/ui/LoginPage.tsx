@@ -12,8 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shared/ui/Ca
 import { Badge } from '@/modules/shared/ui/Badge'
 
 const loginSchema = z.object({
-  email: z.string().email('Introduce un correo valido'),
-  password: z.string().min(1, 'La contrasena es obligatoria'),
+  email: z.string().email('Introduce un correo válido'),
+  password: z.string().min(1, 'La contraseña es obligatoria'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
@@ -22,10 +22,7 @@ export function LoginPage() {
   const session = useSupabaseSession()
   const navigate = useNavigate()
   const location = useLocation()
-  const redirectPath = useMemo(
-    () => (location.state as any)?.from?.pathname ?? '/dashboard',
-    [location.state],
-  )
+  const redirectPath = useMemo(() => (location.state as any)?.from?.pathname ?? '/dashboard', [location.state])
 
   const [status, setStatus] = useState<string | null>(null)
   const [authError, setAuthError] = useState<{ title: string; description: string } | null>(null)
@@ -50,7 +47,7 @@ export function LoginPage() {
     setAuthError(null)
     try {
       await loginWithPassword(values)
-      setStatus('Sesion iniciada, redirigiendo...')
+      setStatus('Sesión iniciada, redirigiendo...')
       navigate(redirectPath, { replace: true })
     } catch (err: any) {
       const { title, description } = formatError(err)
@@ -59,9 +56,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0B1220] via-[#0E1628] to-[#0B1220]">
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(1200px_520px_at_50%_-200px,_rgb(var(--accent)_/_0.2),_transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(1200px_520px_at_50%_-200px,_rgb(var(--accent)_/_0.25),_transparent_60%)]" />
         <div className="absolute left-[12%] top-[18%] h-72 w-72 rounded-full bg-accent/12 blur-[140px]" />
         <div className="absolute right-[8%] bottom-[10%] h-96 w-96 rounded-full bg-accent-alt/12 blur-[180px]" />
         <div className="absolute -left-16 -bottom-24 h-80 w-80 rounded-full bg-white/6 blur-[140px]" />
@@ -98,6 +95,10 @@ export function LoginPage() {
                   <p className="mt-1 text-lg font-semibold text-foreground">Compras seguras</p>
                 </div>
               </div>
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-success shadow-[0_0_12px_rgb(var(--success)/0.6)]" />
+                SSO, MFA y sesión cifrada con Supabase
+              </div>
             </CardContent>
           </Card>
 
@@ -105,12 +106,12 @@ export function LoginPage() {
             <CardHeader className="space-y-2 pb-4">
               <Badge variant="info" className="w-fit">Acceso seguro</Badge>
               <h1 className="text-3xl font-semibold text-foreground">Inicia sesión en ChefOS</h1>
-              <p className="text-sm text-muted-foreground">Gestion operativa premium para hosteleria.</p>
+              <p className="text-sm text-muted-foreground">Gestión operativa premium para hostelería.</p>
             </CardHeader>
             <CardContent>
               <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
                 <label className="block space-y-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Correo electronico</span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Correo electrónico</span>
                   <input
                     type="email"
                     id="login-email"
@@ -123,7 +124,7 @@ export function LoginPage() {
                 </label>
 
                 <label className="block space-y-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contrasena</span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contraseña</span>
                   <input
                     type="password"
                     id="login-password"
@@ -141,8 +142,8 @@ export function LoginPage() {
               </form>
 
               <div className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
-                <span className="cursor-default">Olvidaste tu contrasena?</span>
-                <span className="cursor-default">Necesitas ayuda?</span>
+                <span className="cursor-default">¿Olvidaste tu contraseña?</span>
+                <span className="cursor-default">¿Necesitas ayuda?</span>
               </div>
 
               {authError && (
