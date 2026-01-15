@@ -13,52 +13,96 @@ type Props = {
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'rounded-md px-3 py-2 text-sm font-medium transition-all duration-300',
+    'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
     isActive
-      ? 'bg-nano-blue-500/10 text-nano-blue-400 shadow-[0_0_10px_rgba(34,211,238,0.2)] border border-nano-blue-500/20'
-      : 'text-slate-400 hover:text-white hover:bg-white/5',
+      ? 'bg-accent/10 text-accent border border-accent/30 shadow-[0_0_24px_rgb(var(--accent)/0.2)]'
+      : 'text-muted-foreground hover:text-foreground hover:bg-surface/60',
   ].join(' ')
+
+const navSectionLabel =
+  'px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80'
 
 export function AppLayout({ children }: Props) {
   const { role, loading: roleLoading } = useCurrentRole()
-  const { activeOrgName, loading: orgLoading } = useActiveOrgId()
+  const { activeOrgId, activeOrgName, memberships, setOrg, loading: orgLoading } = useActiveOrgId()
   const navigate = useNavigate()
   const [density, setDensity] = useState<'compact' | 'comfortable'>(() => {
     if (typeof localStorage === 'undefined') return 'compact'
     return (localStorage.getItem('ds-density') as 'compact' | 'comfortable') || 'compact'
   })
+  const [kitchenMode, setKitchenMode] = useState<boolean>(() => {
+    if (typeof localStorage === 'undefined') return false
+    return localStorage.getItem('kitchen-mode') === '1'
+  })
 
   const loading = roleLoading || orgLoading
 
-  const navItems: { label: string; to: string; perm?: any }[] = [
-    { label: 'Dashboard', to: '/dashboard', perm: 'dashboard:read' },
-    { label: 'Reportes', to: '/reports', perm: 'reports:read' },
-    { label: 'Eventos', to: '/events', perm: 'events:read' },
-    { label: 'Producción', to: '/production', perm: 'events:read' },
-    { label: 'Menus', to: '/menus', perm: 'menus:read' },
-    { label: 'Productos', to: '/products', perm: 'recipes:read' },
-    { label: 'Recetas', to: '/recipes', perm: 'recipes:read' },
-    { label: 'Horarios', to: '/scheduling', perm: 'scheduling:read' },
-    { label: 'Generar roster', to: '/scheduling/generate', perm: 'scheduling:write' },
-    { label: 'Personal', to: '/staff', perm: 'staff:read' },
-    { label: 'Pedidos evento', to: '/purchasing/event-orders', perm: 'purchasing:read' },
-    { label: 'Pedidos', to: '/purchasing/orders', perm: 'purchasing:read' },
-    { label: 'Proveedores', to: '/purchasing/suppliers', perm: 'purchasing:read' },
-    { label: 'Mermas', to: '/waste', perm: 'waste:read' },
-    { label: 'Stock', to: '/purchasing/stock', perm: 'purchasing:read' },
-    { label: 'Caducidades', to: '/inventory/expiries', perm: 'purchasing:read' },
-    { label: 'Elaboraciones', to: '/inventory/preparations', perm: 'purchasing:read' },
+  const navSections = [
+    {
+      label: 'Overview',
+      items: [
+        { label: 'Dashboard', to: '/dashboard', perm: 'dashboard:read' },
+        { label: 'Reportes', to: '/reports', perm: 'reports:read' },
+      ],
+    },
+    {
+      label: 'Operations',
+      items: [
+        { label: 'Eventos', to: '/events', perm: 'events:read' },
+        { label: 'Produccion', to: '/production', perm: 'events:read' },
+        { label: 'Menus', to: '/menus', perm: 'menus:read' },
+        { label: 'Recetas', to: '/recipes', perm: 'recipes:read' },
+        { label: 'Productos', to: '/products', perm: 'recipes:read' },
+      ],
+    },
+    {
+      label: 'Procurement',
+      items: [
+        { label: 'Pedidos evento', to: '/purchasing/event-orders', perm: 'purchasing:read' },
+        { label: 'Pedidos', to: '/purchasing/orders', perm: 'purchasing:read' },
+        { label: 'Proveedores', to: '/purchasing/suppliers', perm: 'purchasing:read' },
+        { label: 'Stock', to: '/purchasing/stock', perm: 'purchasing:read' },
+      ],
+    },
+    {
+      label: 'Inventory',
+      items: [
+        { label: 'Caducidades', to: '/inventory/expiries', perm: 'purchasing:read' },
+        { label: 'Elaboraciones', to: '/inventory/preparations', perm: 'purchasing:read' },
+        { label: 'Mermas', to: '/waste', perm: 'waste:read' },
+      ],
+    },
+    {
+      label: 'People',
+      items: [
+        { label: 'Horarios', to: '/scheduling', perm: 'scheduling:read' },
+        { label: 'Generar roster', to: '/scheduling/generate', perm: 'scheduling:write' },
+        { label: 'Personal', to: '/staff', perm: 'staff:read' },
+      ],
+    },
   ]
 
-  const visibleNav = navItems.filter((item) => !item.perm || can(role, item.perm))
+  const visibleSections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => !item.perm || can(role, item.perm)),
+    }))
+    .filter((section) => section.items.length > 0)
+
   const densityLabel = useMemo(
-    () => (density === 'compact' ? 'Compacto' : 'Cmodo'),
+    () => (density === 'compact' ? 'Compacto' : 'Comodo'),
     [density],
   )
 
   useEffect(() => {
     localStorage.setItem('ds-density', density)
   }, [density])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    document.body.classList.toggle('kitchen', kitchenMode)
+    localStorage.setItem('kitchen-mode', kitchenMode ? '1' : '0')
+  }, [kitchenMode])
 
   const handleLogout = async () => {
     try {
@@ -81,61 +125,195 @@ export function AppLayout({ children }: Props) {
   }
 
   return (
-    <div className="min-h-screen font-sans text-slate-200 selection:bg-nano-blue-500/30" data-density={density}>
-      <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/5">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-nano-blue-500 to-nano-pink-500 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-              <div className="relative rounded-lg bg-nano-navy-900 border border-white/10 px-3 py-1.5 text-sm font-bold text-white flex items-center gap-1.5">
-                <span className="text-nano-blue-400">⚡</span> ChefOS
+    <div className="min-h-screen bg-bg text-foreground selection:bg-accent/20" data-density={density}>
+      <div className="flex min-h-screen">
+        <aside className="hidden w-64 flex-col border-r border-border/30 bg-surface/40 backdrop-blur-2xl lg:flex">
+          <div className="px-6 pt-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10 text-lg font-semibold text-accent shadow-[0_0_24px_rgb(var(--accent)/0.3)]">
+                C
               </div>
-            </div>
-            <span className="text-xs text-slate-500 font-medium tracking-wider uppercase hidden sm:block">Premium</span>
-            {activeOrgName && (
-              <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-nano-blue-500/10 text-nano-blue-400 border border-nano-blue-500/20">
-                {activeOrgName}
-              </span>
-            )}
-            <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs text-slate-300 shadow-sm md:flex">
-              <span className="text-[10px] uppercase tracking-wide text-slate-400">Densidad</span>
-              <button
-                type="button"
-                className="rounded-md px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-nano-blue-400"
-                aria-label={densityLabel}
-                onClick={() => setDensity((prev) => (prev === 'compact' ? 'comfortable' : 'compact'))}
-              >
-                {densityLabel}
-              </button>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">ChefOS</p>
+                <p className="text-sm font-semibold text-foreground">Premium Ops</p>
+              </div>
             </div>
           </div>
 
-          <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 mask-linear-fade">
+          <div className="px-6 pt-6">
+            <div className="rounded-2xl border border-border/20 bg-surface2/70 p-3">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Sucursal</p>
+              <div className="mt-2">
+                {loading ? (
+                  <div className="ds-skeleton h-9 w-full" />
+                ) : (
+                  <select
+                    className="h-9 w-full rounded-lg border border-border/40 bg-surface3/70 px-2 text-sm text-foreground outline-none focus:border-accent"
+                    value={activeOrgId ?? ''}
+                    onChange={(event) => setOrg(event.target.value)}
+                  >
+                    {memberships.map((membership) => (
+                      <option key={membership.orgId} value={membership.orgId}>
+                        {membership.orgName ?? membership.orgSlug ?? membership.orgId}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              {activeOrgName && (
+                <p className="mt-2 text-xs text-muted-foreground">Activo: {activeOrgName}</p>
+              )}
+            </div>
+          </div>
+
+          <nav className="flex-1 space-y-6 px-4 py-6">
             {loading ? (
-              <div className="flex items-center gap-2 px-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-nano-blue-500 border-t-transparent"></div>
-                <span className="text-xs text-slate-500">Cargando...</span>
+              <div className="space-y-3 px-3">
+                {[...Array(6)].map((_, idx) => (
+                  <div key={idx} className="ds-skeleton h-9 w-full" />
+                ))}
               </div>
             ) : (
-              visibleNav.map((item) => (
-                <NavLink key={item.to} to={item.to} className={navClass}>
-                  {item.label}
-                </NavLink>
+              visibleSections.map((section) => (
+                <div key={section.label} className="space-y-2">
+                  <p className={navSectionLabel}>{section.label}</p>
+                  <div className="space-y-1">
+                    {section.items.map((item) => (
+                      <NavLink key={item.to} to={item.to} className={navClass}>
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent/70" />
+                        <span>{item.label}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
               ))
             )}
-            <div className="h-4 w-px bg-white/10 mx-2"></div>
+          </nav>
+
+          <div className="px-6 pb-6">
             <button
               type="button"
               onClick={handleLogout}
-              aria-label="Cerrar sesión"
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-400 hover:text-red-400 transition-colors hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="flex w-full items-center justify-between rounded-xl border border-border/30 bg-surface2/60 px-3 py-2 text-sm font-semibold text-foreground transition hover:border-danger/40 hover:text-danger"
             >
-              Salir
+              <span>Salir</span>
+              <span className="text-xs text-muted-foreground">Logout</span>
             </button>
-          </nav>
+          </div>
+        </aside>
+
+        <div className="flex min-h-screen flex-1 flex-col">
+          <header className="sticky top-0 z-40 w-full">
+            <div className="glass-panel border-b border-border/30">
+              <div className="mx-auto flex max-w-[1400px] flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-1 items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-accent/30 bg-accent/10 text-lg font-semibold text-accent lg:hidden">
+                    C
+                  </div>
+                  <div className="relative w-full max-w-md">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm9 2-4.35-4.35"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      type="search"
+                      placeholder="Buscar eventos, compras, recetas..."
+                      className="h-10 w-full rounded-full border border-border/40 bg-surface/70 pl-10 pr-16 text-sm text-foreground outline-none transition focus:border-accent focus:bg-surface2"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 text-[11px] text-muted-foreground sm:flex">
+                      Ctrl K
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2 rounded-full border border-border/30 bg-surface/60 px-3 py-1 text-xs text-muted-foreground lg:hidden">
+                    <span className="text-[10px] uppercase tracking-wide">Sucursal</span>
+                    <select
+                      className="bg-transparent text-xs text-foreground outline-none"
+                      value={activeOrgId ?? ''}
+                      onChange={(event) => setOrg(event.target.value)}
+                    >
+                      {memberships.map((membership) => (
+                        <option key={membership.orgId} value={membership.orgId}>
+                          {membership.orgName ?? membership.orgSlug ?? membership.orgId}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 rounded-full border border-border/30 bg-surface/60 px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setDensity((prev) => (prev === 'compact' ? 'comfortable' : 'compact'))}
+                  >
+                    <span className="text-[10px] uppercase tracking-wide">Densidad</span>
+                    <span className="font-semibold text-foreground">{densityLabel}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setKitchenMode((prev) => !prev)}
+                    className="flex items-center gap-2 rounded-full border border-border/30 bg-surface/60 px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <span className="text-[10px] uppercase tracking-wide">Kitchen</span>
+                    <span className="font-semibold text-foreground">{kitchenMode ? 'On' : 'Off'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border/30 bg-surface/70 text-muted-foreground hover:text-foreground"
+                    aria-label="Notificaciones"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M6 9a6 6 0 1 1 12 0v4.2c0 .6.2 1.2.6 1.7l.8 1.1H4.6l.8-1.1c.4-.5.6-1.1.6-1.7V9Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      />
+                      <path d="M9.5 19a2.5 2.5 0 0 0 5 0" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-warning shadow-[0_0_8px_rgb(var(--warning)/0.6)]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 rounded-full border border-border/30 bg-surface/60 px-3 py-1 text-xs font-semibold text-foreground hover:border-danger/40 hover:text-danger"
+                  >
+                    Salir
+                  </button>
+                </div>
+              </div>
+
+              <nav className="mx-auto flex max-w-[1400px] gap-2 overflow-x-auto px-4 pb-3 lg:hidden">
+                {loading ? (
+                  <div className="flex items-center gap-2 px-2 text-xs text-muted-foreground">
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                    Cargando...
+                  </div>
+                ) : (
+                  visibleSections.flatMap((section) => section.items).map((item) => (
+                    <NavLink key={item.to} to={item.to} className={navClass}>
+                      {item.label}
+                    </NavLink>
+                  ))
+                )}
+              </nav>
+            </div>
+          </header>
+
+          <main className="mx-auto w-full max-w-[1400px] px-4 py-8 lg:px-6 animate-fade-in">
+            {children}
+          </main>
         </div>
-      </header>
-      <main className="mx-auto max-w-7xl px-4 py-8 animate-fade-in">{children}</main>
+      </div>
     </div>
   )
 }

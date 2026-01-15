@@ -5,16 +5,16 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../../lib/utils' // Assuming utils exists, if not I'll inline a simple clsx
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-semibold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
     {
         variants: {
             variant: {
-                default: "bg-nano-blue-600 text-white hover:bg-nano-blue-500 shadow-lg shadow-nano-blue-500/20",
-                destructive: "bg-red-500 text-white hover:bg-red-600",
-                outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-                secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-                ghost: "hover:bg-accent hover:text-accent-foreground",
-                link: "text-primary underline-offset-4 hover:underline",
+                default: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[0_12px_30px_rgb(var(--accent)/0.35)]",
+                destructive: "bg-danger text-white hover:bg-danger/90",
+                outline: "border border-border bg-transparent hover:bg-surface/60 hover:text-foreground",
+                secondary: "bg-surface2 text-foreground hover:bg-surface2/80",
+                ghost: "hover:bg-surface/60 hover:text-foreground",
+                link: "text-accent underline-offset-4 hover:underline",
             },
             size: {
                 default: "h-10 px-4 py-2",

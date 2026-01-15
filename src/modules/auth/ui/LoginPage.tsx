@@ -9,8 +9,8 @@ import type { LoginInput } from '../domain/types'
 import { useFormattedError } from '@/lib/shared/useFormattedError'
 
 const loginSchema = z.object({
-  email: z.string().email('Introduce un correo válido'),
-  password: z.string().min(1, 'La contraseña es obligatoria'),
+  email: z.string().email('Introduce un correo valido'),
+  password: z.string().min(1, 'La contrasena es obligatoria'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
@@ -47,7 +47,7 @@ export function LoginPage() {
     setAuthError(null)
     try {
       await loginWithPassword(values)
-      setStatus('Sesión iniciada, redirigiendo...')
+      setStatus('Sesion iniciada, redirigiendo...')
       navigate(redirectPath, { replace: true })
     } catch (err: any) {
       const { title, description } = formatError(err)
@@ -56,59 +56,80 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg rounded-xl border border-white/10 bg-nano-navy-800/50 p-6 shadow-xl backdrop-blur-sm animate-fade-in">
-      <div className="mb-4 space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Acceso Seguro</p>
-        <h1 className="text-2xl font-bold text-white">Inicia sesión en ChefOS</h1>
-        <p className="text-sm text-slate-400">Gestión operativa premium para hostelería.</p>
+    <div className="relative min-h-screen overflow-hidden">
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(1200px_520px_at_50%_-200px,_rgb(var(--accent)_/_0.16),_transparent_60%)]" />
+        <div className="absolute left-[10%] top-[15%] h-60 w-60 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute right-[5%] bottom-[10%] h-80 w-80 rounded-full bg-accent/10 blur-[140px]" />
+        <div className="absolute -left-24 -bottom-20 h-72 w-72 rounded-full bg-white/5 blur-[120px]" />
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <label className="block space-y-1">
-          <span className="text-sm font-medium text-slate-300">Correo electrónico</span>
-          <input
-            type="email"
-            id="login-email"
-            autoComplete="email"
-            className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white shadow-sm focus:border-nano-blue-500 focus:outline-none focus:ring-2 focus:ring-nano-blue-500/20 placeholder-slate-500 transition-colors"
-            placeholder="tucorreo@empresa.com"
-            {...register('email')}
-          />
-          {errors.email && <p id="email-error" className="text-sm text-red-500">{errors.email.message}</p>}
-        </label>
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md">
+          <div className="glass-panel rounded-2xl border border-white/10 p-8 shadow-[0_30px_80px_rgba(3,7,18,0.6)] animate-fade-in">
+            <div className="mb-6 space-y-2">
+              <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">
+                <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_18px_rgba(34,211,238,0.7)]" />
+                Acceso seguro
+              </span>
+              <h1 className="text-3xl font-semibold text-foreground">Inicia sesion en ChefOS</h1>
+              <p className="text-sm text-muted-foreground">Gestion operativa premium para hosteleria.</p>
+            </div>
 
-        <label className="block space-y-1">
-          <span className="text-sm font-medium text-slate-300">Contraseña</span>
-          <input
-            type="password"
-            id="login-password"
-            autoComplete="current-password"
-            className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white shadow-sm focus:border-nano-blue-500 focus:outline-none focus:ring-2 focus:ring-nano-blue-500/20 placeholder-slate-500 transition-colors"
-            placeholder="••••••••"
-            {...register('password')}
-          />
-          {errors.password && <p id="password-error" className="text-sm text-red-500">{errors.password.message}</p>}
-        </label>
+            <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+              <label className="block space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Correo electronico</span>
+                <input
+                  type="email"
+                  id="login-email"
+                  autoComplete="email"
+                  className="ds-input"
+                  placeholder="tucorreo@empresa.com"
+                  {...register('email')}
+                />
+                {errors.email && <p id="email-error" className="text-xs text-danger">{errors.email.message}</p>}
+              </label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          aria-label="Entrar Iniciar Sesión"
-          className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isSubmitting ? 'Accediendo...' : 'Entrar'}
-        </button>
-      </form>
+              <label className="block space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contrasena</span>
+                <input
+                  type="password"
+                  id="login-password"
+                  autoComplete="current-password"
+                  className="ds-input"
+                  placeholder="********"
+                  {...register('password')}
+                />
+                {errors.password && <p id="password-error" className="text-xs text-danger">{errors.password.message}</p>}
+              </label>
 
-      {authError && (
-        <div className="mt-4 rounded-md bg-rose-500/20 border border-rose-500/30 px-3 py-2 text-sm text-rose-300">
-          <p className="font-bold">{authError.title}</p>
-          <p>{authError.description}</p>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                aria-label="Entrar iniciar sesion"
+                className="w-full rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground shadow-[0_10px_30px_rgba(34,211,238,0.35)] transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSubmitting ? 'Accediendo...' : 'Entrar'}
+              </button>
+            </form>
+
+            <div className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
+              <span className="cursor-default">Olvidaste tu contrasena?</span>
+              <span className="cursor-default">Necesitas ayuda?</span>
+            </div>
+
+            {authError && (
+              <div className="mt-5 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+                <p className="font-semibold text-foreground">{authError.title}</p>
+                <p className="text-xs text-muted-foreground">{authError.description}</p>
+              </div>
+            )}
+            {status && (
+              <p className="mt-5 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent">{status}</p>
+            )}
+          </div>
         </div>
-      )}
-      {status && (
-        <p className="mt-4 rounded-md bg-nano-blue-500/20 border border-nano-blue-500/30 px-3 py-2 text-sm text-nano-blue-300">{status}</p>
-      )}
+      </div>
     </div>
   )
 }

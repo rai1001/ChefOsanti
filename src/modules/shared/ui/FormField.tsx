@@ -14,7 +14,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
             <div className="flex flex-col gap-1.5 w-full">
                 <label
                     htmlFor={id}
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-muted-foreground"
                 >
                     {label}
                 </label>
@@ -25,9 +25,9 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
                         ref={ref}
                         id={id}
                         className={`
-            flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 
-            focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50
-            ${error ? 'border-red-500 focus:ring-red-500' : ''}
+            flex h-10 w-full rounded-md border border-border/40 bg-surface2 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground 
+            focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50
+            ${error ? 'border-danger focus:ring-danger' : ''}
             ${className}
           `}
                         aria-invalid={!!error}
@@ -38,7 +38,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
                 {error && (
                     <span
                         id={`${id}-error`}
-                        className="text-sm text-red-500"
+                        className="text-sm text-danger"
                         role="alert"
                     >
                         {error.message}
