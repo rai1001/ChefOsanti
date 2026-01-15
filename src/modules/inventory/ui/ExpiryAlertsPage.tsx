@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CheckCircle, Filter, Search, ShieldAlert } from 'lucide-react'
+import { CheckCircle, Filter, Search, ShieldAlert, AlertTriangle } from 'lucide-react'
 import { PageHeader } from '@/modules/shared/ui/PageHeader'
 import { Skeleton } from '@/modules/shared/ui/Skeleton'
 import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
@@ -21,6 +21,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/modules/shared/ui/Badge'
 import { Button } from '@/modules/shared/ui/Button'
 import { formatCurrency } from '@/lib/utils'
+import { Card } from '@/modules/shared/ui/Card'
+import { DataState } from '@/modules/shared/ui/DataState'
 
 type RangeFilter = 'all' | 'expired' | 'today' | 'three' | 'seven'
 
@@ -67,32 +69,33 @@ export default function ExpiryAlertsPage() {
     })
   }, [alerts.data, hotelId, locationId, range, search])
 
-  const criticalAlerts = filteredAlerts.filter(
-    (a) => a.expiryCategory === 'expired' || a.expiryCategory === 'today',
-  )
-  const nearAlerts = filteredAlerts.filter(
-    (a) => a.expiryCategory === 'soon_3' || a.expiryCategory === 'soon_7',
-  )
+  const criticalAlerts = filteredAlerts.filter((a) => a.expiryCategory === 'expired' || a.expiryCategory === 'today')
+  const nearAlerts = filteredAlerts.filter((a) => a.expiryCategory === 'soon_3' || a.expiryCategory === 'soon_7')
   const okAlerts = filteredAlerts.filter((a) => a.expiryCategory === 'ok' || a.expiryCategory === 'none')
-  const riskValue = formatCurrency(
-    filteredAlerts.reduce((acc, alert) => acc + alert.qty, 0) * 10, // aproximación simple al riesgo
-  )
+  const riskValue = formatCurrency(filteredAlerts.reduce((acc, alert) => acc + alert.qty, 0) * 10)
 
   if (loading) {
     return <Skeleton className="h-6 w-40" />
   }
   if (!session || error) {
-    return <ErrorBanner title="Inicia sesión" message={formattedError || 'Necesitas iniciar sesión.'} />
+    return <ErrorBanner title="Inicia sesion" message={formattedError || 'Necesitas iniciar sesion.'} />
   }
 
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Expiry & Stock Alerts"
-        subtitle="Prioriza lotes críticos antes de perder inventario."
+        subtitle="Prioriza lotes criticos antes de perder inventario."
         actions={
           <div className="flex flex-wrap gap-2">
-            <select className="ds-input max-w-xs" value={hotelId} onChange={(e) => { setHotelId(e.target.value); setLocationId('') }}>
+            <select
+              className="ds-input max-w-xs"
+              value={hotelId}
+              onChange={(e) => {
+                setHotelId(e.target.value)
+                setLocationId('')
+              }}
+            >
               <option value="">All hotels</option>
               {(hotels.data ?? []).map((h) => (
                 <option key={h.id} value={h.id}>
@@ -120,39 +123,39 @@ export default function ExpiryAlertsPage() {
       />
 
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-2xl border border-border/30 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
+        <Card className="rounded-2xl border border-border/30 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-danger/80">Riesgo financiero</p>
-              <p className="text-3xl font-bold text-foreground mt-1">{riskValue}</p>
+              <p className="mt-1 text-3xl font-bold text-foreground">{riskValue}</p>
               <p className="text-sm text-muted-foreground">Estimado por lotes con caducidad.</p>
             </div>
             <div className="rounded-full bg-danger/10 p-3 text-danger">
               <ShieldAlert size={20} />
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-2xl border border-border/30 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
-          <p className="text-xs font-semibold uppercase tracking-wide text-warning/80">Alertas críticas</p>
+        <Card className="rounded-2xl border border-border/30 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
+          <p className="text-xs font-semibold uppercase tracking-wide text-danger/80">Alertas criticas</p>
           <div className="mt-2 flex items-baseline gap-3">
             <p className="text-3xl font-bold text-foreground">{criticalAlerts.length}</p>
             <Badge variant="danger">Critical</Badge>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">Acción inmediata recomendada.</p>
-        </div>
+          <p className="text-sm text-muted-foreground mt-1">Accion inmediata recomendada.</p>
+        </Card>
 
-        <div className="rounded-2xl border border-border/30 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
-          <p className="text-xs font-semibold uppercase tracking-wide text-warning/80">Alertas próximas</p>
+        <Card className="rounded-2xl border border-border/30 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
+          <p className="text-xs font-semibold uppercase tracking-wide text-warning/80">Alertas proximas</p>
           <div className="mt-2 flex items-baseline gap-3">
             <p className="text-3xl font-bold text-foreground">{nearAlerts.length}</p>
             <Badge variant="warning">Near Expiry</Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">Planifica uso prioritario.</p>
-        </div>
+        </Card>
       </section>
 
-      <section className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_24px_60px_rgba(3,7,18,0.45)] space-y-4">
+      <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_24px_60px_rgba(3,7,18,0.45)] space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative min-w-[240px] flex-1">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -174,37 +177,40 @@ export default function ExpiryAlertsPage() {
             <Badge variant="success">{okAlerts.length} Good</Badge>
           </div>
           <div className="ml-auto flex gap-2">
-            <Button variant="danger" size="sm" disabled={dismissAlert.isPending || filteredAlerts.length === 0} onClick={() => {
-              const firstCritical = criticalAlerts[0]
-              if (firstCritical) dismissAlert.mutate(firstCritical.id)
-            }}>
-              Marcar como disposed
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={dismissAlert.isPending || filteredAlerts.length === 0}
+              onClick={() => {
+                const firstCritical = criticalAlerts[0]
+                if (firstCritical) dismissAlert.mutate(firstCritical.id)
+              }}
+            >
+              Mark disposed
             </Button>
             <Button variant="secondary" size="sm">
-              Prioritize Use
+              Prioritize use
             </Button>
           </div>
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-border/20 bg-surface/50 backdrop-blur-lg">
-          {alerts.isLoading ? (
-            <div className="space-y-2 p-6">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6" />
-            </div>
-          ) : alerts.isError ? (
-            <div className="p-4">
-              <ErrorBanner title="Error al cargar alertas" message={formattedError} onRetry={() => alerts.refetch()} />
-            </div>
-          ) : filteredAlerts.length === 0 ? (
-            <div className="p-6">
-              <EmptyState
-                icon={CheckCircle}
-                title="Sin alertas"
-                description="No hay caducidades pendientes según las reglas activas."
-              />
-            </div>
-          ) : (
+          <DataState
+            loading={alerts.isLoading}
+            error={alerts.error}
+            errorTitle="Error al cargar alertas"
+            errorMessage={formattedError}
+            empty={filteredAlerts.length === 0}
+            emptyState={
+              <div className="p-6">
+                <EmptyState
+                  icon={CheckCircle}
+                  title="Sin alertas"
+                  description="No hay caducidades pendientes segun las reglas activas."
+                />
+              </div>
+            }
+          >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -219,7 +225,7 @@ export default function ExpiryAlertsPage() {
               </TableHeader>
               <TableBody>
                 {filteredAlerts.map((alert) => {
-                  const expires = alert.expiresAt ? new Date(alert.expiresAt).toLocaleDateString('en-CA') : '—'
+                  const expires = alert.expiresAt ? new Date(alert.expiresAt).toLocaleDateString('en-CA') : '-'
                   const tone = statusTone(alert)
                   return (
                     <TableRow key={alert.id} className="hover:bg-white/5">
@@ -237,7 +243,7 @@ export default function ExpiryAlertsPage() {
                           {alert.expiryCategory}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{alert.daysBefore ? `${alert.daysBefore}d` : '—'}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{alert.daysBefore ? `${alert.daysBefore}d` : '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
@@ -246,10 +252,10 @@ export default function ExpiryAlertsPage() {
                             disabled={dismissAlert.isPending}
                             onClick={() => dismissAlert.mutate(alert.id)}
                           >
-                            Mark as Disposed
+                            Dispose
                           </Button>
                           <Button variant="secondary" size="sm">
-                            Prioritize Use
+                            Prioritize
                           </Button>
                         </div>
                       </TableCell>
@@ -258,11 +264,11 @@ export default function ExpiryAlertsPage() {
                 })}
               </TableBody>
             </Table>
-          )}
+          </DataState>
         </div>
-      </section>
+      </Card>
 
-      <section className="rounded-2xl border border-border/30 bg-surface/70 p-5 shadow-[0_16px_48px_rgba(0,0,0,0.45)] space-y-4">
+      <Card className="rounded-2xl border border-border/30 bg-surface/70 p-5 shadow-[0_16px_48px_rgba(0,0,0,0.45)] space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-accent">Expiry rules</p>
@@ -284,18 +290,22 @@ export default function ExpiryAlertsPage() {
                 await createRule.mutateAsync({ orgId: activeOrgId, daysBefore: newRuleDays })
               }}
             >
-              {createRule.isPending ? 'Creando...' : 'Añadir regla (días)'}
+              {createRule.isPending ? 'Creando...' : 'Anadir regla (dias)'}
             </Button>
           </div>
         </div>
 
-        {rules.isLoading ? (
-          <Skeleton className="h-10 w-full" />
-        ) : rules.isError ? (
-          <ErrorBanner title="Error al cargar reglas" message={rulesError || formattedError} onRetry={() => rules.refetch()} />
-        ) : rules.data?.length ? (
+        <DataState
+          loading={rules.isLoading}
+          error={rules.error}
+          errorTitle="Error al cargar reglas"
+          errorMessage={rulesError || formattedError}
+          empty={(rules.data ?? []).length === 0}
+          emptyState={<p className="text-sm text-muted-foreground">Aun no hay reglas. Crea una para empezar.</p>}
+          skeleton={<Skeleton className="h-10 w-full" />}
+        >
           <div className="flex flex-wrap gap-2">
-            {rules.data.map((rule) => (
+            {rules.data?.map((rule) => (
               <Button
                 key={rule.id}
                 variant={rule.isEnabled ? 'secondary' : 'ghost'}
@@ -306,10 +316,8 @@ export default function ExpiryAlertsPage() {
               </Button>
             ))}
           </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">Aún no hay reglas. Crea una para empezar a generar alertas.</p>
-        )}
-      </section>
+        </DataState>
+      </Card>
     </div>
   )
 }
