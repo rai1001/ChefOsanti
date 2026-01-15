@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react'
 
 type Variant = 'info' | 'success' | 'warning' | 'danger'
 
-const ICONS: Record<Variant, JSX.Element> = {
+const ICONS: Record<Variant, ReactNode> = {
   info: <Info size={16} />,
   success: <CheckCircle size={16} />,
   warning: <AlertTriangle size={16} />,

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CheckCircle, Filter, Search, ShieldAlert, AlertTriangle } from 'lucide-react'
+import { CheckCircle, Filter, Search, ShieldAlert } from 'lucide-react'
 import { PageHeader } from '@/modules/shared/ui/PageHeader'
 import { Skeleton } from '@/modules/shared/ui/Skeleton'
 import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
@@ -201,7 +201,7 @@ export default function ExpiryAlertsPage() {
             loading={alerts.isLoading}
             error={alerts.error}
             errorTitle="Error al cargar alertas"
-            errorMessage={formattedError}
+            errorMessage={formattedError ?? undefined}
             empty={filteredAlerts.length === 0}
             emptyState={
               <div className="p-6">
@@ -301,7 +301,7 @@ export default function ExpiryAlertsPage() {
           loading={rules.isLoading}
           error={rules.error}
           errorTitle="Error al cargar reglas"
-          errorMessage={rulesError || formattedError}
+          errorMessage={rulesError ?? formattedError ?? undefined}
           empty={(rules.data ?? []).length === 0}
           emptyState={<p className="text-sm text-muted-foreground">Aun no hay reglas. Crea una para empezar.</p>}
           skeleton={<Skeleton className="h-10 w-full" />}

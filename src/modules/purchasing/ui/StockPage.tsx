@@ -291,7 +291,7 @@ export default function StockPage() {
             loading={batches.isLoading}
             error={locationId ? batches.error : null}
             errorTitle="Error al cargar lotes"
-            errorMessage={batchesError}
+            errorMessage={batchesError ?? undefined}
             empty={!locationId || (batches.data?.length ?? 0) === 0}
             emptyState={
               <div className="p-6">

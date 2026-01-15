@@ -51,7 +51,7 @@ export function DataState({
   }
 
   if (empty) {
-    return <>{emptyState}</> ?? null
+    return <>{emptyState}</>
   }
 
   return <>{children}</>

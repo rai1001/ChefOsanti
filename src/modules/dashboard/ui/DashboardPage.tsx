@@ -6,7 +6,6 @@ import { useOrdersSummary, useOrdersToDeliver, useStaffAvailability, useWeekEven
 import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shared/ui/Card'
 import { Spinner } from '@/modules/shared/ui/Spinner'
 import { Badge } from '@/modules/shared/ui/Badge'
-import { EmptyState } from '@/modules/shared/ui/EmptyState'
 
 const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
