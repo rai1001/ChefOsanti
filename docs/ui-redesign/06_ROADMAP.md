@@ -27,8 +27,8 @@ Prioridad: reproducir referencias 1:1 sin inventar estilo. Cada sprint entrega p
 - [x] Staff Scheduling Grid 1:1 con virtualizacion y alertas (understaffed/overtime).
 
 ## Sprint 4 - Reports + Catologo + Hardening
-- [ ] Operational Insights & Reports 1:1 (donut waste, stacked bars costos, line ventas, heatmap).
-- [ ] Recipe & Product Catalog 1:1 (cards con imagen + side panel scaling).
+- [x] Operational Insights & Reports 1:1 (donut waste, stacked bars costos, line ventas, heatmap).
+- [x] Recipe & Product Catalog 1:1 (cards con imagen + side panel scaling).
 - [ ] QA visual completa: tokens consistentes, estados hover/focus, responsive, kitchen mode, multi-branch visible.
 - [ ] Skeletons/empty/error coherentes en todas las tablas/listas; confirm dialogs para acciones criticas.
 
