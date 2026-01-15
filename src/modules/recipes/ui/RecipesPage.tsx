@@ -1,14 +1,18 @@
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { ChefHat, Filter, Sparkles, SlidersHorizontal } from 'lucide-react'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateRecipe, useRecipes } from '../data/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
-import { ChefHat } from 'lucide-react'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { FormField } from '@/modules/shared/ui/FormField'
 import { toast } from '@/modules/shared/ui/Toast'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
+import { Card } from '@/modules/shared/ui/Card'
+import { Badge } from '@/modules/shared/ui/Badge'
+import { Button } from '@/modules/shared/ui/Button'
+import { Spinner } from '@/modules/shared/ui/Spinner'
 
 export default function RecipesPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
@@ -16,20 +20,24 @@ export default function RecipesPage() {
   const createRecipe = useCreateRecipe(activeOrgId ?? undefined)
   const [name, setName] = useState('')
   const [servings, setServings] = useState(10)
+  const [search, setSearch] = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [scale, setScale] = useState(1)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'recipes:write')
   const formattedError = useFormattedError(error)
   const createError = useFormattedError(createRecipe.error)
 
-  if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
-  if (error || !activeOrgId) {
-    return (
-      <div className="p-4 rounded-lg border border-red-500/10 bg-red-500/5">
-        <p className="text-sm text-red-500">Selecciona una organización válida.</p>
-        {formattedError && <p className="text-xs text-red-400 mt-1">{formattedError}</p>}
-      </div>
-    )
-  }
+  const filtered = useMemo(() => {
+    const list = recipes.data ?? []
+    const term = search.toLowerCase().trim()
+    return term.length ? list.filter((r) => r.name.toLowerCase().includes(term)) : list
+  }, [recipes.data, search])
+
+  const selected = useMemo(() => {
+    if (selectedId) return filtered.find((r) => r.id === selectedId) ?? null
+    return filtered[0] ?? null
+  }, [filtered, selectedId])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,91 +47,174 @@ export default function RecipesPage() {
       toast.success('Receta creada correctamente')
       setName('')
       setServings(10)
-    } catch (e) {
+      recipes.refetch()
+    } catch {
       toast.error('Error al crear la receta')
     }
   }
 
+  if (loading) return <div className="p-6"><Spinner /></div>
+  if (error || !activeOrgId) {
+    return (
+      <div className="p-4 rounded-lg border border-red-500/10 bg-red-500/5">
+        <p className="text-sm text-red-500">Selecciona una organización válida.</p>
+        {formattedError && <p className="text-xs text-red-400 mt-1">{formattedError}</p>}
+      </div>
+    )
+  }
+
+  const scaledServings = selected ? Math.round(selected.defaultServings * scale) : 0
+
   return (
-    <div className="space-y-4 animate-fade-in">
-      <header>
-        <p className="text-xs font-semibold uppercase tracking-wide text-nano-blue-400">Recetas</p>
-        <h1 className="text-2xl font-bold text-white">Recetas por organización</h1>
-        <p className="text-sm text-slate-400">Usa productos globales, no depende del hotel.</p>
+    <div className="space-y-5 animate-fade-in">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">Recetas</p>
+          <h1 className="text-3xl font-semibold text-foreground">Recipe & Product Catalog</h1>
+          <p className="text-sm text-muted-foreground">Cards con imagen, side panel y scaling por raciones.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="secondary" onClick={() => setSelectedId(null)}>
+            <Filter size={16} />
+            Limpiar filtros
+          </Button>
+          <Button onClick={() => setScale(1)}>
+            <Sparkles size={16} />
+            Reset scale
+          </Button>
+        </div>
       </header>
 
-      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
-        <h2 className="text-sm font-semibold text-white">Nueva receta</h2>
-        {!canWrite && <p className="text-xs text-slate-500">Sin permisos para crear.</p>}
-        <form className="mt-3 flex flex-col gap-2 md:flex-row md:items-end" onSubmit={onSubmit}>
-          <div className="flex flex-col flex-1">
-            <FormField
-              id="recipe-name"
-              label="Nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={!canWrite}
-              placeholder="Nombre de la receta"
-              className="bg-nano-navy-900 border-white/10 focus:border-nano-blue-500 text-white"
+      <div className="grid gap-5 xl:grid-cols-[1.7fr,0.9fr]">
+        <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              className="ds-input flex-1 min-w-[240px]"
+              placeholder="Buscar receta..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
+            <Badge variant="neutral">Total: {filtered.length}</Badge>
           </div>
-          <div className="flex flex-col w-32">
-            <FormField
-              id="recipe-servings"
-              label="Raciones base"
-              type="number"
-              value={servings}
-              onChange={(e) => setServings(Number(e.target.value) || 0)}
-              disabled={!canWrite}
-              className="bg-nano-navy-900 border-white/10 focus:border-nano-blue-500 text-white"
-            />
-          </div>
-          <button
-            type="submit"
-            className="rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={createRecipe.isPending || !canWrite}
-            title={!canWrite ? 'Sin permisos' : undefined}
-          >
-            {createRecipe.isPending ? 'Guardando...' : 'Crear'}
-          </button>
-        </form>
-        {createError && (
-          <div className="mt-2 text-xs text-red-400">
-            <span className="font-semibold">Error:</span> {createError}
-          </div>
-        )}
-      </div>
 
-      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
-        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <h2 className="text-sm font-semibold text-white">Listado</h2>
-          {recipes.isLoading && <span className="text-xs text-slate-400">Cargando...</span>}
-        </div>
-        <div className="divide-y divide-white/10">
-          {recipes.data?.length ? (
-            recipes.data.map((r) => (
-              <Link
-                key={r.id}
-                to={`/recipes/${r.id}`}
-                className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors group"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">{r.name}</p>
-                  <p className="text-xs text-slate-500 group-hover:text-slate-400">Raciones base: {r.defaultServings}</p>
-                </div>
-                <span className="text-xs font-semibold text-nano-blue-400 group-hover:text-nano-blue-300 transition-colors">Ver</span>
-              </Link>
-            ))
+          {recipes.isLoading ? (
+            <div className="flex justify-center py-10">
+              <Spinner />
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState title="Sin recetas" description="Crea tu primera receta para empezar a calcular costes." />
           ) : (
-            <div className="py-8">
-              <EmptyState
-                icon={ChefHat}
-                title="Sin recetas"
-                description="Crea tu primera receta para empezar a calcular costes."
-              />
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {filtered.map((r) => {
+                const isActive = r.id === selected?.id
+                return (
+                  <Link
+                    key={r.id}
+                    to={`/recipes/${r.id}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setSelectedId(r.id)
+                    }}
+                    className={`rounded-2xl border px-4 py-3 text-left transition ${
+                      isActive
+                        ? 'border-accent bg-white/10 shadow-[0_18px_44px_rgba(3,7,18,0.5)]'
+                        : 'border-border/30 bg-surface/70 hover:border-accent/60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-muted-foreground">
+                        <ChefHat size={18} />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">{r.name}</p>
+                        <p className="text-xs text-muted-foreground">Base: {r.defaultServings} raciones</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-xs">
+                      <Badge variant="neutral">Global</Badge>
+                      <span className="text-muted-foreground">ID: {r.id.slice(0, 6)}...</span>
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
           )}
-        </div>
+        </Card>
+
+        <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-accent">Side Panel</p>
+              <p className="text-sm text-muted-foreground">Scaling y creación rápida</p>
+            </div>
+            <Badge variant="info">Yield</Badge>
+          </div>
+
+          {selected ? (
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-lg font-semibold text-foreground">{selected.name}</p>
+                <Badge variant="neutral">{selected.defaultServings} raciones</Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm text-foreground">
+                  <span>Factor de escala</span>
+                  <span className="text-muted-foreground">x{scale.toFixed(1)}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <SlidersHorizontal size={16} className="text-muted-foreground" />
+                  <input
+                    type="range"
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                    value={scale}
+                    onChange={(e) => setScale(Number(e.target.value))}
+                    className="w-full accent-accent"
+                  />
+                </div>
+                <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm">
+                  <span className="text-muted-foreground">Raciones ajustadas</span>
+                  <span className="font-semibold text-foreground">{scaledServings}</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <EmptyState title="Selecciona una receta" description="Verás aquí el side panel con scaling." />
+          )}
+
+          <div className="rounded-2xl border border-border/20 bg-surface2/70 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <ChefHat size={16} />
+              Nueva receta
+            </div>
+            {!canWrite && <p className="text-xs text-muted-foreground">Sin permisos para crear.</p>}
+            <form className="space-y-3" onSubmit={onSubmit}>
+              <FormField
+                id="recipe-name"
+                label="Nombre"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={!canWrite}
+                placeholder="Nombre de la receta"
+                className="bg-surface/80 text-foreground"
+              />
+              <FormField
+                id="recipe-servings"
+                label="Raciones base"
+                type="number"
+                value={servings}
+                onChange={(e) => setServings(Number(e.target.value) || 0)}
+                disabled={!canWrite}
+                className="bg-surface/80 text-foreground"
+              />
+              {createError && <p className="text-xs text-danger">{createError}</p>}
+              <Button type="submit" disabled={createRecipe.isPending || !canWrite} className="w-full">
+                {createRecipe.isPending ? 'Guardando...' : 'Crear'}
+              </Button>
+            </form>
+          </div>
+        </Card>
       </div>
     </div>
   )
