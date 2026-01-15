@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Activity, AlertTriangle, Building2, CalendarRange, PackageSearch, TrendingUp, Users } from 'lucide-react'
 import { useHotels } from '@/modules/events/data/events'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
-import {
-  useOrdersSummary,
-  useOrdersToDeliver,
-  useStaffAvailability,
-  useWeekEvents,
-} from '../data/dashboard'
+import { useOrdersSummary, useOrdersToDeliver, useStaffAvailability, useWeekEvents } from '../data/dashboard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shared/ui/Card'
 import { Spinner } from '@/modules/shared/ui/Spinner'
+import { Badge } from '@/modules/shared/ui/Badge'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
 
 const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -43,7 +41,7 @@ function StatCard({ title, value, icon, accent, detail }: StatCardProps) {
         </div>
         <div className="space-y-1">
           <p className="text-sm font-semibold text-foreground">{title}</p>
-          <p className="text-3xl font-bold text-foreground leading-tight">{value}</p>
+          <p className="text-3xl font-bold leading-tight text-foreground">{value}</p>
           <p className="text-sm text-muted-foreground">{detail}</p>
         </div>
       </CardContent>
@@ -141,11 +139,10 @@ export default function DashboardPage() {
   const recentActivities: ActivityItem[] =
     ordersToDeliver.data?.slice(0, 5).map((item) => ({
       title: item.type === 'purchase' ? `Nuevo PO #${item.orderNumber}` : `Pedido evento #${item.orderNumber}`,
-      description: `${item.status ?? 'Pendiente'} · ${item.createdAt?.slice(0, 10)}`,
-      meta: 'Hace poco',
+      description: `${item.status ?? 'Pendiente'} • ${item.createdAt?.slice(0, 10)}`,
+      meta: 'Reciente',
       tone: item.type === 'purchase' ? 'success' : 'info',
-    })) ??
-    [
+    })) ?? [
       {
         title: 'Ingredient Shortage: Olive Oil',
         description: 'Low inventory en aceite de oliva.',
@@ -191,39 +188,48 @@ export default function DashboardPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-accent">ChefOS</p>
           <h1 className="text-4xl font-semibold text-foreground">Executive Operations Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Vista ejecutiva de eventos, producción y compras.</p>
+          <p className="text-sm text-muted-foreground">Eventos, producción, compras y alertas en un vistazo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <select
-            value={hotelId}
-            onChange={(e) => setHotelId(e.target.value)}
-            className="ds-input h-10 w-40 bg-surface/70"
-          >
-            {hotels.data?.map((h) => (
-              <option key={h.id} value={h.id}>
-                {h.name}
-              </option>
-            ))}
-          </select>
-          {memberships?.length > 1 && (
+          <div className="flex items-center gap-2 rounded-full border border-border/30 bg-surface/60 px-3 py-1 text-xs text-muted-foreground">
+            <Building2 size={14} />
             <select
-              value={activeOrgId}
-              onChange={(e) => setOrg(e.target.value)}
-              className="ds-input h-10 w-36 bg-surface/70"
+              value={hotelId}
+              onChange={(e) => setHotelId(e.target.value)}
+              className="bg-transparent text-foreground outline-none"
             >
-              {memberships.map((m) => (
-                <option key={m.orgId} value={m.orgId}>
-                  {m.orgName ?? m.orgSlug ?? m.orgId}
+              {hotels.data?.map((h) => (
+                <option key={h.id} value={h.id}>
+                  {h.name}
                 </option>
               ))}
             </select>
+          </div>
+          {memberships?.length > 1 && (
+            <div className="flex items-center gap-2 rounded-full border border-border/30 bg-surface/60 px-3 py-1 text-xs text-muted-foreground">
+              <PackageSearch size={14} />
+              <select
+                value={activeOrgId}
+                onChange={(e) => setOrg(e.target.value)}
+                className="bg-transparent text-foreground outline-none"
+              >
+                {memberships.map((m) => (
+                  <option key={m.orgId} value={m.orgId}>
+                    {m.orgName ?? m.orgSlug ?? m.orgId}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
-          <input
-            type="date"
-            value={weekStart}
-            onChange={(e) => setWeekStart(isoWeekStart(new Date(e.target.value)))}
-            className="ds-input h-10 w-40 bg-surface/70"
-          />
+          <div className="flex items-center gap-2 rounded-full border border-border/30 bg-surface/60 px-3 py-1 text-xs text-muted-foreground">
+            <CalendarRange size={14} />
+            <input
+              type="date"
+              value={weekStart}
+              onChange={(e) => setWeekStart(isoWeekStart(new Date(e.target.value)))}
+              className="bg-transparent text-foreground outline-none"
+            />
+          </div>
         </div>
       </header>
 
@@ -231,63 +237,28 @@ export default function DashboardPage() {
         <StatCard
           title="Active Events"
           value={`${totalEvents}`}
-          icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-success">
-              <path d="M7 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              <path
-                d="M6 4h7.5c.9 0 1.7.4 2.3 1l1.9 2c.4.4.6 1 .6 1.6V17a3 3 0 0 1-3 3H6a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinejoin="round"
-              />
-            </svg>
-          }
+          icon={<TrendingUp size={18} />}
           accent="success"
           detail={`${largeEvents} Large, ${smallEvents} Small`}
         />
         <StatCard
           title="Production Status"
           value={`${Math.round(productionPercent)}%`}
-          icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-success">
-              <path
-                d="M10 4h4a4 4 0 0 1 4 4v3.5a5.5 5.5 0 0 1-5.5 5.5h-3A3.5 3.5 0 0 1 6 13.5V8a4 4 0 0 1 4-4Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path d="M9 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          }
+          icon={<Users size={18} />}
           accent="info"
           detail={productionPercent >= 90 ? 'On Schedule' : 'Con retraso'}
         />
         <StatCard
           title="Pending Purchase Orders"
           value={`${purchaseTotal}`}
-          icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-warning">
-              <path d="M4 7h16l-1 11H5L4 7Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              <path d="M9 11h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          }
+          icon={<PackageSearch size={18} />}
           accent="warning"
-          detail={`${purchasePending} Urgent · Total: €${urgentAmount.toLocaleString('es-ES')}`}
+          detail={`${purchasePending} Urgentes • Total: €${urgentAmount.toLocaleString('es-ES')}`}
         />
         <StatCard
           title="Urgent Stock Alerts"
           value={`${urgentAlerts}`}
-          icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-danger">
-              <path d="M12 7v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              <path d="M12 16h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              <path
-                d="m5.4 18.6 6.2-11.2a.5.5 0 0 1 .9 0l6.1 11.2a.5.5 0 0 1-.5.7H5.9a.5.5 0 0 1-.5-.7Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinejoin="round"
-              />
-            </svg>
-          }
+          icon={<AlertTriangle size={18} />}
           accent="danger"
           detail="Low inventory en items clave"
         />
@@ -300,7 +271,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-brand-500" />
-                Planned vs.
+                Planned
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-warning" />
@@ -321,8 +292,9 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="bg-surface/70 border border-border/20">
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-4 flex items-center justify-between">
             <CardTitle className="text-lg text-foreground">Recent Alerts & Activity</CardTitle>
+            <Badge variant="neutral">Live</Badge>
           </CardHeader>
           <CardContent className="space-y-4">
             {recentActivities.map((item, idx) => {
@@ -335,7 +307,7 @@ export default function DashboardPage() {
               return (
                 <div key={idx} className="flex items-start gap-3 rounded-xl border border-border/20 bg-surface/50 p-3">
                   <span className={`mt-1 flex h-8 w-8 items-center justify-center rounded-xl border ${toneClasses[item.tone]}`}>
-                    •
+                    <Activity size={16} />
                   </span>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-foreground">{item.title}</p>
@@ -359,6 +331,22 @@ export default function DashboardPage() {
         <div className="rounded-xl border border-border/20 bg-surface/60 p-4 text-sm text-muted-foreground">
           No hay datos de eventos para esta semana.
         </div>
+      )}
+      {!weekEvents.isLoading && (weekEvents.data?.length ?? 0) > 0 && (
+        <Card className="border border-border/20 bg-surface/70">
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle className="text-lg text-foreground">Eventos de la semana</CardTitle>
+            <Badge variant="neutral">{weekEvents.data?.length} días</Badge>
+          </CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-2">
+            {weekEvents.data?.map((day) => (
+              <div key={day.date} className="rounded-xl border border-border/20 bg-surface/60 p-3">
+                <p className="text-sm font-semibold text-foreground">{day.date}</p>
+                <p className="text-xs text-muted-foreground">{day.events?.length ?? 0} eventos</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       )}
     </div>
   )
