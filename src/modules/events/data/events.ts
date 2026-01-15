@@ -61,7 +61,7 @@ function mapBooking(row: any): BookingWithDetails {
   return {
     id: row.id,
     orgId: row.org_id,
-    eventId: row.event_id,
+    eventId: row.event_id ?? row.events?.id,
     spaceId: row.space_id,
     startsAt: row.starts_at,
     endsAt: row.ends_at,
