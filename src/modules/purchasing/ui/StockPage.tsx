@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Bell, Filter, PackageSearch, Search, X } from 'lucide-react'
+import { AlertTriangle, Bell, Boxes, Filter, PackageSearch, Search, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
@@ -20,6 +20,8 @@ import { useExpiryAlerts } from '@/modules/inventory/data/expiryAlerts'
 import { Badge } from '@/modules/shared/ui/Badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/modules/shared/ui/Table'
 import { Button } from '@/modules/shared/ui/Button'
+import { Card } from '@/modules/shared/ui/Card'
+import { DataState } from '@/modules/shared/ui/DataState'
 
 type EntryForm = {
   supplierItemId: string
@@ -66,6 +68,22 @@ export default function StockPage() {
     return all.filter((a) => (!hotelId || a.hotelId === hotelId) && (!locationId || a.locationId === locationId)).length
   }, [expiryAlerts.data, hotelId, locationId])
 
+  const batchStats = useMemo(() => {
+    const list = batches.data ?? []
+    let expired = 0
+    let soon = 0
+    let ok = 0
+    let noExpiry = 0
+    list.forEach((batch) => {
+      const state = getExpiryState(batch.expiresAt)
+      if (state === 'expired') expired += 1
+      else if (state === 'soon_3' || state === 'soon_7') soon += 1
+      else if (state === 'no_expiry') noExpiry += 1
+      else ok += 1
+    })
+    return { total: list.length, expired, soon, ok, noExpiry }
+  }, [batches.data])
+
   const handleSubmitEntry = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!activeOrgId || !locationId || !entry.supplierItemId || entry.qty <= 0) return
@@ -94,7 +112,7 @@ export default function StockPage() {
     )
   }
   if (!session || error) {
-    return <ErrorBanner title="Inicia sesión" message={sessionError || 'Inicia sesión para ver stock.'} />
+    return <ErrorBanner title="Inicia sesion" message={sessionError || 'Inicia sesion para ver stock.'} />
   }
 
   const statusBadge = (expiresAt: string | null) => {
@@ -111,10 +129,54 @@ export default function StockPage() {
       <header className="space-y-1">
         <p className="text-xs font-semibold uppercase tracking-wide text-accent">Inventory</p>
         <h1 className="text-4xl font-semibold text-foreground">Inventory & Expiry Control</h1>
-        <p className="text-sm text-muted-foreground">/inventory/preparations</p>
+        <p className="text-sm text-muted-foreground">Control de lotes, caducidades y entradas manuales.</p>
       </header>
 
-      <section className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_24px_60px_rgba(3,7,18,0.45)]">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card className="rounded-3xl border border-border/20 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(3,7,18,0.45)]">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total items</p>
+          <p className="mt-2 text-3xl font-bold text-foreground">{batchStats.total}</p>
+          <p className="text-sm text-muted-foreground">Lotes activos en stock.</p>
+        </Card>
+        <Card className="rounded-3xl border border-border/20 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(3,7,18,0.45)]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-warning/80">Near expiry</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{batchStats.soon}</p>
+            </div>
+            <span className="rounded-full bg-warning/10 p-3 text-warning">
+              <AlertTriangle size={18} />
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">Usar en los proximos 7 dias.</p>
+        </Card>
+        <Card className="rounded-3xl border border-border/20 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(3,7,18,0.45)]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-danger/80">Expired</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{batchStats.expired}</p>
+            </div>
+            <span className="rounded-full bg-danger/10 p-3 text-danger">
+              <Boxes size={18} />
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">Requiere disposicion inmediata.</p>
+        </Card>
+        <Card className="rounded-3xl border border-border/20 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(3,7,18,0.45)]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-accent/80">Alerts</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{openAlertsCount}</p>
+            </div>
+            <span className="rounded-full bg-accent/10 p-3 text-accent">
+              <Bell size={18} />
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">Caducidades abiertas.</p>
+        </Card>
+      </section>
+
+      <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_24px_60px_rgba(3,7,18,0.45)]">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[220px]">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -129,7 +191,7 @@ export default function StockPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-surface/60 px-3 py-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-surface/60 px-3 py-2 text-xs text-muted-foreground">
             <Filter size={14} />
             <span className="text-[11px] uppercase tracking-wide">Filter</span>
             <label className="flex items-center gap-1 text-foreground">
@@ -146,9 +208,7 @@ export default function StockPage() {
               <input
                 type="checkbox"
                 checked={!!filters.expired}
-                onChange={(e) =>
-                  setFilters((f) => ({ ...f, expired: e.target.checked, expiringSoon: false }))
-                }
+                onChange={(e) => setFilters((f) => ({ ...f, expired: e.target.checked, expiringSoon: false }))}
               />
               Expired
             </label>
@@ -208,7 +268,7 @@ export default function StockPage() {
 
           <div className="ml-auto flex flex-wrap gap-2">
             <Button variant="ghost" size="sm" disabled={!locationId} onClick={() => setImportModal(true)}>
-              Importar albarán
+              Importar albaran
             </Button>
             <Button
               variant="ghost"
@@ -227,16 +287,22 @@ export default function StockPage() {
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-border/20 bg-surface/50 backdrop-blur-lg">
-          {batches.isLoading ? (
-            <div className="space-y-2 p-6">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6" />
-            </div>
-          ) : batches.isError ? (
-            <div className="p-4">
-              <ErrorBanner title="Error al cargar lotes" message={batchesError} onRetry={() => batches.refetch()} />
-            </div>
-          ) : (batches.data?.length ?? 0) > 0 ? (
+          <DataState
+            loading={batches.isLoading}
+            error={locationId ? batches.error : null}
+            errorTitle="Error al cargar lotes"
+            errorMessage={batchesError}
+            empty={!locationId || (batches.data?.length ?? 0) === 0}
+            emptyState={
+              <div className="p-6">
+                <EmptyState
+                  icon={PackageSearch}
+                  title="Sin lotes"
+                  description={locationId ? 'Anade una entrada manual para ver lotes.' : 'Selecciona una ubicacion primero.'}
+                />
+              </div>
+            }
+          >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -257,27 +323,19 @@ export default function StockPage() {
                     <TableCell className="text-right text-foreground">{batch.qty.toFixed(0)}</TableCell>
                     <TableCell className="text-muted-foreground">{batch.unit}</TableCell>
                     <TableCell className="text-foreground">
-                      {batch.expiresAt ? new Date(batch.expiresAt).toLocaleDateString('en-CA') : '—'}
+                      {batch.expiresAt ? new Date(batch.expiresAt).toLocaleDateString('en-CA') : '-'}
                     </TableCell>
                     <TableCell>{statusBadge(batch.expiresAt)}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {batch.createdAt ? new Date(batch.createdAt).toLocaleString('en-US') : '—'}
+                      {batch.createdAt ? new Date(batch.createdAt).toLocaleString('en-US') : '-'}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          ) : (
-            <div className="p-6">
-              <EmptyState
-                icon={PackageSearch}
-                title="Sin lotes"
-                description={locationId ? 'Añade una entrada manual para ver lotes.' : 'Selecciona una ubicación primero.'}
-              />
-            </div>
-          )}
+          </DataState>
         </div>
-      </section>
+      </Card>
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -303,7 +361,7 @@ export default function StockPage() {
                     checked={scannerOpen}
                     onChange={(e) => setScannerOpen(e.target.checked)}
                   />
-                  Escanear con cámara
+                  Escanear con camara
                 </label>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
@@ -330,7 +388,7 @@ export default function StockPage() {
                           lotCode: res.lotCode ?? prev.lotCode,
                         }))
                       } else {
-                        setOcrSuggestion({ message: 'No se detectó caducidad/lote' })
+                        setOcrSuggestion({ message: 'No se detecto caducidad/lote' })
                       }
                     }}
                   />
@@ -460,7 +518,7 @@ export default function StockPage() {
             >
               <X size={16} />
             </button>
-            <p className="mb-3 text-sm text-foreground">Apunta la cámara al código de barras.</p>
+            <p className="mb-3 text-sm text-foreground">Apunta la camara al codigo de barras.</p>
             <div className="overflow-hidden rounded-xl border border-border/30">
               <BarcodeScanner
                 onDetected={(code) => {
