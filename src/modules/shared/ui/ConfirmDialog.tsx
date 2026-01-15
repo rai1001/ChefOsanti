@@ -1,3 +1,5 @@
+import { Button } from './Button'
+
 type ConfirmDialogProps = {
   open: boolean
   title: string
@@ -20,22 +22,16 @@ export function ConfirmDialog({
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-xl border border-white/10 bg-nano-navy-900 p-5 shadow-2xl">
-        <h3 className="text-lg font-bold text-white">{title}</h3>
-        {description && <p className="mt-2 text-sm text-slate-300">{description}</p>}
+      <div className="w-full max-w-md rounded-2xl border border-border/25 bg-surface/90 p-5 shadow-[0_20px_60px_rgba(3,7,18,0.6)]">
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
         <div className="mt-4 flex justify-end gap-3">
-          <button
-            className="rounded-md border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-white/5"
-            onClick={onCancel}
-          >
+          <Button variant="secondary" size="sm" onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-500/20 hover:bg-red-500"
-            onClick={onConfirm}
-          >
+          </Button>
+          <Button variant="danger" size="sm" onClick={onConfirm}>
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
