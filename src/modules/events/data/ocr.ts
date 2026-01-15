@@ -27,11 +27,20 @@ export type EventAttachment = {
   job?: OcrJob | null
 }
 
+export type MenuContentItem = {
+  id: string
+  text: string
+  sortOrder: number
+  recipeId?: string | null
+  requiresReview: boolean
+  portionMultiplier: number
+}
+
 export type MenuContentSection = {
   id: string
   title: string
   sortOrder: number
-  items: { id: string; text: string; sortOrder: number }[]
+  items: MenuContentItem[]
 }
 
 function mapJob(row: any): OcrJob {
@@ -269,6 +278,9 @@ export async function applyOcrDraft(params: {
           section_id: sectionId,
           text: item,
           sort_order: itemIdx,
+          recipe_id: null,
+          requires_review: true,
+          portion_multiplier: 1,
         })
         if (itemErr) {
           throw mapSupabaseError(itemErr, {
@@ -294,6 +306,7 @@ export function useApplyOcrDraft(eventId: string | undefined, orgId: string | un
       qc.invalidateQueries({ queryKey: ['event_services', eventId] })
       qc.invalidateQueries({ queryKey: ['event_attachments', eventId] })
       qc.invalidateQueries({ queryKey: ['service_menu_content'] })
+      qc.invalidateQueries({ queryKey: ['service_requirements'] })
     },
   })
 }
@@ -302,7 +315,7 @@ export async function getServiceMenuContent(serviceId: string): Promise<MenuCont
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('event_service_menu_sections')
-    .select('id, title, sort_order, event_service_menu_items (id, text, sort_order)')
+    .select('id, title, sort_order, event_service_menu_items (id, text, sort_order, recipe_id, requires_review, portion_multiplier)')
     .eq('event_service_id', serviceId)
     .order('sort_order')
   if (error) {
@@ -322,9 +335,51 @@ export async function getServiceMenuContent(serviceId: string): Promise<MenuCont
           id: it.id,
           text: it.text,
           sortOrder: it.sort_order,
+          recipeId: it.recipe_id,
+          requiresReview: Boolean(it.requires_review ?? true),
+          portionMultiplier: Number(it.portion_multiplier ?? 1),
         })) ?? [],
     })) ?? []
   )
+}
+
+export async function updateServiceMenuItem(params: {
+  itemId: string
+  recipeId?: string | null
+  requiresReview?: boolean
+  portionMultiplier?: number
+}) {
+  const supabase = getSupabaseClient()
+  const updates: Record<string, any> = {}
+  if (Object.prototype.hasOwnProperty.call(params, 'recipeId')) {
+    updates.recipe_id = params.recipeId
+  }
+  if (Object.prototype.hasOwnProperty.call(params, 'requiresReview')) {
+    updates.requires_review = params.requiresReview
+  }
+  if (Object.prototype.hasOwnProperty.call(params, 'portionMultiplier')) {
+    updates.portion_multiplier = params.portionMultiplier
+  }
+  if (Object.keys(updates).length === 0) return
+  const { error } = await supabase.from('event_service_menu_items').update(updates).eq('id', params.itemId)
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'updateServiceMenuItem',
+      itemId: params.itemId,
+    })
+  }
+}
+
+export function useUpdateServiceMenuItem(serviceId: string | undefined) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: updateServiceMenuItem,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['service_menu_content', serviceId] })
+      qc.invalidateQueries({ queryKey: ['service_requirements', serviceId] })
+    },
+  })
 }
 
 export function useServiceMenuContent(serviceId: string | undefined) {

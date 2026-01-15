@@ -597,3 +597,50 @@ export function useCreateEventDraftOrders(orgId: string | undefined, hotelId: st
     },
   })
 }
+
+export type GenerateEventPurchaseOrdersResult = {
+  orderIds: string[]
+  missingItems: string[]
+  versionNum: number | null
+  created: number
+  status?: 'blocked' | 'empty'
+}
+
+export async function generateEventPurchaseOrders(params: {
+  serviceId: string
+  versionReason?: string | null
+  idempotencyKey?: string | null
+  strict?: boolean
+}): Promise<GenerateEventPurchaseOrdersResult> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.rpc('generate_event_purchase_orders', {
+    p_event_service_id: params.serviceId,
+    p_version_reason: params.versionReason ?? null,
+    p_idempotency_key: params.idempotencyKey ?? null,
+    p_strict: params.strict ?? true,
+  })
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'generateEventPurchaseOrders',
+      serviceId: params.serviceId,
+    })
+  }
+  return {
+    orderIds: Array.isArray(data?.order_ids) ? data.order_ids : [],
+    missingItems: Array.isArray(data?.missing_items) ? data.missing_items : [],
+    versionNum: data?.version_num ?? null,
+    created: Number(data?.created ?? 0),
+    status: data?.status ?? undefined,
+  }
+}
+
+export function useGenerateEventPurchaseOrders() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: generateEventPurchaseOrders,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['event_orders'] })
+    },
+  })
+}

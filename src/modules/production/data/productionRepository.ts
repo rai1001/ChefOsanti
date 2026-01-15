@@ -73,13 +73,14 @@ async function fetchPlanByService(serviceId: string): Promise<ProductionPlan | n
         .from('production_plans')
         .select('*')
         .eq('event_service_id', serviceId)
-        .single()
+        .eq('is_current', true)
+        .maybeSingle()
 
     if (error) {
-        if (error.code === 'PGRST116') return null // Not found
         throw mapSupabaseError(error, { module: 'production', operation: 'fetchPlanByService', serviceId })
     }
 
+    if (!data) return null
     return mapPlan(data)
 }
 
@@ -217,22 +218,39 @@ async function deleteProductionTask(taskId: string): Promise<void> {
 
 // PR2: Generation
 interface GeneratePlanResult {
-    plan_id: string;
+    plan_id?: string | null;
     created: number;
-    missing_count: number | null;
-    missing_items: string[] | null;
+    missing_items: string[];
+    status?: 'blocked' | 'empty';
+    version_num?: number | null;
 }
 
-async function generatePlanRPC(serviceId: string): Promise<GeneratePlanResult> {
+export type GeneratePlanInput = {
+    serviceId: string
+    versionReason?: string | null
+    idempotencyKey?: string | null
+    strict?: boolean
+}
+
+async function generatePlanRPC(params: GeneratePlanInput): Promise<GeneratePlanResult> {
     const supabase = getSupabaseClient()
     const { data, error } = await supabase.rpc('generate_production_plan', {
-        p_service_id: serviceId
+        p_service_id: params.serviceId,
+        p_version_reason: params.versionReason ?? null,
+        p_idempotency_key: params.idempotencyKey ?? null,
+        p_strict: params.strict ?? true,
     })
 
     if (error) {
-        throw mapSupabaseError(error, { module: 'production', operation: 'generatePlan', serviceId })
+        throw mapSupabaseError(error, { module: 'production', operation: 'generatePlan', serviceId: params.serviceId })
     }
-    return data as GeneratePlanResult
+    return {
+        plan_id: data?.plan_id ?? null,
+        created: Number(data?.created ?? 0),
+        missing_items: Array.isArray(data?.missing_items) ? data.missing_items : [],
+        status: data?.status ?? undefined,
+        version_num: data?.version_num ?? null,
+    }
 }
 
 // Hooks
@@ -241,8 +259,8 @@ export function useGenerateProductionPlan() {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: generatePlanRPC,
-        onSuccess: (_, serviceId) => {
-            queryClient.invalidateQueries({ queryKey: ['production_plan', serviceId] })
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['production_plan', variables.serviceId] })
             // Also invalidate tasks if we knew the planId, but we might not yet.
             // But the plan fetch will return the new/existing plan, and then tasks will refetch if planId is stable.
             // Better: invalidate based on serviceId if possible or just accept eventual consistency.

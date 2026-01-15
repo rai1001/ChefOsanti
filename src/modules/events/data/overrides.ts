@@ -137,6 +137,7 @@ export function useExcludeTemplateItem(eventServiceId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })
       qc.invalidateQueries({ queryKey: ['service_menu', eventServiceId] })
+      qc.invalidateQueries({ queryKey: ['service_requirements', eventServiceId] })
     },
   })
 }
@@ -169,6 +170,7 @@ export function useAddServiceItem(eventServiceId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })
       qc.invalidateQueries({ queryKey: ['service_menu', eventServiceId] })
+      qc.invalidateQueries({ queryKey: ['service_requirements', eventServiceId] })
     },
   })
 }
@@ -195,6 +197,7 @@ export function useDeleteAddedItem(eventServiceId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })
       qc.invalidateQueries({ queryKey: ['service_menu', eventServiceId] })
+      qc.invalidateQueries({ queryKey: ['service_requirements', eventServiceId] })
     },
   })
 }
@@ -232,6 +235,7 @@ export function useReplaceTemplateItem(eventServiceId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })
       qc.invalidateQueries({ queryKey: ['service_menu', eventServiceId] })
+      qc.invalidateQueries({ queryKey: ['service_requirements', eventServiceId] })
     },
   })
 }
@@ -258,6 +262,7 @@ export function useRemoveReplacement(eventServiceId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_overrides', eventServiceId] })
       qc.invalidateQueries({ queryKey: ['service_menu', eventServiceId] })
+      qc.invalidateQueries({ queryKey: ['service_requirements', eventServiceId] })
     },
   })
 }

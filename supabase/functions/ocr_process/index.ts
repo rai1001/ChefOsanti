@@ -6,7 +6,6 @@ import { checkRateLimit, RateLimitError } from '../_shared/rateLimit.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 // Use provided key as fallback if env var is missing (common in local dev without cli linking)
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
 const ocrProvider = Deno.env.get('OCR_PROVIDER') ?? 'gemini'
@@ -18,8 +17,100 @@ function supabaseForUser(req: Request) {
   })
 }
 
-function supabaseAdmin() {
-  return createClient(supabaseUrl, supabaseServiceRole)
+type DraftSection = { title: string; items: string[] }
+type DraftService = {
+  serviceType: 'desayuno' | 'coffee_break' | 'comida' | 'merienda' | 'cena' | 'coctel' | 'otros'
+  startsAtGuess: string | null
+  paxGuess: number | null
+  formatGuess: 'sentado' | 'de_pie'
+  sections: DraftSection[]
+}
+
+function detectServiceType(text: string): DraftService['serviceType'] {
+  const lower = text.toLowerCase()
+  if (lower.includes('desayuno')) return 'desayuno'
+  if (lower.includes('coffee')) return 'coffee_break'
+  if (lower.includes('almuerzo') || lower.includes('comida')) return 'comida'
+  if (lower.includes('merienda')) return 'merienda'
+  if (lower.includes('cena')) return 'cena'
+  if (lower.includes('coctel') || lower.includes('cocktail')) return 'coctel'
+  return 'otros'
+}
+
+function detectPax(text: string): number | null {
+  const withKeyword = text.match(/(\d{2,4})\s*(pax|personas)/i)
+  if (withKeyword) {
+    const n = Number(withKeyword[1])
+    return Number.isFinite(n) ? n : null
+  }
+  return null
+}
+
+function detectStart(text: string): string | null {
+  const match = text.match(/\b(\d{1,2}[:.]\d{2})\b/)
+  return match ? match[1].replace('.', ':') : null
+}
+
+function detectFormat(text: string): 'sentado' | 'de_pie' {
+  const lower = text.toLowerCase()
+  if (lower.includes('de pie') || lower.includes('coctel')) return 'de_pie'
+  return 'sentado'
+}
+
+function buildDraftFromText(text: string) {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+
+  const sections: DraftSection[] = []
+  let current: DraftSection = { title: 'General', items: [] }
+  lines.forEach((line) => {
+    const isSection = /[:]+$/.test(line) || line === line.toUpperCase()
+    if (isSection) {
+      if (current.items.length || current.title !== 'General') sections.push(current)
+      current = { title: line.replace(/:$/, '').trim() || 'Seccion', items: [] }
+    } else {
+      current.items.push(line)
+    }
+  })
+  if (current.items.length || sections.length === 0) sections.push(current)
+
+  const serviceText = lines.join(' ')
+  const detected: DraftService = {
+    serviceType: detectServiceType(serviceText),
+    paxGuess: detectPax(serviceText),
+    startsAtGuess: detectStart(serviceText),
+    formatGuess: detectFormat(serviceText),
+    sections,
+  }
+
+  return {
+    rawText: text,
+    warnings: [],
+    detectedServices: [detected],
+  }
+}
+
+function buildFallbackDraft(originalName: string) {
+  return {
+    rawText: '',
+    warnings: ['OCR no disponible, revisar manualmente'],
+    detectedServices: [
+      {
+        serviceType: 'otros',
+        startsAtGuess: null,
+        paxGuess: null,
+        formatGuess: 'sentado',
+        sections: [
+          {
+            title: 'OCR',
+            items: [originalName || 'Revisar menu'],
+          },
+        ],
+      },
+    ],
+  }
 }
 
 async function handleEnqueue(req: Request) {
@@ -78,85 +169,75 @@ async function handleRun(req: Request) {
     let extractedText = ''
     let draftJson: any = {}
 
-    // 1. Download file
-    const admin = supabaseAdmin()
-    const { data: attachment } = await admin
+    // 1. Load attachment metadata (user context, RLS enforced)
+    const { data: attachment, error: attachmentErr } = await client
       .from('event_attachments')
-      .select('storage_bucket, storage_path, file_type') // Ensure file_type is selected if available, or guess
+      .select('storage_bucket, storage_path, mime_type, original_name')
       .eq('id', job.attachment_id)
       .single()
 
-    if (!attachment) throw new Error('Attachment not found')
+    if (attachmentErr || !attachment) throw new Error(attachmentErr?.message || 'Attachment not found')
 
-    const download = await admin.storage.from(attachment.storage_bucket).download(attachment.storage_path)
+    const download = await client.storage.from(attachment.storage_bucket).download(attachment.storage_path)
     if (download.error) throw download.error
 
     const arrayBuffer = await download.data.arrayBuffer()
-    const base64Data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+    const mimeType = attachment.mime_type || 'application/octet-stream'
 
-    // Guess mime type if needed, usually passed in file_type or inferred
-    // Simple inference for common types
-    let mimeType = 'image/jpeg'
-    if (attachment.storage_path.endsWith('.pdf')) mimeType = 'application/pdf'
-    else if (attachment.storage_path.endsWith('.png')) mimeType = 'image/png'
-    else if (attachment.storage_path.endsWith('.webp')) mimeType = 'image/webp'
+    if (mimeType.startsWith('text/')) {
+      extractedText = new TextDecoder().decode(arrayBuffer)
+      draftJson = buildDraftFromText(extractedText)
+    } else if (geminiApiKey && ocrProvider === 'gemini') {
+      const base64Data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+      const genAI = new GoogleGenerativeAI(geminiApiKey)
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
 
-
-    // 2. Call Gemini
-    if (!geminiApiKey) throw new Error('Missing GEMINI_API_KEY')
-
-    const genAI = new GoogleGenerativeAI(geminiApiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
-
-    const prompt = `
-      Analiza este documento (factura, hoja de servicio o menú de evento) y extrae la información en el siguiente formato JSON estrictamente.
-      Si es una imagen borrosa o no legible, indica warnings.
-      
-      Estructura deseada:
-      {
-        "rawText": "Texto completo extraído aproximado...",
-        "warnings": ["Warning 1", "Warning 2"],
-        "detectedServices": [
-          {
-            "service_type": "desayuno" | "coffee_break" | "almuerzo" | "cena" | "coctel" | "barra_libre" | "merienda" | "otros",
-            "starts_at_guess": "HH:MM",
-            "pax_guess": number,
-            "format_guess": "sentado" | "de_pie" | "buffet",
-            "sections": [
-              { "title": "Nombre sección (ej Entrantes)", "items": ["Item 1", "Item 2"] }
-            ]
-          }
-        ]
-      }
-      
-      Retorna SOLO el JSON, sin markdown code blocks.
-    `
-
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: base64Data,
-          mimeType: mimeType,
-        },
-      },
-    ])
-
-    const response = await result.response
-    const text = response.text()
-
-    // Clean markdown if present
-    const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim()
-
-    try {
-      draftJson = JSON.parse(cleanedText)
-      extractedText = draftJson.rawText || text.slice(0, 1000)
-    } catch (e) {
-      console.error('Failed to parse JSON from Gemini', text)
-      draftJson = { rawText: text, warnings: ['Failed to parse JSON response'], detectedServices: [] }
-      extractedText = text
+      const prompt = `
+Devuelve JSON estricto con este formato:
+{
+  "rawText": "Texto completo extraido aproximado...",
+  "warnings": ["Warning 1", "Warning 2"],
+  "detectedServices": [
+    {
+      "serviceType": "desayuno" | "coffee_break" | "comida" | "cena" | "coctel" | "merienda" | "otros",
+      "startsAtGuess": "HH:MM",
+      "paxGuess": 0,
+      "formatGuess": "sentado" | "de_pie",
+      "sections": [
+        { "title": "Entrantes", "items": ["Item 1", "Item 2"] }
+      ]
     }
+  ]
+}
+Devuelve solo JSON, sin markdown.
+`
 
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType,
+          },
+        },
+      ])
+
+      const response = await result.response
+      const text = response.text()
+      const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim()
+
+      try {
+        draftJson = JSON.parse(cleanedText)
+        extractedText = draftJson.rawText || text.slice(0, 1000)
+      } catch (e) {
+        console.error('Failed to parse JSON from Gemini', text)
+        draftJson = buildFallbackDraft(attachment.original_name)
+        extractedText = draftJson.rawText || ''
+      }
+    } else {
+      draftJson = buildFallbackDraft(attachment.original_name)
+      extractedText = draftJson.rawText || ''
+    }
     const { error: updErr } = await client
       .from('ocr_jobs')
       .update({

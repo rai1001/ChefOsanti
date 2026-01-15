@@ -236,6 +236,7 @@ export function useApplyTemplateToService(eventServiceId: string | undefined) {
       applyTemplateToService(eventServiceId ?? '', params.templateId, params.orgId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['service_menu', eventServiceId] })
+      qc.invalidateQueries({ queryKey: ['service_requirements', eventServiceId] })
     },
   })
 }

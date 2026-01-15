@@ -480,6 +480,31 @@ set name = excluded.name,
     category = excluded.category,
     active = excluded.active;
 
+update public.supplier_items
+set product_id = '90000000-0000-0000-0000-000000000001',
+    is_primary = true
+where id = '40000000-0000-0000-0000-000000000001';
+
+update public.supplier_items
+set product_id = '90000000-0000-0000-0000-000000000002',
+    is_primary = true
+where id = '40000000-0000-0000-0000-000000000002';
+
+update public.supplier_items
+set product_id = '90000000-0000-0000-0000-000000000005',
+    is_primary = true
+where id = '40000000-0000-0000-0000-000000000003';
+
+update public.supplier_items
+set product_id = '90000000-0000-0000-0000-000000000006',
+    is_primary = true
+where id = '40000000-0000-0000-0000-000000000004';
+
+update public.supplier_items
+set product_id = '90000000-0000-0000-0000-000000000007',
+    is_primary = true
+where id = '40000000-0000-0000-0000-000000000005';
+
 update public.ingredients i
 set product_id = p.id
 from public.products p

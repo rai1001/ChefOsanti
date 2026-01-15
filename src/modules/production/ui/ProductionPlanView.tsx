@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import {
     useProductionPlan,
     useProductionTasks,
@@ -43,6 +43,7 @@ export function ProductionPlanView({ serviceId, orgId, hotelId, eventId }: Produ
     const deleteTask = useDeleteProductionTask()
 
     const [isAddingTask, setIsAddingTask] = useState<ProductionStation | null>(null)
+    const generationKeyRef = useRef<string | null>(null)
 
     const tasksByStation = useMemo(() => {
         const grouped: Partial<Record<ProductionStation, typeof tasks>> = {}
@@ -56,21 +57,39 @@ export function ProductionPlanView({ serviceId, orgId, hotelId, eventId }: Produ
     }, [tasks])
 
     const handleGenerate = async () => {
-        if (!confirm('Esto generará tareas basadas en el menú del evento. ¿Continuar?')) return;
+        if (!confirm('Esto generara tareas basadas en el menu del evento. Continuar?')) return
+
+        if (!generationKeyRef.current) {
+            generationKeyRef.current = crypto.randomUUID()
+        }
 
         try {
-            const result = await generatePlan.mutateAsync(serviceId);
-            let msg = `Generación completada:\n- Tareas creadas: ${result.created}`;
-
-            const missing = result.missing_items || [];
-            if (missing.length > 0) {
-                msg += `\n\n⚠️ ${missing.length} ítems sin receta asignada (ignorados):\n` + missing.map(m => `• ${m}`).join('\n');
-            } else {
-                msg += `\n- Todos los ítems fueron procesados.`;
+            const result = await generatePlan.mutateAsync({
+                serviceId,
+                idempotencyKey: generationKeyRef.current,
+                strict: true,
+            })
+            if (result.status === 'blocked') {
+                const missing = result.missing_items ?? []
+                alert(
+                    `No se puede generar. Faltan recetas en ${missing.length} items:\n` +
+                    missing.map((m) => `- ${m}`).join('\n'),
+                )
+                return
             }
-            alert(msg);
+
+            generationKeyRef.current = null
+            let msg = `Generacion completada:\n- Tareas creadas: ${result.created}`
+
+            const missing = result.missing_items || []
+            if (missing.length > 0) {
+                msg += `\n\nAviso: ${missing.length} items sin receta asignada:\n` + missing.map(m => `- ${m}`).join('\n')
+            } else {
+                msg += `\n- Todos los items fueron procesados.`
+            }
+            alert(msg)
         } catch (e) {
-            alert('Error al generar: ' + (e as Error).message);
+            alert('Error al generar: ' + (e as Error).message)
         }
     }
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -12,9 +12,14 @@ import {
     useServiceOverrides,
 } from '../data/overrides'
 import { useServiceMenu, useApplyTemplateToService, type MenuTemplate } from '../data/menus'
-import { useServiceMenuContent } from '../data/ocr'
+import { useServiceMenuContent, useUpdateServiceMenuItem } from '../data/ocr'
+import { useServiceRequirements } from '../data/requirements'
 import type { AddedItem, ServiceOverrides } from '../domain/overrides'
 import { computeServiceNeedsWithOverrides } from '../domain/overrides'
+import { useRecipes } from '@/modules/recipes/data/recipes'
+import { useGenerateProductionPlan } from '@/modules/production/data/productionRepository'
+import { useGenerateEventPurchaseOrders } from '@/modules/purchasing/data/eventOrders'
+import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
 
 const overrideItemSchema = z
     .object({
@@ -64,8 +69,20 @@ export function ServiceMenuCard({
     const replaceItem = useReplaceTemplateItem(serviceId)
     const removeReplacement = useRemoveReplacement(serviceId)
     const addNote = useAddServiceNote(serviceId)
+    const updateMenuItem = useUpdateServiceMenuItem(serviceId)
+    const recipes = useRecipes(orgId)
+    const requirements = useServiceRequirements(serviceId)
+    const generatePlan = useGenerateProductionPlan()
+    const generateOrders = useGenerateEventPurchaseOrders()
     const [noteText, setNoteText] = useState('')
     const [replaceTarget, setReplaceTarget] = useState<string | null>(null)
+    const [confirmProductionOpen, setConfirmProductionOpen] = useState(false)
+    const [confirmOrdersOpen, setConfirmOrdersOpen] = useState(false)
+    const [productionMessage, setProductionMessage] = useState<string | null>(null)
+    const [purchaseMessage, setPurchaseMessage] = useState<string | null>(null)
+    const [purchaseMissingItems, setPurchaseMissingItems] = useState<string[]>([])
+    const productionKeyRef = useRef<string | null>(null)
+    const purchaseKeyRef = useRef<string | null>(null)
 
     const {
         register: registerAdd,
@@ -109,6 +126,20 @@ export function ServiceMenuCard({
         return map
     }, [overrides.data])
     const addedItems = overrides.data?.added ?? []
+    const hasOcrItems = useMemo(
+        () => Boolean(content.data?.some((section) => section.items.length > 0)),
+        [content.data],
+    )
+    const pendingOcrItems = useMemo(() => {
+        if (!content.data) return 0
+        return content.data.reduce(
+            (acc, section) =>
+                acc + section.items.filter((item) => !item.recipeId || item.requiresReview).length,
+            0,
+        )
+    }, [content.data])
+    const missingItems = requirements.data?.missingItems ?? []
+    const canGenerate = Boolean(requirements.data) && missingItems.length === 0
 
     const overridesForCalc: ServiceOverrides = useMemo(
         () => ({
@@ -125,13 +156,12 @@ export function ServiceMenuCard({
         [overrides.data, addedItems],
     )
 
-    const needs = useMemo(
-        () =>
-            computeServiceNeedsWithOverrides(pax, format, templateItems, overridesForCalc).filter(
-                (n) => n.qtyRounded > 0,
-            ),
-        [pax, format, templateItems, overridesForCalc],
-    )
+    const needs = useMemo(() => {
+        if (hasOcrItems) return []
+        return computeServiceNeedsWithOverrides(pax, format, templateItems, overridesForCalc).filter(
+            (n) => n.qtyRounded > 0,
+        )
+    }, [pax, format, templateItems, overridesForCalc, hasOcrItems])
 
     const toggleExclude = (templateItemId: string, exclude: boolean) => {
         if (!orgId) return
@@ -174,6 +204,77 @@ export function ServiceMenuCard({
         if (!orgId || !noteText.trim()) return
         await addNote.mutateAsync({ orgId, note: noteText.trim() })
         setNoteText('')
+    }
+
+    const handleRecipeChange = (itemId: string, recipeId: string) => {
+        updateMenuItem.mutate({
+            itemId,
+            recipeId: recipeId || null,
+            requiresReview: recipeId ? false : true,
+        })
+    }
+
+    const handleReviewToggle = (itemId: string, requiresReview: boolean) => {
+        updateMenuItem.mutate({ itemId, requiresReview })
+    }
+
+    const handlePortionBlur = (itemId: string, value: string) => {
+        const parsed = Number(value)
+        if (!Number.isFinite(parsed) || parsed <= 0) return
+        updateMenuItem.mutate({ itemId, portionMultiplier: parsed })
+    }
+
+    const handleGenerateProduction = async () => {
+        setConfirmProductionOpen(false)
+        setProductionMessage(null)
+        if (!productionKeyRef.current) productionKeyRef.current = crypto.randomUUID()
+        try {
+            const result = await generatePlan.mutateAsync({
+                serviceId,
+                idempotencyKey: productionKeyRef.current,
+                strict: true,
+            })
+            if (result.status === 'blocked') {
+                setProductionMessage(
+                    `Bloqueado: faltan recetas en ${result.missing_items?.length ?? 0} items.`,
+                )
+                return
+            }
+            productionKeyRef.current = null
+            setProductionMessage(`Plan generado. Tareas creadas: ${result.created}.`)
+        } catch (err) {
+            setProductionMessage(`Error al generar plan: ${(err as Error).message}`)
+        }
+    }
+
+    const handleGenerateOrders = async () => {
+        setConfirmOrdersOpen(false)
+        setPurchaseMessage(null)
+        setPurchaseMissingItems([])
+        if (!purchaseKeyRef.current) purchaseKeyRef.current = crypto.randomUUID()
+        try {
+            const result = await generateOrders.mutateAsync({
+                serviceId,
+                idempotencyKey: purchaseKeyRef.current,
+                strict: true,
+            })
+            if (result.status === 'blocked') {
+                setPurchaseMissingItems(result.missingItems)
+                setPurchaseMessage(
+                    `Bloqueado: faltan mappings para ${result.missingItems.length} items.`,
+                )
+                return
+            }
+            if (result.status === 'empty' || result.created === 0) {
+                setPurchaseMessage('No hay lineas para generar.')
+                return
+            }
+            purchaseKeyRef.current = null
+            setPurchaseMissingItems(result.missingItems)
+            setPurchaseMessage(`Pedidos generados: ${result.orderIds.length}.`)
+        } catch (err) {
+            setPurchaseMessage(`Error al generar compras: ${(err as Error).message}`)
+        }
     }
 
     return (
@@ -222,16 +323,68 @@ export function ServiceMenuCard({
 
             {content.data && content.data.length > 0 && (
                 <div className="mb-3 rounded border border-white/10 bg-white/5 p-3">
-                    <h4 className="text-sm font-semibold text-white">Menú OCR</h4>
-                    <div className="mt-2 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                        <div>
+                            <h4 className="text-sm font-semibold text-white">Menu OCR</h4>
+                            <p className="text-xs text-slate-400">Mapea items a recetas y ajusta raciones.</p>
+                        </div>
+                        {pendingOcrItems > 0 && (
+                            <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-300">
+                                Pendientes: {pendingOcrItems}
+                            </span>
+                        )}
+                    </div>
+                    {recipes.isLoading && (
+                        <p className="mt-2 text-xs text-slate-400">Cargando recetas...</p>
+                    )}
+                    <div className="mt-3 space-y-3">
                         {content.data.map((sec) => (
                             <div key={sec.id} className="rounded border border-white/10 bg-white/5 p-2">
                                 <p className="text-xs font-semibold text-slate-300">{sec.title}</p>
-                                <ul className="ml-4 list-disc text-xs text-slate-400">
-                                    {sec.items.map((it) => (
-                                        <li key={it.id}>{it.text}</li>
-                                    ))}
-                                </ul>
+                                <div className="mt-2 space-y-2">
+                                    {sec.items.map((it) => {
+                                        const needsReview = !it.recipeId || it.requiresReview
+                                        return (
+                                            <div
+                                                key={it.id}
+                                                className="grid gap-2 rounded border border-white/5 bg-black/10 p-2 md:grid-cols-[2fr_2fr_1fr_1fr] md:items-center"
+                                            >
+                                                <div className={`text-xs ${needsReview ? 'text-amber-300' : 'text-slate-200'}`}>
+                                                    {it.text}
+                                                </div>
+                                                <select
+                                                    className="rounded bg-nano-navy-900 border border-white/10 px-2 py-1 text-xs text-white"
+                                                    value={it.recipeId ?? ''}
+                                                    onChange={(e) => handleRecipeChange(it.id, e.target.value)}
+                                                >
+                                                    <option value="">Sin receta</option>
+                                                    {recipes.data?.map((recipe) => (
+                                                        <option key={recipe.id} value={recipe.id}>
+                                                            {recipe.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <input
+                                                    type="number"
+                                                    step="0.1"
+                                                    min="0.1"
+                                                    className="rounded bg-nano-navy-900 border border-white/10 px-2 py-1 text-xs text-white"
+                                                    defaultValue={it.portionMultiplier}
+                                                    onBlur={(e) => handlePortionBlur(it.id, e.target.value)}
+                                                />
+                                                <label className="flex items-center gap-2 text-xs text-slate-400">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!it.requiresReview}
+                                                        onChange={(e) => handleReviewToggle(it.id, !e.target.checked)}
+                                                        className="accent-nano-blue-500"
+                                                    />
+                                                    Revisado
+                                                </label>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -422,26 +575,115 @@ export function ServiceMenuCard({
                         ) : null}
                     </div>
 
-                    <div className="rounded border border-white/10 bg-white/5 p-3">
-                        <h3 className="text-sm font-semibold text-white mb-2">Cálculo de necesidades</h3>
-                        {needs.length ? (
-                            <div className="max-h-60 overflow-y-auto space-y-1 pr-2">
-                                {needs.map((n, i) => (
-                                    <div key={i} className="flex justify-between text-xs text-slate-300 border-b border-white/5 pb-1">
-                                        <span>
-                                            {n.section ? `[${n.section}]` : ''}
-                                            {n.name}
-                                        </span>
-                                        <span className="font-mono text-nano-blue-300">
-                                            {n.qtyRounded} {n.unit}
-                                        </span>
-                                    </div>
-                                ))}
+                    <div className="rounded border border-white/10 bg-white/5 p-3 space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 className="text-sm font-semibold text-white">Resumen de produccion y compras</h3>
+                                <p className="text-xs text-slate-400">Basado en recetas y mappings del servicio.</p>
+                            </div>
+                            {requirements.isLoading && (
+                                <span className="text-xs text-slate-400">Calculando...</span>
+                            )}
+                        </div>
+                        {missingItems.length > 0 && (
+                            <div className="rounded border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-300">
+                                Faltan recetas para {missingItems.length} items: {missingItems.slice(0, 4).join(', ')}{missingItems.length > 4 ? '...' : ''}
+                            </div>
+                        )}
+                        {requirements.data ? (
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <div className="rounded border border-white/10 bg-white/5 p-2">
+                                    <p className="text-xs font-semibold text-slate-300">Recetas</p>
+                                    {requirements.data.recipes.length ? (
+                                        <ul className="mt-2 space-y-1">
+                                            {requirements.data.recipes.map((r) => (
+                                                <li key={r.id} className="flex justify-between text-xs text-slate-300">
+                                                    <span>{r.name}</span>
+                                                    <span className="font-mono text-nano-blue-300">{r.servings} raciones</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-xs text-slate-500 italic">Sin recetas calculadas.</p>
+                                    )}
+                                </div>
+                                <div className="rounded border border-white/10 bg-white/5 p-2">
+                                    <p className="text-xs font-semibold text-slate-300">Ingredientes</p>
+                                    {requirements.data.products.length ? (
+                                        <ul className="mt-2 space-y-1">
+                                            {requirements.data.products.map((p) => (
+                                                <li key={p.id} className="flex justify-between text-xs text-slate-300">
+                                                    <span>{p.name}</span>
+                                                    <span className="font-mono text-nano-blue-300">{p.qty} {p.unit}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-xs text-slate-500 italic">Sin ingredientes calculados.</p>
+                                    )}
+                                </div>
                             </div>
                         ) : (
-                            <p className="text-xs text-slate-500 italic">No hay necesidades calculadas.</p>
+                            <p className="text-xs text-slate-500 italic">Sin datos de requirements.</p>
+                        )}
+                        <div className="flex flex-wrap gap-2 pt-2">
+                            <button
+                                type="button"
+                                className="rounded bg-nano-blue-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
+                                disabled={!canGenerate || generatePlan.isPending}
+                                onClick={() => setConfirmProductionOpen(true)}
+                            >
+                                {generatePlan.isPending ? 'Generando OP...' : 'Generar OP'}
+                            </button>
+                            <button
+                                type="button"
+                                className="rounded bg-emerald-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
+                                disabled={!canGenerate || generateOrders.isPending}
+                                onClick={() => setConfirmOrdersOpen(true)}
+                            >
+                                {generateOrders.isPending ? 'Generando compras...' : 'Generar compras'}
+                            </button>
+                            <button
+                                type="button"
+                                className="rounded bg-white/10 px-3 py-1 text-xs font-semibold text-slate-300 opacity-60"
+                                disabled
+                            >
+                                Generar picking list
+                            </button>
+                        </div>
+                        {productionMessage && (
+                            <p className="text-xs text-slate-400">{productionMessage}</p>
+                        )}
+                        {purchaseMessage && (
+                            <p className="text-xs text-slate-400">{purchaseMessage}</p>
+                        )}
+                        {purchaseMissingItems.length > 0 && (
+                            <p className="text-xs text-amber-300">Items sin mapping: {purchaseMissingItems.join(', ')}</p>
                         )}
                     </div>
+
+                    {!hasOcrItems && (
+                        <div className="rounded border border-white/10 bg-white/5 p-3">
+                            <h3 className="text-sm font-semibold text-white mb-2">Calculo de necesidades</h3>
+                            {needs.length ? (
+                                <div className="max-h-60 overflow-y-auto space-y-1 pr-2">
+                                    {needs.map((n, i) => (
+                                        <div key={i} className="flex justify-between text-xs text-slate-300 border-b border-white/5 pb-1">
+                                            <span>
+                                                {n.section ? `[${n.section}]` : ''}
+                                                {n.name}
+                                            </span>
+                                            <span className="font-mono text-nano-blue-300">
+                                                {n.qtyRounded} {n.unit}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-slate-500 italic">No hay necesidades calculadas.</p>
+                            )}
+                        </div>
+                    )}
                 </>
             )
             }
@@ -475,6 +717,22 @@ export function ServiceMenuCard({
                     </div>
                 )
             }
+            <ConfirmDialog
+                open={confirmProductionOpen}
+                title="Generar orden de produccion"
+                description="Se creara una nueva version del plan para este servicio."
+                confirmLabel="Generar"
+                onConfirm={handleGenerateProduction}
+                onCancel={() => setConfirmProductionOpen(false)}
+            />
+            <ConfirmDialog
+                open={confirmOrdersOpen}
+                title="Generar compras"
+                description="Se crearan pedidos borrador por proveedor."
+                confirmLabel="Generar"
+                onConfirm={handleGenerateOrders}
+                onCancel={() => setConfirmOrdersOpen(false)}
+            />
         </div >
     )
 }
