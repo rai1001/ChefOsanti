@@ -2,13 +2,13 @@ import { useMemo, useState } from 'react'
 import { CalendarRange, Filter } from 'lucide-react'
 import { Card } from '@/modules/shared/ui/Card'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
-import { Spinner } from '@/modules/shared/ui/Spinner'
 import { Badge } from '@/modules/shared/ui/Badge'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useWasteEntries, type WasteFilters as Filters } from '@/modules/waste/data/wasteEntries'
 import { useWasteReasons } from '@/modules/waste/data/wasteReasons'
 import { useProducts } from '@/modules/recipes/data/recipes'
 import { useHotels } from '@/modules/purchasing/data/orders'
+import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { CreateWasteForm } from './components/CreateWasteForm'
 import { WasteTable } from './components/WasteTable'
 import { WasteStats } from './components/WasteStats'
@@ -45,18 +45,19 @@ export default function WastePage() {
   const [filters, setFilters] = useState<Filters>(() => computeRange('last30'))
   const [formKey, setFormKey] = useState(0)
 
-  const { data: entries = [], isLoading } = useWasteEntries(activeOrgId ?? undefined, filters)
+  const entriesQuery = useWasteEntries(activeOrgId ?? undefined, filters)
   const { data: reasons } = useWasteReasons(activeOrgId ?? undefined)
   const { data: products } = useProducts(activeOrgId ?? undefined)
   const hotels = useHotels(activeOrgId ?? undefined)
+  const entriesError = useFormattedError(entriesQuery.error)
 
   const todayLoss = useMemo(() => {
     const today = new Date()
     const dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    return entries
+    return (entriesQuery.data ?? [])
       .filter((e) => new Date(e.occurredAt) >= dayStart)
       .reduce((acc, e) => acc + e.totalCost, 0)
-  }, [entries])
+  }, [entriesQuery.data])
 
   const handleRangeChange = (value: RangeKey) => {
     setRange(value)
@@ -150,34 +151,37 @@ export default function WastePage() {
         </div>
       </section>
 
-      {isLoading ? (
-        <div className="flex justify-center py-10">
-          <Spinner />
-        </div>
-      ) : (
-        <div className="grid gap-6 xl:grid-cols-[1.05fr,1.8fr,1.1fr]">
-          <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_20px_60px_rgba(3,7,18,0.45)]">
-            <div className="mb-4 space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-accent">Registrar merma</p>
-              <p className="text-xl font-semibold text-foreground">New Log Entry</p>
-              <p className="text-sm text-muted-foreground">Captura producto, motivo y coste estimado.</p>
+      <div className="grid gap-6 xl:grid-cols-[1.05fr,1.8fr,1.1fr]">
+        <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_20px_60px_rgba(3,7,18,0.45)]">
+          <div className="mb-4 space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent">Registrar merma</p>
+            <p className="text-xl font-semibold text-foreground">New Log Entry</p>
+            <p className="text-sm text-muted-foreground">Captura producto, motivo y coste estimado.</p>
+          </div>
+          <CreateWasteForm key={formKey} onSuccess={handleResetForm} onCancel={handleResetForm} />
+          <div className="mt-4 rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-muted-foreground">
+            <div className="flex items-center justify-between">
+              <span>Merma de hoy</span>
+              <span className="font-semibold text-foreground">
+                {todayLoss.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+              </span>
             </div>
-            <CreateWasteForm key={formKey} onSuccess={handleResetForm} onCancel={handleResetForm} />
-            <div className="mt-4 rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-muted-foreground">
-              <div className="flex items-center justify-between">
-                <span>Merma de hoy</span>
-                <span className="font-semibold text-foreground">
-                  {todayLoss.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                </span>
-              </div>
-            </div>
-          </Card>
+          </div>
+        </Card>
 
-          <WasteTable entries={entries} reasons={reasons} products={products} rangeLabel={RANGE_LABELS[range]} />
+        <WasteTable
+          entries={entriesQuery.data ?? []}
+          reasons={reasons}
+          products={products}
+          rangeLabel={RANGE_LABELS[range]}
+          loading={entriesQuery.isLoading}
+          error={entriesQuery.error}
+          errorMessage={entriesError}
+          onRetry={() => entriesQuery.refetch()}
+        />
 
-          <WasteStats entries={entries} reasons={reasons} />
-        </div>
-      )}
+        <WasteStats entries={entriesQuery.data ?? []} reasons={reasons} />
+      </div>
     </div>
   )
 }
