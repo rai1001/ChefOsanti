@@ -16,15 +16,15 @@ Prioridad: reproducir referencias 1:1 sin inventar estilo. Cada sprint entrega p
 - [ ] Expiry & Stock Alerts 1:1 (KPI riesgo + tabla severidad + quick actions).
 
 ## Sprint 2 - Operaciones
-- [ ] Kitchen Production Workflow 1:1 (kanban 3 columnas + sidebar + badges critical).
-- [ ] Waste Management 1:1 (3 columnas: form, historico, analytics donut + totales/CO2).
-- [ ] Event Creation Wizard 1:1 (stepper 3 pasos + summary card).
-- [ ] Kitchen Production Planner 1:1 (KPIs + progreso + botones Mark as Done).
+- [x] Kitchen Production Workflow 1:1 (kanban 3 columnas + sidebar + badges critical).
+- [x] Waste Management 1:1 (3 columnas: form, historico, analytics donut + totales/CO2).
+- [x] Event Creation Wizard 1:1 (stepper 3 pasos + summary card).
+- [x] Kitchen Production Planner 1:1 (KPIs + progreso + botones Mark as Done).
 
 ## Sprint 3 - Administracion
-- [ ] Supplier & Procurement Hub 1:1 (tabs + filtros avanzados + tabla densa).
-- [ ] Purchase Order Detail 1:1 (header estado + tabla lineas + approval bar).
-- [ ] Staff Scheduling Grid 1:1 con virtualizacion y alertas (understaffed/overtime).
+- [x] Supplier & Procurement Hub 1:1 (tabs + filtros avanzados + tabla densa).
+- [x] Purchase Order Detail 1:1 (header estado + tabla lineas + approval bar).
+- [x] Staff Scheduling Grid 1:1 con virtualizacion y alertas (understaffed/overtime).
 
 ## Sprint 4 - Reports + Catologo + Hardening
 - [ ] Operational Insights & Reports 1:1 (donut waste, stacked bars costos, line ventas, heatmap).
