@@ -58,8 +58,6 @@ export async function listBatches(params: {
     .from('stock_batches')
     .select('id, org_id, location_id, supplier_item_id, qty, unit, expires_at, lot_code, source, created_at, supplier_items (name)')
     .eq('location_id', params.locationId)
-    .order('expires_at', { ascending: true, nullsFirst: false })
-    .order('created_at', { ascending: false })
 
   if (params.search) {
     query = query.ilike('supplier_items.name', `%${params.search}%`)
@@ -71,6 +69,9 @@ export async function listBatches(params: {
     const soon = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
     query = query.lte('expires_at', soon.toISOString())
   }
+
+  query.order('expires_at', { ascending: true, nullsFirst: false })
+  query.order('created_at', { ascending: false })
 
   const { data, error } = await query
   if (error) {
