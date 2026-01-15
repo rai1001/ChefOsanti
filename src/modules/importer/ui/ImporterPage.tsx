@@ -13,6 +13,8 @@ export default function ImporterPage() {
     const { activeOrgId } = useActiveOrgId()
     const [entity, setEntity] = useState<ImportEntity>('suppliers')
     const [searchParams] = useSearchParams()
+    const isExcelFile = (name: string) => /\.xls(x|m|b)?$/i.test(name)
+    const isCsvFile = (name: string) => /\.csv$/i.test(name)
 
     useEffect(() => {
         const entityParam = searchParams.get('entity')
@@ -258,7 +260,7 @@ export default function ImporterPage() {
         setSheetNames([])
         setSelectedSheetName('')
 
-        if (selectedFile.name.match(/\.xlsx?$/)) {
+        if (isExcelFile(selectedFile.name)) {
             try {
                 // Pre-parse to facilitate UI configuration (header selection)
                 const { sheets, sheetNames } = await parsePreviewExcel(selectedFile)
@@ -309,9 +311,9 @@ export default function ImporterPage() {
         try {
             let rows: any[] = []
 
-            if (file.name.endsWith('.csv')) {
+            if (isCsvFile(file.name)) {
                 rows = await parseCSV(file)
-            } else if (file.name.match(/\.xlsx?$/)) {
+            } else if (isExcelFile(file.name)) {
                 if (entity === 'events') {
                     if (!selectedHotelId) throw new Error('Selecciona un hotel')
                     if (sheetNames.length === 0) throw new Error('No se encontraron hojas en el Excel')
@@ -478,7 +480,7 @@ export default function ImporterPage() {
         <div className="space-y-6 animate-fade-in pb-12">
             <header>
                 <h1 className="text-3xl font-bold text-white tracking-tight text-glow">Importador Universal</h1>
-                <p className="text-slate-400 mt-1">Sube tus archivos CSV o Excel para actualizar proveedores, artículos y eventos.</p>
+                <p className="text-slate-400 mt-1">Sube tus archivos CSV o Excel para actualizar proveedores, productos, artículos y eventos.</p>
             </header>
 
             {
@@ -511,7 +513,9 @@ export default function ImporterPage() {
                                 >
                                     <option value="suppliers">Proveedores (suppliers)</option>
                                     <option value="supplier_items">Artículos (supplier_items)</option>
+                                    <option value="products">Productos (products)</option>
                                     <option value="events">Eventos (events)</option>
+                                    <option value="staff">Personal (staff)</option>
                                 </select>
                             </div>
                             <div className="flex-1">
@@ -519,7 +523,7 @@ export default function ImporterPage() {
                                 <div className="flex gap-2">
                                     <input
                                         type="file"
-                                        accept=".csv, .xlsx, .xls"
+                                        accept=".csv, .xlsx, .xls, .xlsm, .xlsb"
                                         ref={fileInputRef}
                                         onChange={handleFileChange}
                                         className="hidden"
@@ -572,7 +576,7 @@ export default function ImporterPage() {
 
 
                         {/* Event Specific Configuration */}
-                        {entity === 'events' && file && file.name.match(/\.xlsx?$/) && rawSheet && (
+                        {entity === 'events' && file && isExcelFile(file.name) && rawSheet && (
                             <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 p-4 bg-white/5 rounded-lg border border-white/10">
                                 <div className="space-y-1">
                                     <label className="block text-xs font-semibold text-slate-400">Hotel Destino</label>

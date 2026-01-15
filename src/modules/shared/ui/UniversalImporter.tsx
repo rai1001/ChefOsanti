@@ -30,11 +30,16 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
     const [rawSheet, setRawSheet] = useState<any[] | null>(null)
     const [importMode, setImportMode] = useState<'standard' | 'schedule'>('standard')
     const [dateColumn, setDateColumn] = useState<string>('')
+    const [sheets, setSheets] = useState<Record<string, any[]>>({})
+    const [sheetNames, setSheetNames] = useState<string[]>([])
+    const [selectedSheetName, setSelectedSheetName] = useState<string>('')
     const [jobId, setJobId] = useState<string | null>(null)
     const [mapping, setMapping] = useState<Record<string, string>>({})
     const [error, setError] = useState<string | null>(null)
     const [selectedHotelId, setSelectedHotelId] = useState<string>('')
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const isExcelFile = (name: string) => /\.xls(x|m|b)?$/i.test(name)
+    const isCsvFile = (name: string) => /\.csv$/i.test(name)
 
     const { data: hotels } = useQuery({
         queryKey: ['hotels', activeOrgId],
@@ -93,8 +98,13 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
         setFile(selectedFile)
         setError(null)
         setParsedData(null)
+        setRawSheet(null)
+        setSheets({})
+        setSheetNames([])
+        setSelectedSheetName('')
+        setDateColumn('')
 
-        if (selectedFile.name.endsWith('.csv')) {
+        if (isCsvFile(selectedFile.name)) {
             Papa.parse(selectedFile, {
                 header: true,
                 skipEmptyLines: true,
@@ -106,9 +116,12 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
                 },
                 error: (err) => setError(formatErrorMessage(err)),
             })
-        } else if (selectedFile.name.match(/\.xlsx?$/)) {
+        } else if (isExcelFile(selectedFile.name)) {
             try {
-                const { output, headers } = await parsePreviewExcel(selectedFile)
+                const { sheets, sheetNames, output, headers, selectedSheetName } = await parsePreviewExcel(selectedFile)
+                setSheets(sheets)
+                setSheetNames(sheetNames)
+                setSelectedSheetName(selectedSheetName)
 
                 if (entity === 'events') {
                     setImportMode('schedule')
@@ -141,13 +154,32 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
         const { parseExcelFile } = await import('@/modules/importer/utils/excelParser')
         const { sheets, sheetNames } = await parseExcelFile(file)
 
-        const firstSheetName = sheetNames[0]
-        const data = sheets[firstSheetName]
+        if (sheetNames.length === 0) throw new Error('El archivo Excel esta vacio')
 
-        if (!data || data.length === 0) throw new Error('La primera hoja esta vacia')
+        const firstNonEmpty = sheetNames.find((name) => (sheets[name] ?? []).length > 0) ?? sheetNames[0]
+        const data = sheets[firstNonEmpty] ?? []
 
-        const headers = Object.keys(data[0])
-        return { output: data, headers }
+        if (data.length === 0) throw new Error('No hay hojas con datos')
+
+        const headers = Object.keys(data[0] ?? {})
+        return { sheets, sheetNames, selectedSheetName: firstNonEmpty, output: data, headers }
+    }
+
+    const handleSheetChange = (sheetName: string) => {
+        const data = sheets[sheetName] ?? []
+        if (data.length === 0) return
+        setSelectedSheetName(sheetName)
+        const headers = Object.keys(data[0] ?? {})
+
+        if (entity === 'events') {
+            setRawSheet(data)
+            const potentialDate = headers.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'))
+            if (potentialDate) setDateColumn(potentialDate)
+            setStep('mapping')
+        } else {
+            setParsedData(data)
+            autoMapHeaders(headers)
+        }
     }
 
     const handleStage = async () => {
@@ -235,7 +267,7 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
                         <div className="rounded-lg border-2 border-dashed border-white/10 bg-nano-navy-900 p-8 text-center transition-colors hover:border-nano-blue-500/50">
                             <input
                                 type="file"
-                                accept=".csv, .xlsx, .xls"
+                                accept=".csv, .xlsx, .xls, .xlsm, .xlsb"
                                 onChange={handleFileChange}
                                 className="hidden"
                                 id="file-upload"
@@ -257,6 +289,26 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
 
                     {step === 'mapping' && (
                         <div className="space-y-4">
+                            {sheetNames.length > 1 && (
+                                <div className="rounded-md border border-white/10 bg-nano-navy-900/60 p-3">
+                                    <label className="block text-xs text-slate-400 mb-2">Hoja de Excel</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {sheetNames.map((name) => (
+                                            <button
+                                                key={name}
+                                                onClick={() => handleSheetChange(name)}
+                                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                                                    selectedSheetName === name
+                                                        ? 'bg-nano-blue-600 text-white shadow-lg shadow-nano-blue-500/20'
+                                                        : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                                                }`}
+                                            >
+                                                {name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             {importMode === 'schedule' && rawSheet ? (
                                 <div className="space-y-4">
                                     <div className="bg-nano-blue-500/10 p-3 rounded-md border border-nano-blue-500/20">

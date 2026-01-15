@@ -28,6 +28,13 @@ export default function ProductsPage() {
   const [isImporterOpen, setIsImporterOpen] = useState(false)
   const formattedError = useFormattedError(error)
   const createError = useFormattedError(createProduct.error)
+  const normalizeUnit = (value: unknown) => {
+    const unit = String(value ?? '').trim().toLowerCase()
+    if (!unit) return undefined
+    if (['kg', 'kgs', 'kilo', 'kilogramo', 'kilogramos'].includes(unit)) return 'kg'
+    if (['ud', 'uds', 'unidad', 'unidades', 'unit', 'units', 'pcs', 'pieza', 'pzas'].includes(unit)) return 'ud'
+    return unit
+  }
 
   const filtered = useMemo(() => {
     const list = products.data ?? []
@@ -213,7 +220,10 @@ export default function ProductsPage() {
         entity="products"
         fields={[
           { key: 'name', label: 'Nombre' },
-          { key: 'baseUnit', label: 'Unidad (kg/ud)', transform: (val) => (val === 'kg' ? 'kg' : 'ud') },
+          { key: 'base_unit', label: 'Unidad base (kg/ud)', transform: normalizeUnit },
+          { key: 'supplier_name', label: 'Proveedor' },
+          { key: 'purchase_unit', label: 'Unidad compra (kg/ud)', transform: normalizeUnit },
+          { key: 'price', label: 'Precio' },
         ]}
       />
     </div>
