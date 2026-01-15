@@ -10,10 +10,10 @@ Prioridad: reproducir referencias 1:1 sin inventar estilo. Cada sprint entrega p
 - [x] Doc/guia de uso (este folder) actualizada y lista.
 
 ## Sprint 1 - Core visual
-- [ ] Login redisen 1:1 (glass, glow, jerarquia exacta).
-- [ ] Executive Dashboard 1:1 (KPI cards, chart card, activity panel, filtros sucursal/fecha).
-- [ ] Inventory & Expiry Control 1:1 (tabla densa + chips estado + filtros).
-- [ ] Expiry & Stock Alerts 1:1 (KPI riesgo + tabla severidad + quick actions).
+- [x] Login redisen 1:1 (glass, glow, jerarquia exacta).
+- [x] Executive Dashboard 1:1 (KPI cards, chart card, activity panel, filtros sucursal/fecha).
+- [x] Inventory & Expiry Control 1:1 (tabla densa + chips estado + filtros).
+- [x] Expiry & Stock Alerts 1:1 (KPI riesgo + tabla severidad + quick actions).
 
 ## Sprint 2 - Operaciones
 - [x] Kitchen Production Workflow 1:1 (kanban 3 columnas + sidebar + badges critical).
@@ -40,6 +40,4 @@ Prioridad: reproducir referencias 1:1 sin inventar estilo. Cada sprint entrega p
 - Performance aceptable en tablas largas y scheduling (virtualizacion si procede).
 
 ## Next Up (pendiente)
-- Sprint 0: tokens unificados, AppShell completo, componentes base y KitchenMode/Command Palette.
-- Sprint 1: Login, Executive Dashboard, Inventory & Expiry Control, Expiry & Stock Alerts.
-- Sprint 4: Reports/Insights, Recipe & Product Catalog, QA visual final (tokens/estados/responsive/kitchen mode) y skeletons/empty/error/confirm dialogs coherentes.
+- Sprint 4: QA visual final (tokens/estados/responsive/kitchen mode) y skeletons/empty/error/confirm dialogs coherentes.
