@@ -23,6 +23,7 @@ import { Button } from '@/modules/shared/ui/Button'
 import { formatCurrency } from '@/lib/utils'
 import { Card } from '@/modules/shared/ui/Card'
 import { DataState } from '@/modules/shared/ui/DataState'
+import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
 
 type RangeFilter = 'all' | 'expired' | 'today' | 'three' | 'seven'
 
@@ -56,6 +57,7 @@ export default function ExpiryAlertsPage() {
   const createRule = useCreateExpiryRule()
   const toggleRule = useToggleExpiryRule(activeOrgId ?? undefined)
   const [newRuleDays, setNewRuleDays] = useState<number>(3)
+  const [disposeTarget, setDisposeTarget] = useState<ExpiryAlert | null>(null)
 
   const formattedError = useFormattedError(error || alerts.error || rules.error)
   const rulesError = useFormattedError(rules.error)
@@ -183,7 +185,7 @@ export default function ExpiryAlertsPage() {
               disabled={dismissAlert.isPending || filteredAlerts.length === 0}
               onClick={() => {
                 const firstCritical = criticalAlerts[0]
-                if (firstCritical) dismissAlert.mutate(firstCritical.id)
+                if (firstCritical) setDisposeTarget(firstCritical)
               }}
             >
               Mark disposed
@@ -250,7 +252,7 @@ export default function ExpiryAlertsPage() {
                             variant="danger"
                             size="sm"
                             disabled={dismissAlert.isPending}
-                            onClick={() => dismissAlert.mutate(alert.id)}
+                            onClick={() => setDisposeTarget(alert)}
                           >
                             Dispose
                           </Button>
@@ -318,6 +320,23 @@ export default function ExpiryAlertsPage() {
           </div>
         </DataState>
       </Card>
+
+      <ConfirmDialog
+        open={Boolean(disposeTarget)}
+        title="Confirm disposal"
+        description={
+          disposeTarget
+            ? `Mark ${disposeTarget.productName} (${disposeTarget.qty.toFixed(2)} ${disposeTarget.unit}) as disposed?`
+            : undefined
+        }
+        confirmLabel="Dispose"
+        onCancel={() => setDisposeTarget(null)}
+        onConfirm={() => {
+          if (!disposeTarget) return
+          dismissAlert.mutate(disposeTarget.id)
+          setDisposeTarget(null)
+        }}
+      />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Mail, Printer, Download, CheckCircle, Clock3 } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { z } from 'zod'
@@ -24,6 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/modules/shared/ui/Badge'
 import { Button } from '@/modules/shared/ui/Button'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
+import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
 
 const lineSchema = z
   .object({
@@ -62,6 +63,7 @@ export default function PurchaseOrderDetailPage() {
   const addLineError = useFormattedError(addLine.error)
   const poError = useFormattedError(purchaseOrder.error)
   const receiveError = useFormattedError(receivePo.error)
+  const [confirmReceiveOpen, setConfirmReceiveOpen] = useState(false)
 
   const {
     register,
@@ -393,19 +395,32 @@ export default function PurchaseOrderDetailPage() {
       )}
 
       {isConfirmed && (
-        <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">Recepcion</h3>
-            <Button variant="primary" onClick={onReceive} disabled={receivePo.isPending}>
-              {receivePo.isPending ? 'Recibiendo...' : 'Recibir'}
-            </Button>
-          </div>
-          {receivePo.isError && (
-            <div className="mt-2">
-              <ErrorBanner title="Error al recibir" message={receiveError} />
+        <>
+          <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">Recepcion</h3>
+              <Button variant="primary" onClick={() => setConfirmReceiveOpen(true)} disabled={receivePo.isPending}>
+                {receivePo.isPending ? 'Recibiendo...' : 'Recibir'}
+              </Button>
             </div>
-          )}
-        </Card>
+            {receivePo.isError && (
+              <div className="mt-2">
+                <ErrorBanner title="Error al recibir" message={receiveError} />
+              </div>
+            )}
+          </Card>
+          <ConfirmDialog
+            open={confirmReceiveOpen}
+            title="Confirmar recepcion"
+            description="Recibir este pedido actualizara el stock y cerrara el pedido."
+            confirmLabel="Recibir"
+            onCancel={() => setConfirmReceiveOpen(false)}
+            onConfirm={async () => {
+              await onReceive()
+              setConfirmReceiveOpen(false)
+            }}
+          />
+        </>
       )}
     </div>
   )
