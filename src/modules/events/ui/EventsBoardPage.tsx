@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { LayoutGrid, List } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useHotels } from '@/modules/events/data/events'
 import { useBookingsByHotel } from '@/modules/events/data/events'
@@ -10,6 +10,7 @@ import { Badge } from '@/modules/shared/ui/Badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/modules/shared/ui/Table'
 import { DataState } from '@/modules/shared/ui/DataState'
 import { Skeleton } from '@/modules/shared/ui/Skeleton'
+import { MonthCalendar } from './MonthCalendar'
 
 type Status = 'Confirmed' | 'Draft' | 'Completed'
 
@@ -32,7 +33,9 @@ export default function EventsBoardPage() {
   const { session, loading, error } = useSupabaseSession()
   const hotels = useHotels()
   const [hotelId, setHotelId] = useState<string>('')
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar')
+  const [calendarDate, setCalendarDate] = useState(() => new Date())
+  const navigate = useNavigate()
 
   const bookings = useBookingsByHotel({
     hotelId: hotelId || (hotels.data?.[0]?.id ?? ''),
@@ -49,21 +52,34 @@ export default function EventsBoardPage() {
     return bookings.data.map((b) => ({
       id: b.id,
       name: b.eventTitle || 'Evento',
-      date: b.startsAt ? new Date(b.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--',
+      date: b.startsAt
+        ? new Date(b.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '--',
       guests: b.groupLabel ? Number(b.groupLabel) || 0 : 0,
       status: 'Confirmed',
-      staff: b.spaceName ?? '—',
+      staff: b.spaceName ?? '-',
     }))
+  }, [bookings.data])
+
+  const calendarEvents = useMemo(() => {
+    return (bookings.data ?? [])
+      .filter((booking) => Boolean(booking.startsAt))
+      .map((booking) => ({
+        id: booking.id,
+        title: booking.eventTitle || 'Evento',
+        startsAt: booking.startsAt as string,
+        status: booking.status ?? 'confirmed',
+      }))
   }, [bookings.data])
 
   const sessionError = useFormattedError(error)
   const bookingsError = useFormattedError(bookings.error)
 
-  if (loading) return <p className="p-4 text-sm text-muted-foreground">Cargando sesión...</p>
+  if (loading) return <p className="p-4 text-sm text-muted-foreground">Cargando sesi¢n...</p>
   if (!session || error) {
     return (
       <div className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
-        Inicia sesión para ver eventos. {sessionError}
+        Inicia sesi¢n para ver eventos. {sessionError}
       </div>
     )
   }
@@ -80,14 +96,22 @@ export default function EventsBoardPage() {
             <button
               type="button"
               onClick={() => setViewMode('calendar')}
-              className={`rounded-md px-3 py-2 text-sm transition ${viewMode === 'calendar' ? 'bg-brand-500 text-bg shadow-[0_8px_20px_rgb(var(--accent)/0.25)]' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`rounded-md px-3 py-2 text-sm transition ${
+                viewMode === 'calendar'
+                  ? 'bg-brand-500 text-bg shadow-[0_8px_20px_rgb(var(--accent)/0.25)]'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
               <LayoutGrid size={16} />
             </button>
             <button
               type="button"
               onClick={() => setViewMode('list')}
-              className={`rounded-md px-3 py-2 text-sm transition ${viewMode === 'list' ? 'bg-brand-500 text-bg shadow-[0_8px_20px_rgb(var(--accent)/0.25)]' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`rounded-md px-3 py-2 text-sm transition ${
+                viewMode === 'list'
+                  ? 'bg-brand-500 text-bg shadow-[0_8px_20px_rgb(var(--accent)/0.25)]'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
               <List size={16} />
             </button>
@@ -109,6 +133,13 @@ export default function EventsBoardPage() {
           </div>
 
           <Link
+            to="/importer?entity=events"
+            className="rounded-xl border border-border/40 bg-surface/60 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-accent/50 hover:text-foreground"
+          >
+            Importador Matrix
+          </Link>
+
+          <Link
             to="/events/new"
             className="rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2 text-sm font-semibold text-bg shadow-[0_12px_30px_rgb(var(--accent)/0.28)] transition hover:brightness-110"
           >
@@ -117,12 +148,26 @@ export default function EventsBoardPage() {
         </div>
       </header>
 
+      {viewMode === 'calendar' && (
+        <MonthCalendar
+          currentDate={calendarDate}
+          events={calendarEvents}
+          onNavigate={(date) => setCalendarDate(date)}
+          onSelectEvent={(eventId) => navigate(`/events/${eventId}`)}
+        />
+      )}
+
       <section className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_24px_60px_rgba(3,7,18,0.45)]">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[220px]">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm9 2-4.35-4.35" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path
+                  d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm9 2-4.35-4.35"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
               </svg>
             </span>
             <input
@@ -188,7 +233,11 @@ export default function EventsBoardPage() {
               <TableBody>
                 {events.map((ev) => (
                   <TableRow key={ev.id} className="hover:bg-white/5">
-                    <TableCell className="text-foreground">{ev.name}</TableCell>
+                    <TableCell className="text-foreground">
+                      <Link to={`/events/${ev.id}`} className="font-semibold hover:underline">
+                        {ev.name}
+                      </Link>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{ev.date}</TableCell>
                     <TableCell className="text-foreground">{ev.guests}</TableCell>
                     <TableCell>
@@ -198,12 +247,12 @@ export default function EventsBoardPage() {
                     </TableCell>
                     <TableCell className="text-foreground">{ev.staff}</TableCell>
                     <TableCell className="text-center text-muted-foreground">
-                      <button
-                        type="button"
+                      <Link
+                        to={`/events/${ev.id}`}
                         className="rounded-md border border-border/20 bg-surface/50 px-2 py-1 text-xs text-muted-foreground hover:border-accent/50 hover:text-foreground"
                       >
-                        ···
-                      </button>
+                        Abrir
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}

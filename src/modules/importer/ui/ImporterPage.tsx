@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useImportJobs, useImportStage, useImportValidate, useImportCommit, useImportJobRows } from '../data/importer'
@@ -11,6 +12,17 @@ export default function ImporterPage() {
     // State
     const { activeOrgId } = useActiveOrgId()
     const [entity, setEntity] = useState<ImportEntity>('suppliers')
+    const [searchParams] = useSearchParams()
+
+    useEffect(() => {
+        const entityParam = searchParams.get('entity')
+        if (!entityParam) return
+        if (['suppliers', 'supplier_items', 'events', 'products', 'staff'].includes(entityParam)) {
+            setEntity(entityParam as ImportEntity)
+            setActiveJobId(null)
+            setFile(null)
+        }
+    }, [searchParams])
     const [file, setFile] = useState<File | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [activeJobId, setActiveJobId] = useState<string | null>(null)
