@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Package, PlusCircle, Scan, Bell } from 'lucide-react'
+import { Bell, Filter, PackageSearch, Search, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
 import { Skeleton } from '@/modules/shared/ui/Skeleton'
-import { PageHeader } from '@/modules/shared/ui/PageHeader'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useHotels } from '@/modules/events/data/events'
@@ -13,12 +12,14 @@ import { getExpiryState } from '@/modules/inventory/domain/batches'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { useSupplierItemsByOrg } from '../data/suppliers'
 import { useAssignBarcode, useBarcodeMappings } from '@/modules/inventory/data/barcodes'
-import { resolveBarcode } from '@/modules/inventory/domain/barcodeResolver'
 import { BarcodeScanner } from './components/BarcodeScanner'
 import { AssignBarcodeSection } from './components/AssignBarcodeSection'
 import { parseExpiryAndLot } from '@/modules/inventory/domain/ocrExpiryParser'
 import { ImportDeliveryNoteModal } from './components/ImportDeliveryNoteModal'
 import { useExpiryAlerts } from '@/modules/inventory/data/expiryAlerts'
+import { Badge } from '@/modules/shared/ui/Badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/modules/shared/ui/Table'
+import { Button } from '@/modules/shared/ui/Button'
 
 type EntryForm = {
   supplierItemId: string
@@ -60,10 +61,6 @@ export default function StockPage() {
 
   const hotelsOptions = hotels.data ?? []
   const locationOptions = locations.data ?? []
-  const selectedLocation = useMemo(
-    () => locationOptions.find((l) => l.id === locationId),
-    [locationId, locationOptions],
-  )
   const openAlertsCount = useMemo(() => {
     const all = expiryAlerts.data ?? []
     return all.filter((a) => (!hotelId || a.hotelId === hotelId) && (!locationId || a.locationId === locationId)).length
@@ -97,201 +94,221 @@ export default function StockPage() {
     )
   }
   if (!session || error) {
-    return <ErrorBanner title="Inicia sesion" message={sessionError || 'Inicia sesion para ver stock.'} />
+    return <ErrorBanner title="Inicia sesión" message={sessionError || 'Inicia sesión para ver stock.'} />
+  }
+
+  const statusBadge = (expiresAt: string | null) => {
+    const status = getExpiryState(expiresAt)
+    if (status === 'expired') return <Badge variant="danger">Expired</Badge>
+    if (status === 'soon_3') return <Badge variant="warning">Near Expiry</Badge>
+    if (status === 'soon_7') return <Badge variant="info">Near Expiry</Badge>
+    if (status === 'no_expiry') return <Badge variant="info">No expiry</Badge>
+    return <Badge variant="success">Good</Badge>
   }
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <PageHeader
-        title="Inventario por lotes (FEFO)"
-        subtitle="Controla lotes, caducidades y entradas manuales por ubicacion."
-        actions={
-          <div className="flex flex-wrap gap-2">
-            <select className="ds-input max-w-xs" value={hotelId} onChange={(e) => { setHotelId(e.target.value); setLocationId('') }}>
-              <option value="">Todos los hoteles</option>
+    <div className="space-y-6 animate-fade-in">
+      <header className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-wide text-accent">Inventory</p>
+        <h1 className="text-4xl font-semibold text-foreground">Inventory & Expiry Control</h1>
+        <p className="text-sm text-muted-foreground">/inventory/preparations</p>
+      </header>
+
+      <section className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_24px_60px_rgba(3,7,18,0.45)]">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[220px]">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <Search size={16} />
+            </span>
+            <input
+              type="search"
+              placeholder="Search stock items..."
+              className="h-11 w-full rounded-xl border border-border/30 bg-surface2/70 pl-10 pr-4 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-brand-500/40"
+              value={filters.search || ''}
+              onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+            />
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-surface/60 px-3 py-2 text-sm text-muted-foreground">
+            <Filter size={14} />
+            <span className="text-[11px] uppercase tracking-wide">Filter</span>
+            <label className="flex items-center gap-1 text-foreground">
+              <input
+                type="checkbox"
+                checked={!!filters.expiringSoon}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, expiringSoon: e.target.checked, expired: false }))
+                }
+              />
+              Near expiry
+            </label>
+            <label className="flex items-center gap-1 text-foreground">
+              <input
+                type="checkbox"
+                checked={!!filters.expired}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, expired: e.target.checked, expiringSoon: false }))
+                }
+              />
+              Expired
+            </label>
+            {(filters.search || filters.expiringSoon || filters.expired) && (
+              <button
+                type="button"
+                className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setFilters({})}
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-surface/60 px-3 py-2 text-xs text-muted-foreground">
+            <span className="text-[10px] uppercase tracking-wide">Hotel</span>
+            <select
+              className="bg-transparent text-sm text-foreground outline-none"
+              value={hotelId}
+              onChange={(e) => {
+                setHotelId(e.target.value)
+                setLocationId('')
+              }}
+            >
+              <option value="">Todos</option>
               {hotelsOptions.map((h) => (
                 <option key={h.id} value={h.id}>
                   {h.name}
                 </option>
               ))}
             </select>
-            <select className="ds-input max-w-xs" value={locationId} onChange={(e) => setLocationId(e.target.value)}>
-              <option value="">Selecciona ubicacion</option>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-surface/60 px-3 py-2 text-xs text-muted-foreground">
+            <span className="text-[10px] uppercase tracking-wide">Location</span>
+            <select
+              className="bg-transparent text-sm text-foreground outline-none"
+              value={locationId}
+              onChange={(e) => setLocationId(e.target.value)}
+            >
+              <option value="">Selecciona</option>
               {locationOptions.map((loc) => (
                 <option key={loc.id} value={loc.id}>
                   {loc.name}
                 </option>
               ))}
             </select>
-            <Link to="/inventory/expiries" className="ds-btn ds-btn-ghost flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Caducidades ({openAlertsCount})
-            </Link>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="ds-btn ds-btn-ghost"
-                disabled={!locationId}
-                onClick={() => {
-                  setScannerOpen(true)
-                  setShowModal(true)
-                }}
-              >
-                Escanear barcode
-              </button>
-              <button
-                type="button"
-                className="ds-btn ds-btn-ghost"
-                disabled={!locationId}
-                onClick={() => setImportModal(true)}
-              >
-                <Scan className="h-4 w-4" />
-                Importar albaran
-              </button>
-              <button
-                type="button"
-                className="ds-btn ds-btn-primary"
-                disabled={!locationId}
-                onClick={() => setShowModal(true)}
-              >
-                <PlusCircle className="h-4 w-4" />
-                Nueva entrada
-              </button>
-            </div>
           </div>
-        }
-      />
 
-      <div className="ds-card">
-        <div className="ds-section-header">
-          <div>
-            <h2 className="text-sm font-semibold text-white">Lotes</h2>
-            <p className="text-xs text-slate-400">{selectedLocation ? selectedLocation.name : 'Selecciona ubicacion'}</p>
-          </div>
-          <div className="flex flex-wrap gap-2 text-xs">
-            <input
-              className="ds-input max-w-xs"
-              placeholder="Buscar producto"
-              value={filters.search || ''}
-              onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-            />
-            <label className="flex items-center gap-1 text-slate-300">
-              <input
-                type="checkbox"
-                checked={!!filters.expiringSoon}
-                onChange={(e) => setFilters((f) => ({ ...f, expiringSoon: e.target.checked, expired: false }))}
-              />
-              Proximos 7d
-            </label>
-            <label className="flex items-center gap-1 text-slate-300">
-              <input
-                type="checkbox"
-                checked={!!filters.expired}
-                onChange={(e) => setFilters((f) => ({ ...f, expired: e.target.checked, expiringSoon: false }))}
-              />
-              Solo caducados
-            </label>
+          <Link
+            to="/inventory/expiries"
+            className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-surface/70 px-3 py-2 text-xs font-semibold text-foreground hover:border-accent/50"
+          >
+            <Bell className="h-4 w-4" />
+            Caducidades ({openAlertsCount})
+          </Link>
+
+          <div className="ml-auto flex flex-wrap gap-2">
+            <Button variant="ghost" size="sm" disabled={!locationId} onClick={() => setImportModal(true)}>
+              Importar albarán
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={!locationId}
+              onClick={() => {
+                setScannerOpen(true)
+              }}
+            >
+              Escanear barcode
+            </Button>
+            <Button size="sm" disabled={!locationId} onClick={() => setShowModal(true)}>
+              Nueva entrada
+            </Button>
           </div>
         </div>
-        {batches.isLoading ? (
-          <div className="space-y-2 p-4">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
-          </div>
-        ) : batches.isError ? (
-          <div className="p-4">
-            <ErrorBanner
-              title="Error al cargar lotes"
-              message={batchesError}
-              onRetry={() => batches.refetch()}
-            />
-          </div>
-        ) : batches.data?.length ? (
-          <div className="overflow-x-auto">
-            <table className="ds-table min-w-full">
-              <thead>
-                <tr>
-                  <th>Producto</th>
-                  <th className="is-num">Cantidad</th>
-                  <th>Unidad</th>
-                  <th>Caduca</th>
-                  <th>Estado</th>
-                  <th>Lote</th>
-                  <th>Fuente</th>
-                </tr>
-              </thead>
-              <tbody>
-                {batches.data.map((batch) => {
-                  const status = getExpiryState(batch.expiresAt)
-                  const statusLabel =
-                    status === 'expired'
-                      ? 'Expirado'
-                      : status === 'soon_3'
-                        ? 'Caduca <3d'
-                        : status === 'soon_7'
-                          ? 'Caduca <7d'
-                          : status === 'no_expiry'
-                            ? 'Sin fecha'
-                            : 'OK'
-                  const badgeClass =
-                    status === 'expired'
-                      ? 'ds-badge is-error'
-                      : status === 'soon_3'
-                        ? 'ds-badge is-warn'
-                        : status === 'soon_7'
-                          ? 'ds-badge is-info'
-                          : 'ds-badge'
-                  return (
-                    <tr key={batch.id}>
-                      <td className="font-semibold text-slate-200">{batch.supplierItemName}</td>
-                      <td className="is-num">{batch.qty.toFixed(2)}</td>
-                      <td>{batch.unit}</td>
-                      <td>{batch.expiresAt ? new Date(batch.expiresAt).toLocaleDateString() : '-'}</td>
-                      <td>
-                        <span className={badgeClass}>{statusLabel}</span>
-                      </td>
-                      <td>{batch.lotCode || '-'}</td>
-                      <td className="uppercase text-xs text-slate-400">{batch.source}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="p-6">
-            <EmptyState
-              icon={Package}
-              title="Sin lotes"
-              description={locationId ? 'Anade una entrada manual para ver lotes.' : 'Selecciona una ubicacion primero.'}
-            />
-          </div>
-        )}
-      </div>
+
+        <div className="overflow-hidden rounded-2xl border border-border/20 bg-surface/50 backdrop-blur-lg">
+          {batches.isLoading ? (
+            <div className="space-y-2 p-6">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+          ) : batches.isError ? (
+            <div className="p-4">
+              <ErrorBanner title="Error al cargar lotes" message={batchesError} onRetry={() => batches.refetch()} />
+            </div>
+          ) : (batches.data?.length ?? 0) > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Current Stock</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead>Expiry Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Last Updated</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {batches.data?.map((batch) => (
+                  <TableRow key={batch.id}>
+                    <TableCell className="font-semibold text-foreground">{batch.supplierItemName}</TableCell>
+                    <TableCell className="text-muted-foreground">Prep</TableCell>
+                    <TableCell className="text-right text-foreground">{batch.qty.toFixed(0)}</TableCell>
+                    <TableCell className="text-muted-foreground">{batch.unit}</TableCell>
+                    <TableCell className="text-foreground">
+                      {batch.expiresAt ? new Date(batch.expiresAt).toLocaleDateString('en-CA') : '—'}
+                    </TableCell>
+                    <TableCell>{statusBadge(batch.expiresAt)}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {batch.createdAt ? new Date(batch.createdAt).toLocaleString('en-US') : '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-6">
+              <EmptyState
+                icon={PackageSearch}
+                title="Sin lotes"
+                description={locationId ? 'Añade una entrada manual para ver lotes.' : 'Selecciona una ubicación primero.'}
+              />
+            </div>
+          )}
+        </div>
+      </section>
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-xl rounded-xl border border-white/10 bg-nano-navy-800 p-6 shadow-2xl">
+          <div className="w-full max-w-xl rounded-xl border border-white/10 bg-surface/80 p-6 shadow-2xl">
             <form className="space-y-3" onSubmit={handleSubmitEntry}>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-bold text-white">Nueva entrada</h3>
-                <button type="button" onClick={() => { setShowModal(false); setScannerOpen(false); }} className="text-slate-400 hover:text-white">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-foreground">Nueva entrada</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false)
+                    setScannerOpen(false)
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
                   x
                 </button>
               </div>
               <div className="mb-1">
-                <label className="flex items-center gap-2 text-xs text-slate-300">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
                   <input
                     type="checkbox"
                     checked={scannerOpen}
                     onChange={(e) => setScannerOpen(e.target.checked)}
                   />
-                  Escanear con camara
+                  Escanear con cámara
                 </label>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-slate-300">Foto/archivo para sugerir caducidad/lote (OCR)</span>
+                  <span className="text-xs font-medium text-muted-foreground">Foto/archivo para sugerir caducidad/lote (OCR)</span>
                   <input
                     type="file"
                     accept=".jpg,.jpeg,.png,.pdf,.txt"
@@ -313,12 +330,12 @@ export default function StockPage() {
                           lotCode: res.lotCode ?? prev.lotCode,
                         }))
                       } else {
-                        setOcrSuggestion({ message: 'No se detecto caducidad/lote' })
+                        setOcrSuggestion({ message: 'No se detectó caducidad/lote' })
                       }
                     }}
                   />
                   {ocrSuggestion && (
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-muted-foreground">
                       {ocrSuggestion.message}{' '}
                       {ocrSuggestion.expiresAt ? ` | Cad: ${ocrSuggestion.expiresAt}` : ''}{' '}
                       {ocrSuggestion.lotCode ? ` | Lote: ${ocrSuggestion.lotCode}` : ''}
@@ -326,7 +343,7 @@ export default function StockPage() {
                   )}
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-slate-300">Texto OCR (pruebas)</span>
+                  <span className="text-xs font-medium text-muted-foreground">Texto OCR (pruebas)</span>
                   <textarea
                     className="ds-input min-h-[80px]"
                     placeholder="Pega texto de etiqueta para sugerir"
@@ -350,7 +367,7 @@ export default function StockPage() {
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-slate-300">Producto</span>
+                  <span className="text-xs font-medium text-muted-foreground">Producto</span>
                   <select
                     className="ds-input"
                     value={entry.supplierItemId}
@@ -365,7 +382,7 @@ export default function StockPage() {
                   </select>
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-slate-300">Cantidad</span>
+                  <span className="text-xs font-medium text-muted-foreground">Cantidad</span>
                   <input
                     type="number"
                     className="ds-input"
@@ -374,7 +391,7 @@ export default function StockPage() {
                   />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-slate-300">Unidad</span>
+                  <span className="text-xs font-medium text-muted-foreground">Unidad</span>
                   <select
                     className="ds-input"
                     value={entry.unit}
@@ -385,7 +402,7 @@ export default function StockPage() {
                   </select>
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-slate-300">Caducidad</span>
+                  <span className="text-xs font-medium text-muted-foreground">Caducidad</span>
                   <input
                     type="date"
                     className="ds-input"
@@ -394,7 +411,7 @@ export default function StockPage() {
                   />
                 </label>
                 <label className="space-y-1 md:col-span-2">
-                  <span className="text-xs font-medium text-slate-300">Lote (opcional)</span>
+                  <span className="text-xs font-medium text-muted-foreground">Lote (opcional)</span>
                   <input
                     className="ds-input"
                     value={entry.lotCode ?? ''}
@@ -403,76 +420,71 @@ export default function StockPage() {
                 </label>
               </div>
 
-              {createEntry.isError && (
-                <div className="mt-2">
-                  <ErrorBanner title="Error al crear entrada" message={createEntryError} />
+              {createEntryError && (
+                <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
+                  {createEntryError}
                 </div>
               )}
 
-              <div className="flex flex-col gap-3 border-t border-white/10 pt-4">
-                {scannerOpen && (
-                  <BarcodeScanner
-                    onDetected={(code) => {
-                      if (!code || !activeOrgId) return
-                      setPendingBarcode(code)
-                      const mappings = Object.fromEntries(
-                        (barcodeMappings.data ?? []).map((m) => [m.barcode, m.supplierItemId]),
-                      )
-                      const res = resolveBarcode(code, mappings)
-                      if (res.status === 'known') {
-                        setEntry((prev) => ({ ...prev, supplierItemId: res.supplierItemId }))
-                      }
-                    }}
-                  />
-                )}
-
-                {pendingBarcode && (
-                  <AssignBarcodeSection
-                    barcode={pendingBarcode}
-                    mappings={barcodeMappings.data ?? []}
-                    supplierItems={supplierItems.data ?? []}
-                    onAssign={async (supplierItemId) => {
-                      if (!activeOrgId) return
-                      await assignBarcode.mutateAsync({
-                        orgId: activeOrgId,
-                        supplierItemId,
-                        barcode: pendingBarcode,
-                      })
-                      setEntry((prev) => ({ ...prev, supplierItemId }))
-                    }}
-                  />
-                )}
-
-                <div className="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => { setShowModal(false); setScannerOpen(false) }}
-                    className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={createEntry.isPending}
-                    className="ds-btn ds-btn-primary disabled:opacity-60"
-                  >
-                    {createEntry.isPending ? 'Guardando...' : 'Guardar'}
-                  </button>
-                </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="ghost" type="button" onClick={() => setShowModal(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createEntry.isPending}>
+                  {createEntry.isPending ? 'Guardando...' : 'Guardar'}
+                </Button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      <ImportDeliveryNoteModal
-        open={importModal}
-        onClose={() => setImportModal(false)}
-        orgId={activeOrgId ?? undefined}
-        locations={locationOptions}
-        supplierItems={supplierItems.data ?? []}
-        defaultLocationId={locationId || undefined}
-      />
+      {importModal && (
+        <ImportDeliveryNoteModal
+          open={importModal}
+          onClose={() => setImportModal(false)}
+          orgId={activeOrgId ?? undefined}
+          locations={locationOptions}
+          supplierItems={supplierItems.data ?? []}
+          defaultLocationId={locationId}
+        />
+      )}
+
+      {scannerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="relative w-full max-w-2xl rounded-2xl border border-border/30 bg-surface/90 p-4 shadow-2xl">
+            <button
+              type="button"
+              className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
+              onClick={() => setScannerOpen(false)}
+            >
+              <X size={16} />
+            </button>
+            <p className="mb-3 text-sm text-foreground">Apunta la cámara al código de barras.</p>
+            <div className="overflow-hidden rounded-xl border border-border/30">
+              <BarcodeScanner
+                onDetected={(code) => {
+                  setPendingBarcode(code)
+                  setScannerOpen(false)
+                  setShowModal(true)
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingBarcode && (
+        <AssignBarcodeSection
+          barcode={pendingBarcode}
+          mappings={barcodeMappings.data ?? []}
+          supplierItems={supplierItems.data ?? []}
+          onAssign={async (itemId) => {
+            await assignBarcode.mutateAsync({ orgId: activeOrgId ?? '', barcode: pendingBarcode || '', supplierItemId: itemId })
+            setPendingBarcode(null)
+          }}
+        />
+      )}
     </div>
   )
 }
