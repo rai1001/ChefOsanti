@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
@@ -22,6 +22,8 @@ import { useMenuTemplates } from '../data/menus'
 import { DraftOrdersModal } from './DraftOrdersModal'
 import { OcrReviewModal } from './OcrReviewModal'
 import { ErrorBoundary } from '@/modules/shared/ui/ErrorBoundary'
+import { Button } from '@/modules/shared/ui/Button'
+import { Card } from '@/modules/shared/ui/Card'
 
 // New Components
 import { EventDetailsSection } from './EventDetailsSection'
@@ -86,6 +88,7 @@ export default function EventDetailPage() {
   const upsertAlias = useUpsertAlias(eventQuery.data?.event.orgId)
   const [draftOrdersOpen, setDraftOrdersOpen] = useState(false)
   const [draftSuccess, setDraftSuccess] = useState<string | null>(null)
+  const ocrFileInputRef = useRef<HTMLInputElement>(null)
 
   // UI State for Modals
   const [isAddBookingOpen, setIsAddBookingOpen] = useState(false)
@@ -158,6 +161,32 @@ export default function EventDetailPage() {
 
         <EventDetailsSection event={event} />
 
+        <Card className="rounded-3xl border border-border/25 bg-surface/70 p-4 shadow-[0_20px_60px_rgba(3,7,18,0.45)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-accent">Menu & Produccion</p>
+              <p className="text-sm text-muted-foreground">
+                Importa menus por OCR, aplica plantillas de memoria y genera produccion/compras.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="primary" size="sm" onClick={() => ocrFileInputRef.current?.click()}>
+                Importar menu (OCR)
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => setIsAddServiceOpen(true)}>
+                Menu de memoria
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => document.getElementById('menu-services')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Produccion y compras
+              </Button>
+            </div>
+          </div>
+        </Card>
+
         <EventBookingsSection
           bookings={bookings}
           onDeleteBooking={(id) => deleteBooking.mutate(id)}
@@ -165,7 +194,7 @@ export default function EventDetailPage() {
         />
 
         {/* Keeping OCR Section Inline for now as it wasn't requested to be extracted */}
-        <section className="glass-panel">
+        <section className="glass-panel" id="menu-ocr">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <h2 className="text-sm font-semibold text-white">Adjuntos / OCR</h2>
           </div>
@@ -175,6 +204,7 @@ export default function EventDetailPage() {
               <input
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg,.txt"
+                ref={ocrFileInputRef}
                 className="text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-nano-blue-500/20 file:text-nano-blue-300 hover:file:bg-nano-blue-500/30"
                 onChange={async (e) => {
                   const file = e.target.files?.[0]
@@ -236,12 +266,14 @@ export default function EventDetailPage() {
           </div>
         </section>
 
-        <EventServicesSection
-          services={eventServices}
-          menuTemplates={menuTemplates.data ?? []}
-          onDeleteService={(id) => deleteService.mutate(id)}
-          onAddService={() => setIsAddServiceOpen(true)}
-        />
+        <div id="menu-services">
+          <EventServicesSection
+            services={eventServices}
+            menuTemplates={menuTemplates.data ?? []}
+            onDeleteService={(id) => deleteService.mutate(id)}
+            onAddService={() => setIsAddServiceOpen(true)}
+          />
+        </div>
 
         <ProductionSection
           services={eventServices}
