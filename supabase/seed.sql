@@ -2,9 +2,14 @@
 do $$
 declare
   admin_id uuid := '11111111-1111-1111-1111-111111111111';
+  admin2_id uuid := '44444444-4444-4444-4444-444444444444';
   tester_id uuid := '33333333-3333-3333-3333-333333333333';
   instance_id uuid;
 begin
+  -- Limpieza idempotente por email duplicado en auth
+  delete from auth.identities where identity_data ->> 'email' in ('admin@chefos.com', 'admin2@chefos.com', 'test@example.com');
+  delete from auth.users where email in ('admin@chefos.com', 'admin2@chefos.com', 'test@example.com');
+
   select id into instance_id from auth.instances limit 1;
   if instance_id is null then
     instance_id := gen_random_uuid();
@@ -149,6 +154,73 @@ begin
       identity_data = excluded.identity_data,
       last_sign_in_at = excluded.last_sign_in_at,
       updated_at = excluded.updated_at;
+
+  -- Admin secundario (login de referencia)
+  insert into auth.users (
+    id,
+    instance_id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    last_sign_in_at
+  )
+  values (
+    admin2_id,
+    instance_id,
+    'authenticated',
+    'authenticated',
+    'admin2@chefos.com',
+    crypt('password123', gen_salt('bf')),
+    timezone('utc', now()),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{}'::jsonb,
+    timezone('utc', now()),
+    timezone('utc', now()),
+    timezone('utc', now())
+  )
+  on conflict (id) do update
+  set email = excluded.email,
+      encrypted_password = excluded.encrypted_password,
+      email_confirmed_at = excluded.email_confirmed_at,
+      raw_app_meta_data = excluded.raw_app_meta_data,
+      raw_user_meta_data = excluded.raw_user_meta_data,
+      updated_at = excluded.updated_at;
+
+  insert into auth.identities (
+    id,
+    user_id,
+    provider,
+    provider_id,
+    identity_data,
+    last_sign_in_at,
+    created_at,
+    updated_at
+  )
+  values (
+    gen_random_uuid(),
+    admin2_id,
+    'email',
+    admin2_id::text,
+    jsonb_build_object(
+      'sub', admin2_id::text,
+      'email', 'admin2@chefos.com',
+      'email_verified', true
+    ),
+    timezone('utc', now()),
+    timezone('utc', now()),
+    timezone('utc', now())
+  )
+  on conflict (provider, provider_id) do update
+  set user_id = excluded.user_id,
+      identity_data = excluded.identity_data,
+      last_sign_in_at = excluded.last_sign_in_at,
+      updated_at = excluded.updated_at;
 end $$;
 
 -- Seed A0: orgs, memberships, hotels (idempotente)
@@ -164,6 +236,7 @@ insert into public.org_memberships (org_id, user_id, role)
 values
   ('00000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'admin'),
   ('00000000-0000-0000-0000-000000000001', '33333333-3333-3333-3333-333333333333', 'admin'),
+  ('00000000-0000-0000-0000-000000000001', '44444444-4444-4444-4444-444444444444', 'admin'),
   ('00000000-0000-0000-0000-000000000002', '22222222-2222-2222-2222-222222222222', 'admin')
 on conflict (org_id, user_id) do update
 set role = excluded.role;
@@ -174,7 +247,8 @@ set is_active = true
 where org_id = '00000000-0000-0000-0000-000000000001'
   and user_id in (
     '11111111-1111-1111-1111-111111111111',
-    '33333333-3333-3333-3333-333333333333'
+    '33333333-3333-3333-3333-333333333333',
+    '44444444-4444-4444-4444-444444444444'
   );
 
 insert into public.hotels (id, org_id, name, city, country, currency)
