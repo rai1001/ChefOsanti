@@ -16,6 +16,7 @@ type Status = 'Confirmed' | 'Draft' | 'Completed'
 
 type EventRow = {
   id: string
+  eventId: string
   name: string
   date: string
   guests: number
@@ -51,6 +52,7 @@ export default function EventsBoardPage() {
     if (!bookings.data) return []
     return bookings.data.map((b) => ({
       id: b.id,
+      eventId: b.eventId ?? b.id,
       name: b.eventTitle || 'Evento',
       date: b.startsAt
         ? new Date(b.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -65,7 +67,8 @@ export default function EventsBoardPage() {
     return (bookings.data ?? [])
       .filter((booking) => Boolean(booking.startsAt))
       .map((booking) => ({
-        id: booking.id,
+        id: booking.eventId ?? booking.id,
+        key: booking.id,
         title: booking.eventTitle || 'Evento',
         startsAt: booking.startsAt as string,
         status: 'confirmed',
@@ -234,7 +237,7 @@ export default function EventsBoardPage() {
                 {events.map((ev) => (
                   <TableRow key={ev.id} className="hover:bg-white/5">
                     <TableCell className="text-foreground">
-                      <Link to={`/events/${ev.id}`} className="font-semibold hover:underline">
+                      <Link to={`/events/${ev.eventId}`} className="font-semibold hover:underline">
                         {ev.name}
                       </Link>
                     </TableCell>
@@ -248,7 +251,7 @@ export default function EventsBoardPage() {
                     <TableCell className="text-foreground">{ev.staff}</TableCell>
                     <TableCell className="text-center text-muted-foreground">
                       <Link
-                        to={`/events/${ev.id}`}
+                        to={`/events/${ev.eventId}`}
                         className="rounded-md border border-border/20 bg-surface/50 px-2 py-1 text-xs text-muted-foreground hover:border-accent/50 hover:text-foreground"
                       >
                         Abrir

@@ -4,6 +4,7 @@ import { Card } from '@/modules/shared/ui/Card'
 
 interface Event {
   id: string
+  key?: string
   title: string
   startsAt: string
   status: string
@@ -107,17 +108,20 @@ export function MonthCalendar({ currentDate, events, onNavigate, onSelectEvent }
               </div>
 
               <div className="space-y-1">
-                {visibleEvents.map((event) => (
-                  <button
-                    key={event.id}
-                    type="button"
-                    onClick={() => onSelectEvent?.(event.id)}
-                    className="w-full truncate rounded-md border border-accent/30 bg-accent/10 px-2 py-1 text-left text-[10px] font-semibold text-accent hover:bg-accent/20"
-                    title={event.title}
-                  >
-                    {event.title}
-                  </button>
-                ))}
+                {visibleEvents.map((event) => {
+                  const eventKey = event.key ?? event.id
+                  return (
+                    <button
+                      key={eventKey}
+                      type="button"
+                      onClick={() => onSelectEvent?.(event.id)}
+                      className="w-full truncate rounded-md border border-accent/30 bg-accent/10 px-2 py-1 text-left text-[10px] font-semibold text-accent hover:bg-accent/20"
+                      title={event.title}
+                    >
+                      {event.title}
+                    </button>
+                  )
+                })}
                 {dayEvents.length > 3 && (
                   <div className="text-center text-[10px] text-muted-foreground">
                     +{dayEvents.length - 3} more
