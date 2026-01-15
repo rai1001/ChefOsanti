@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/modules/shared/ui/Badge'
 import { Button } from '@/modules/shared/ui/Button'
 import { FormField } from '@/modules/shared/ui/FormField'
+import { DataState } from '@/modules/shared/ui/DataState'
 import type { Supplier } from '../domain/types'
 
 const supplierSchema = z.object({
@@ -190,19 +191,27 @@ export default function SuppliersPage() {
       )}
 
       <Card className="rounded-3xl border border-border/25 bg-surface/70 shadow-[0_24px_60px_rgba(3,7,18,0.45)]">
-        {suppliers.isLoading ? (
-          <div className="p-6 flex justify-center">
-            <Spinner />
-          </div>
-        ) : enriched.length === 0 ? (
-          <div className="p-8">
-            <EmptyState
-              title="No suppliers found"
-              description="Ajusta los filtros o crea un proveedor."
-              action={<Button onClick={() => setShowForm(true)}>Add Supplier</Button>}
-            />
-          </div>
-        ) : (
+        <DataState
+          loading={suppliers.isLoading}
+          error={suppliers.error}
+          errorTitle="Error al cargar proveedores"
+          errorMessage={(suppliers.error as Error | undefined)?.message}
+          empty={enriched.length === 0}
+          emptyState={
+            <div className="p-8">
+              <EmptyState
+                title="No suppliers found"
+                description="Ajusta los filtros o crea un proveedor."
+                action={<Button onClick={() => setShowForm(true)}>Add Supplier</Button>}
+              />
+            </div>
+          }
+          skeleton={
+            <div className="p-6">
+              <Spinner />
+            </div>
+          }
+        >
           <div className="overflow-hidden">
             <Table>
               <TableHeader>
@@ -233,7 +242,7 @@ export default function SuppliersPage() {
               </TableBody>
             </Table>
           </div>
-        )}
+        </DataState>
         {suppliers.hasNextPage && (
           <div className="border-t border-border/20 p-4 text-center">
             <Button variant="ghost" onClick={() => suppliers.fetchNextPage()} disabled={suppliers.isFetchingNextPage}>
