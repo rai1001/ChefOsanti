@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { EventService } from '@/modules/events/domain/event'
-import { ProductionPlanView } from './ProductionPlanView'
+import ProductionPlanView from './ProductionPlanView'
 
 interface ProductionSectionProps {
     services: EventService[]

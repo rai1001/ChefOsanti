@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Printer, Mail } from 'lucide-react'
+import { useMemo } from 'react'
+import { Mail, Printer, Download, CheckCircle, Clock3 } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,14 +13,17 @@ import {
   useReceivePurchaseOrder,
   useSupplierItemsList,
   useSuppliersLite,
-  useUpdatePurchaseOrderStatus,
 } from '../data/orders'
 import { ApprovalActions } from './ApprovalActions'
 import type { PurchaseUnit, RoundingRule } from '../domain/types'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
-import { PageHeader } from '@/modules/shared/ui/PageHeader'
 import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
 import { Skeleton } from '@/modules/shared/ui/Skeleton'
+import { Card } from '@/modules/shared/ui/Card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/modules/shared/ui/Table'
+import { Badge } from '@/modules/shared/ui/Badge'
+import { Button } from '@/modules/shared/ui/Button'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
 
 const lineSchema = z
   .object({
@@ -54,9 +57,7 @@ export default function PurchaseOrderDetailPage() {
   const supplierItems = useSupplierItemsList(supplierId)
   const ingredients = useIngredients(purchaseOrder.data?.order.orgId, purchaseOrder.data?.order.hotelId)
   const addLine = useAddPurchaseOrderLine(id)
-  const updateStatus = useUpdatePurchaseOrderStatus(id)
   const receivePo = useReceivePurchaseOrder(id)
-  const [received, setReceived] = useState<Record<string, number>>({})
   const sessionError = useFormattedError(error)
   const addLineError = useFormattedError(addLine.error)
   const poError = useFormattedError(purchaseOrder.error)
@@ -120,7 +121,7 @@ export default function PurchaseOrderDetailPage() {
     const lines = purchaseOrder.data?.lines ?? []
     const payload = lines.map((l) => ({
       lineId: l.id,
-      receivedQty: received[l.id] ?? l.requestedQty,
+      receivedQty: l.requestedQty,
     }))
     await receivePo.mutateAsync(payload)
     await purchaseOrder.refetch()
@@ -135,12 +136,10 @@ export default function PurchaseOrderDetailPage() {
       `Resumen del pedido:\n\n` +
       `Numero: ${order.orderNumber}\n` +
       `Proveedor: ${supplierName}\n` +
-      `Total estimado: €${order.totalEstimated?.toFixed(2)}\n\n` +
+      `Total estimado: $${order.totalEstimated?.toFixed(2)}\n\n` +
       `Lineas:\n` +
       lines
-        .map(
-          (l) => `- ${ingredientMap[l.ingredientId] || l.ingredientId}: ${l.requestedQty} ${l.purchaseUnit}`,
-        )
+        .map((l) => `- ${ingredientMap[l.ingredientId] || l.ingredientId}: ${l.requestedQty} ${l.purchaseUnit}`)
         .join('\n')
 
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
@@ -172,91 +171,133 @@ export default function PurchaseOrderDetailPage() {
 
   const order = purchaseOrder.data?.order
   const lines = purchaseOrder.data?.lines ?? []
+  const totalLines = lines.length
+  const totalCost = order?.totalEstimated ?? 0
+  const statusTone = order?.approvalStatus === 'approved' ? 'success' : order?.approvalStatus === 'pending' ? 'warning' : 'neutral'
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <PageHeader
-        title={`Pedido ${order?.orderNumber ?? ''}`}
-        subtitle={`Proveedor: ${supplierName} - Estado: ${order?.status ?? 'N/D'}`}
-        actions={
-          <div className="flex gap-2 print:hidden">
-            {isDraft && (
-              <button
-                className="ds-btn ds-btn-primary"
-                onClick={async () => {
-                  await updateStatus.mutateAsync('confirmed')
-                }}
-              >
-                Confirmar
-              </button>
-            )}
-            <button onClick={() => window.print()} className="ds-btn ds-btn-ghost">
-              <Printer className="h-4 w-4" />
-              <span className="hidden md:inline">PDF</span>
-            </button>
-            <button onClick={handleEmailExport} className="ds-btn ds-btn-ghost">
-              <Mail className="h-4 w-4" />
-              <span className="hidden md:inline">Enviar</span>
-            </button>
+    <div className="space-y-5 animate-fade-in">
+      <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent">Purchasing / Suppliers</p>
+            <h1 className="text-3xl font-semibold text-foreground">Purchase Order #{order?.orderNumber ?? ''}</h1>
+            <p className="text-sm text-muted-foreground">Supplier: {supplierName}</p>
           </div>
-        }
-      />
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={statusTone as any} className="capitalize">
+              {order?.approvalStatus ?? 'pending'}
+            </Badge>
+            <Button variant="secondary" onClick={() => window.print()}>
+              <Printer size={16} />
+              PDF
+            </Button>
+            <Button variant="secondary" onClick={handleEmailExport}>
+              <Mail size={16} />
+              Email PO
+            </Button>
+            <Button variant="primary">
+              <Download size={16} />
+              Export
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Supplier</p>
+            <p className="text-lg font-semibold text-foreground">{supplierName}</p>
+            <p className="text-sm text-muted-foreground">contact@{supplierName.toLowerCase().replace(/\s+/g, '')}.com</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Delivery Date</p>
+            <p className="text-lg font-semibold text-foreground">Not set</p>
+            <p className="text-sm text-muted-foreground">Expected</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Items</p>
+            <p className="text-lg font-semibold text-foreground">{totalLines}</p>
+            <p className="text-sm text-muted-foreground">Open lines</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Estimated</p>
+            <p className="text-2xl font-bold text-foreground">${totalCost.toFixed(2)}</p>
+            <p className="text-sm text-success">Awaiting Approval</p>
+          </div>
+        </div>
+      </Card>
 
       {order && (
-        <ApprovalActions
-          entityType="purchase_order"
-          entityId={order.id}
-          currentStatus={order.approvalStatus}
-        />
+        <ApprovalActions entityType="purchase_order" entityId={order.id} currentStatus={order.approvalStatus} />
       )}
 
-      <section className="ds-card p-0">
-        <div className="ds-section-header">
-          <h2 className="text-sm font-semibold text-white">Lineas</h2>
-          <span className="text-xs text-slate-400">Total €{order?.totalEstimated?.toFixed(2)}</span>
-        </div>
-        <div className="divide-y divide-white/10">
-          {lines.length ? (
-            lines.map((l) => (
-              <div
-                key={l.id}
-                className="flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-white/5 md:flex-row md:items-center md:justify-between"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-slate-200">
-                    {ingredientMap[l.ingredientId] ?? l.ingredientId}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Articulo prov: {supplierItemMap[l.supplierItemId] ?? l.supplierItemId} • Solic:{' '}
-                    {l.requestedQty} {l.purchaseUnit} • Regla {l.roundingRule}{' '}
-                    {l.packSize ? `(pack ${l.packSize})` : ''} • €{l.unitPrice ?? 0} • Total €
-                    {l.lineTotal?.toFixed(2)}
-                  </p>
-                </div>
-                {isConfirmed && (
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="ds-input w-32"
-                    defaultValue={l.requestedQty}
-                    onChange={(e) => setReceived({ ...received, [l.id]: Number(e.target.value) })}
-                  />
-                )}
-              </div>
-            ))
-          ) : (
-            <p className="px-4 py-6 text-sm italic text-slate-400">Sin lineas todavia.</p>
+      <Card className="rounded-3xl border border-border/25 bg-surface/70 p-0 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
+        <div className="flex items-center justify-between px-5 py-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Line Items</p>
+            <p className="text-xs text-muted-foreground">Supplier Items mapped to Catalog</p>
+          </div>
+          {isDraft && (
+            <Button size="sm" onClick={() => {}} variant="secondary">
+              Add Line
+            </Button>
           )}
         </div>
-      </section>
+        {lines.length === 0 ? (
+          <div className="p-6">
+            <EmptyState title="Sin lineas" description="Agrega articulos para este pedido." />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Item</TableHead>
+                <TableHead>Qty</TableHead>
+                <TableHead>Unit Price</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Delivery Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lines.map((l) => (
+                <TableRow key={l.id} className="hover:bg-white/5">
+                  <TableCell className="space-y-1">
+                    <p className="font-semibold text-foreground">{ingredientMap[l.ingredientId] ?? l.ingredientId}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Supplier: {supplierItemMap[l.supplierItemId] ?? l.supplierItemId}
+                    </p>
+                  </TableCell>
+                  <TableCell className="text-foreground">{l.requestedQty} {l.purchaseUnit}</TableCell>
+                  <TableCell className="text-foreground">${(l.unitPrice ?? 0).toFixed(2)}</TableCell>
+                  <TableCell className="font-semibold text-foreground">${(l.lineTotal ?? 0).toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Badge variant="success" className="gap-1">
+                      <CheckCircle size={14} />
+                      Requested
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-foreground flex items-center gap-1">
+                    <Clock3 size={14} className="text-muted-foreground" />
+                    TBD
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
 
       {isDraft && (
-        <section className="ds-card print:hidden">
-          <h3 className="text-sm font-semibold text-white">Anadir linea</h3>
-          <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmitLine)}>
-            <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Articulo proveedor</span>
-              <select className="ds-input" {...register('supplierItemId')}>
+        <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground">Add Line Item</p>
+            {addLine.isError && <p className="text-xs text-danger">{addLineError}</p>}
+          </div>
+          <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(onSubmitLine)}>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="supplierItemId">Articulo proveedor</label>
+              <select id="supplierItemId" className="ds-input" {...register('supplierItemId')}>
                 <option value="">Selecciona</option>
                 {supplierItems.data?.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -264,14 +305,12 @@ export default function PurchaseOrderDetailPage() {
                   </option>
                 ))}
               </select>
-              {errors.supplierItemId && (
-                <p className="text-xs text-red-500">{errors.supplierItemId.message}</p>
-              )}
-            </label>
+              {errors.supplierItemId && <p className="text-xs text-danger">{errors.supplierItemId.message}</p>}
+            </div>
 
-            <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Ingrediente</span>
-              <select className="ds-input" {...register('ingredientId')}>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="ingredientId">Ingrediente</label>
+              <select id="ingredientId" className="ds-input" {...register('ingredientId')}>
                 <option value="">Selecciona</option>
                 {ingredients.data?.map((i) => (
                   <option key={i.id} value={i.id}>
@@ -279,14 +318,13 @@ export default function PurchaseOrderDetailPage() {
                   </option>
                 ))}
               </select>
-              {errors.ingredientId && (
-                <p className="text-xs text-red-500">{errors.ingredientId.message}</p>
-              )}
-            </label>
+              {errors.ingredientId && <p className="text-xs text-danger">{errors.ingredientId.message}</p>}
+            </div>
 
-            <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Cantidad solicitada</span>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="requestedQty">Cantidad solicitada</label>
               <input
+                id="requestedQty"
                 type="number"
                 step="0.01"
                 className="ds-input"
@@ -294,31 +332,30 @@ export default function PurchaseOrderDetailPage() {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? 0 : Number(v)),
                 })}
               />
-              {errors.requestedQty && (
-                <p className="text-xs text-red-500">{errors.requestedQty.message}</p>
-              )}
-            </label>
+              {errors.requestedQty && <p className="text-xs text-danger">{errors.requestedQty.message}</p>}
+            </div>
 
-            <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Unidad</span>
-              <select className="ds-input" {...register('purchaseUnit')}>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="purchaseUnit">Unidad</label>
+              <select id="purchaseUnit" className="ds-input" {...register('purchaseUnit')}>
                 <option value="ud">Unidades</option>
                 <option value="kg">Kilogramos</option>
               </select>
-            </label>
+            </div>
 
-            <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Regla de redondeo</span>
-              <select className="ds-input" {...register('roundingRule')}>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="roundingRule">Regla de redondeo</label>
+              <select id="roundingRule" className="ds-input" {...register('roundingRule')}>
                 <option value="none">Sin redondeo</option>
                 <option value="ceil_unit">Redondear a unidad</option>
                 <option value="ceil_pack">Redondear por pack</option>
               </select>
-            </label>
+            </div>
 
-            <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Tamano de pack</span>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="packSize">Tamano de pack</label>
               <input
+                id="packSize"
                 type="number"
                 step="0.01"
                 className="ds-input"
@@ -326,15 +363,16 @@ export default function PurchaseOrderDetailPage() {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
                 })}
               />
-              {errors.packSize && <p className="text-xs text-red-500">{errors.packSize.message}</p>}
+              {errors.packSize && <p className="text-xs text-danger">{errors.packSize.message}</p>}
               {roundingRule === 'ceil_pack' && (
-                <p className="text-xs text-slate-400">Obligatorio si redondeas por pack.</p>
+                <p className="text-xs text-muted-foreground">Obligatorio si redondeas por pack.</p>
               )}
-            </label>
+            </div>
 
-            <label className="space-y-1">
-              <span className="text-sm font-medium text-slate-300">Precio unitario</span>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="unitPrice">Precio unitario</label>
               <input
+                id="unitPrice"
                 type="number"
                 step="0.01"
                 className="ds-input"
@@ -342,61 +380,33 @@ export default function PurchaseOrderDetailPage() {
                   setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
                 })}
               />
-              {errors.unitPrice && <p className="text-xs text-red-500">{errors.unitPrice.message}</p>}
-            </label>
+              {errors.unitPrice && <p className="text-xs text-danger">{errors.unitPrice.message}</p>}
+            </div>
 
-            {addLine.isError && (
-              <div className="md:col-span-2">
-                <ErrorBanner title="Error al anadir linea" message={addLineError} />
-              </div>
-            )}
-
-            <div className="md:col-span-2">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="ds-btn ds-btn-primary w-full disabled:opacity-60"
-              >
-                {isSubmitting ? 'Anadiendo...' : 'Anadir linea'}
-              </button>
+            <div className="md:col-span-2 flex justify-end">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Anadiendo...' : 'Guardar linea'}
+              </Button>
             </div>
           </form>
-        </section>
+        </Card>
       )}
 
       {isConfirmed && (
-        <section className="ds-card print:hidden">
+        <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Recepcion</h3>
-            <button
-              className="ds-btn ds-btn-primary"
-              onClick={onReceive}
-              disabled={receivePo.isPending}
-            >
+            <h3 className="text-sm font-semibold text-foreground">Recepcion</h3>
+            <Button variant="primary" onClick={onReceive} disabled={receivePo.isPending}>
               {receivePo.isPending ? 'Recibiendo...' : 'Recibir'}
-            </button>
+            </Button>
           </div>
           {receivePo.isError && (
             <div className="mt-2">
               <ErrorBanner title="Error al recibir" message={receiveError} />
             </div>
           )}
-        </section>
+        </Card>
       )}
-
-      <style>{`
-        @media print {
-          .print\\:hidden { display: none !important; }
-          body { background: white !important; color: black !important; padding: 0 !important; }
-          .animate-fade-in { animation: none !important; }
-          section { border: 1px solid #ddd !important; box-shadow: none !important; background: white !important; }
-          h1, h2, h3, p, span, div { color: black !important; }
-          .divide-white\\/10 > * { border-color: #eee !important; }
-          .border-white\\/10 { border-color: #eee !important; }
-          .bg-nano-navy-800\\/50 { background: white !important; }
-          .bg-nano-navy-900 { background: white !important; }
-        }
-      `}</style>
     </div>
   )
 }

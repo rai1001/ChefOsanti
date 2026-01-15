@@ -1,68 +1,105 @@
-
-import type { WasteEntry } from '../../domain/types'
+import { useMemo } from 'react'
+import type { WasteEntry, WasteReason } from '../../domain/types'
+import type { Product } from '@/modules/recipes/domain/recipes'
 import { Card } from '@/modules/shared/ui/Card'
+import { Badge } from '@/modules/shared/ui/Badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/modules/shared/ui/Table'
 import { formatCurrency } from '@/lib/utils'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
 
 interface WasteTableProps {
-    entries: WasteEntry[]
+  entries: WasteEntry[]
+  products?: Product[]
+  reasons?: WasteReason[]
+  rangeLabel?: string
 }
 
-export function WasteTable({ entries }: WasteTableProps) {
-    if (!entries.length) return null
+export function WasteTable({ entries, products, reasons, rangeLabel }: WasteTableProps) {
+  const productMap = useMemo(
+    () => new Map((products ?? []).map((p) => [p.id, p])),
+    [products],
+  )
+  const reasonMap = useMemo(
+    () => new Map((reasons ?? []).map((r) => [r.id, r.name])),
+    [reasons],
+  )
 
+  if (!entries.length) {
     return (
-        <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-white/5 text-xs uppercase text-slate-400 font-semibold border-b border-white/10">
-                        <tr>
-                            <th className="px-4 py-3">Fecha</th>
-                            <th className="px-4 py-3">Producto</th>
-                            <th className="px-4 py-3">Cant.</th>
-                            <th className="px-4 py-3 text-right">Coste U.</th>
-                            <th className="px-4 py-3 text-right">Total</th>
-                            <th className="px-4 py-3">Motivo</th>
-                            <th className="px-4 py-3">Notas</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {entries.map((entry) => (
-                            <tr key={entry.id} className="hover:bg-white/5 transition-colors text-slate-300">
-                                <td className="px-4 py-3">
-                                    {new Date(entry.occurredAt).toLocaleDateString()}
-                                    <br />
-                                    <span className="text-xs text-slate-500">
-                                        {new Date(entry.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </td>
-                                <td className="px-4 py-3 font-medium text-white max-w-[200px] truncate" title={entry.productId}>
-                                    {/* 
-                  TODO: Fetch Product Name via dataloader or join
-                  For now showing ID short version or "Producto X" if we had a cache 
-                */}
-                                    <span className="font-mono text-xs opacity-50 block">{entry.productId.slice(0, 8)}</span>
-                                </td>
-                                <td className="px-4 py-3">
-                                    {entry.quantity} {entry.unit}
-                                </td>
-                                <td className="px-4 py-3 text-right text-slate-500">
-                                    {formatCurrency ? formatCurrency(entry.unitCost) : `${entry.unitCost}€`}
-                                </td>
-                                <td className="px-4 py-3 text-right font-medium text-white">
-                                    {formatCurrency ? formatCurrency(entry.totalCost) : `${entry.totalCost}€`}
-                                </td>
-                                <td className="px-4 py-3">
-                                    {/* TODO: Resolve reason name */}
-                                    <span className="font-mono text-xs opacity-50">{entry.reasonId.slice(0, 5)}</span>
-                                </td>
-                                <td className="px-4 py-3 text-slate-500 max-w-[200px] truncate" title={entry.notes || ''}>
-                                    {entry.notes || '-'}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </Card>
+      <Card className="rounded-3xl border border-border/25 bg-surface/70 p-6 shadow-[0_20px_60px_rgba(3,7,18,0.45)]">
+        <EmptyState
+          title="Sin mermas en el periodo"
+          description="Registra nuevas mermas para ver el historial y su coste."
+        />
+      </Card>
     )
+  }
+
+  return (
+    <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_20px_60px_rgba(3,7,18,0.45)] space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">Historical Log</p>
+          <p className="text-sm text-muted-foreground">{rangeLabel ?? 'Periodo seleccionado'}</p>
+        </div>
+        <Badge variant="neutral">Registros: {entries.length}</Badge>
+      </div>
+
+      <div className="overflow-hidden">
+        <Table className="min-w-[680px] text-foreground">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Producto</TableHead>
+              <TableHead>Motivo</TableHead>
+              <TableHead className="text-right">Cantidad</TableHead>
+              <TableHead className="text-right">Coste</TableHead>
+              <TableHead>Notas</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {entries.map((entry) => {
+              const date = new Date(entry.occurredAt)
+              const product = productMap.get(entry.productId)
+              const reasonName = reasonMap.get(entry.reasonId) ?? 'Motivo'
+              return (
+                <TableRow key={entry.id} className="hover:bg-white/5">
+                  <TableCell>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-foreground">
+                        {date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-foreground">{product?.name ?? 'Producto'}</p>
+                      <p className="text-xs font-mono text-muted-foreground/80">{entry.productId.slice(0, 8)}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="info" className="capitalize">
+                      {reasonName}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right text-foreground">
+                    {entry.quantity.toFixed(2)} {entry.unit.toUpperCase()}
+                  </TableCell>
+                  <TableCell className="text-right font-semibold text-danger">
+                    {formatCurrency(entry.totalCost)}
+                  </TableCell>
+                  <TableCell className="max-w-[220px] truncate text-muted-foreground" title={entry.notes ?? ''}>
+                    {entry.notes || '—'}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </Card>
+  )
 }

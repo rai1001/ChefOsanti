@@ -1,211 +1,235 @@
-import { useState, useMemo, useRef } from 'react'
-import {
-    useProductionPlan,
-    useProductionTasks,
-    useGenerateProductionPlan,
-    useCreateProductionPlan,
-    useCreateProductionTask,
-    useUpdateProductionTask,
-    useDeleteProductionTask,
-} from '../data/productionRepository'
-import type { ProductionStation } from '../types'
-import { TaskCard } from './TaskCard'
-import { TaskForm } from './TaskForm'
+import { useMemo } from 'react'
+import { CalendarClock, ChevronRight, CircleDot } from 'lucide-react'
+import { Card } from '@/modules/shared/ui/Card'
+import { Badge } from '@/modules/shared/ui/Badge'
 import { Button } from '@/modules/shared/ui/Button'
 import { Spinner } from '@/modules/shared/ui/Spinner'
+import { EmptyState } from '@/modules/shared/ui/EmptyState'
+import {
+  useProductionPlan,
+  useProductionTasks,
+  useUpdateProductionTask,
+} from '../data/productionRepository'
+import type { ProductionStation, ProductionTaskStatus, ProductionTask } from '../types'
 
-interface ProductionPlanViewProps {
-    serviceId: string
-    orgId: string
-    hotelId: string
-    eventId: string
+type PlannerTask = ProductionTask & { event_name?: string; event_date?: string }
+
+interface Props {
+  serviceId: string
+  orgId: string
+  hotelId: string
+  eventId: string
 }
 
-const STATIONS: ProductionStation[] = ['frio', 'caliente', 'pasteleria', 'barra', 'office', 'almacen', 'externo']
 const STATION_LABELS: Record<ProductionStation, string> = {
-    frio: 'Frío',
-    caliente: 'Caliente',
-    pasteleria: 'Pastelería',
-    barra: 'Barra',
-    office: 'Office',
-    almacen: 'Almacén',
-    externo: 'Externo',
+  frio: 'Prep Station 1',
+  caliente: 'Hot Line',
+  pasteleria: 'Bakery Station',
+  barra: 'Cold/Bar',
+  office: 'Office',
+  almacen: 'Storage',
+  externo: 'External',
 }
 
-export function ProductionPlanView({ serviceId, orgId, hotelId, eventId }: ProductionPlanViewProps) {
-    const { data: plan, isLoading: loadingPlan } = useProductionPlan(serviceId)
-    const { data: tasks, isLoading: loadingTasks } = useProductionTasks(plan?.id)
+const STATION_GROUPS: ProductionStation[][] = [
+  ['frio', 'caliente', 'pasteleria'],
+  ['barra', 'office', 'almacen', 'externo'],
+]
 
-    const createPlan = useCreateProductionPlan()
-    const generatePlan = useGenerateProductionPlan()
-    const createTask = useCreateProductionTask()
-    const updateTask = useUpdateProductionTask()
-    const deleteTask = useDeleteProductionTask()
+function ProgressBar({ value }: { value: number }) {
+  const val = Math.min(100, Math.max(0, value))
+  return (
+    <div className="h-2 rounded-full bg-white/10">
+      <div className="h-full rounded-full bg-accent" style={{ width: `${val}%` }} />
+    </div>
+  )
+}
 
-    const [isAddingTask, setIsAddingTask] = useState<ProductionStation | null>(null)
-    const generationKeyRef = useRef<string | null>(null)
+function TaskRow({
+  task,
+  onUpdate,
+}: {
+  task: PlannerTask
+  onUpdate: (status: ProductionTaskStatus) => void
+}) {
+  const isDone = task.status === 'done'
+  const isInProgress = task.status === 'doing'
+  const progress = isDone ? 100 : isInProgress ? 80 : 20
 
-    const tasksByStation = useMemo(() => {
-        const grouped: Partial<Record<ProductionStation, typeof tasks>> = {}
-        STATIONS.forEach(s => grouped[s] = [])
-        tasks?.forEach(t => {
-            if (grouped[t.station]) {
-                grouped[t.station]?.push(t)
-            }
-        })
-        return grouped
-    }, [tasks])
-
-    const handleGenerate = async () => {
-        if (!confirm('Esto generara tareas basadas en el menu del evento. Continuar?')) return
-
-        if (!generationKeyRef.current) {
-            generationKeyRef.current = crypto.randomUUID()
-        }
-
-        try {
-            const result = await generatePlan.mutateAsync({
-                serviceId,
-                idempotencyKey: generationKeyRef.current,
-                strict: true,
-            })
-            if (result.status === 'blocked') {
-                const missing = result.missing_items ?? []
-                alert(
-                    `No se puede generar. Faltan recetas en ${missing.length} items:\n` +
-                    missing.map((m) => `- ${m}`).join('\n'),
-                )
-                return
-            }
-
-            generationKeyRef.current = null
-            let msg = `Generacion completada:\n- Tareas creadas: ${result.created}`
-
-            const missing = result.missing_items || []
-            if (missing.length > 0) {
-                msg += `\n\nAviso: ${missing.length} items sin receta asignada:\n` + missing.map(m => `- ${m}`).join('\n')
-            } else {
-                msg += `\n- Todos los items fueron procesados.`
-            }
-            alert(msg)
-        } catch (e) {
-            alert('Error al generar: ' + (e as Error).message)
-        }
-    }
-
-    if (loadingPlan) return <div className="p-4"><Spinner /></div>
-
-    if (!plan) {
-        return (
-            <div className="flex flex-col items-center justify-center py-8 text-center bg-white/5 rounded-lg border border-slate-200 border-dashed">
-                <p className="text-slate-500 mb-4">No hay plan de producción para este servicio.</p>
-                <div className="flex gap-2">
-                    <Button
-                        onClick={() => createPlan.mutate({ orgId, hotelId, eventId, eventServiceId: serviceId })}
-                        disabled={createPlan.isPending}
-                    >
-                        Crear Plan Manual
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        onClick={handleGenerate}
-                        disabled={generatePlan.isPending}
-                    >
-                        {generatePlan.isPending ? 'Generando...' : 'Generar desde Menú'}
-                    </Button>
-                </div>
-            </div>
-        )
-    }
-
-    return (
-        <div className="space-y-6">
-            <header className="flex items-center justify-between">
-                <div>
-                    <h3 className="text-lg font-medium text-slate-800">Mise en place</h3>
-                    <p className="text-sm text-slate-500">
-                        {plan.generated_from === 'menu' ? 'Generado autom.' : 'Plan manual'}
-                    </p>
-                </div>
-                <div className="flex gap-2">
-                    {/* Allow re-generation even if exists, but maybe warn? RPC handles re-run safe-ish (inserts only). */}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleGenerate}
-                        disabled={generatePlan.isPending}
-                    >
-                        {generatePlan.isPending ? '...' : 'Re-generar desde Menú'}
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setIsAddingTask('frio')}>
-                        + Añadir Tarea
-                    </Button>
-                </div>
-            </header>
-
-            {/* Manual Task Modal/Form Area */}
-            {isAddingTask && (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 mb-4">
-                    <h4 className="font-semibold text-slate-700 mb-2">Nueva Tarea</h4>
-                    <TaskForm
-                        planId={plan.id}
-                        orgId={orgId}
-                        defaultStation={isAddingTask}
-                        onSubmit={async (input) => {
-                            await createTask.mutateAsync(input)
-                            setIsAddingTask(null)
-                        }}
-                        onCancel={() => setIsAddingTask(null)}
-                    />
-                </div>
-            )}
-
-            {loadingTasks ? (
-                <Spinner />
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {STATIONS.map((station) => {
-                        const stationTasks = tasksByStation[station] || []
-
-                        return (
-                            <div key={station} className="rounded-lg border border-slate-200 bg-slate-50/50 flex flex-col">
-                                <div className="border-b border-slate-200 px-3 py-2 flex justify-between items-center bg-white rounded-t-lg">
-                                    <h4 className="font-semibold text-slate-700">{STATION_LABELS[station]}</h4>
-                                    <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
-                                        {stationTasks.length}
-                                    </span>
-                                </div>
-                                <div className="p-2 space-y-2 flex-1 min-h-[50px]">
-                                    {stationTasks.length === 0 && (
-                                        <button
-                                            onClick={() => setIsAddingTask(station)}
-                                            className="w-full h-full min-h-[40px] border-2 border-dashed border-slate-200 rounded flex items-center justify-center text-xs text-slate-400 hover:border-slate-300 hover:text-slate-500 transition-colors"
-                                        >
-                                            + Añadir a {STATION_LABELS[station]}
-                                        </button>
-                                    )}
-                                    {stationTasks.map((task) => (
-                                        <TaskCard
-                                            key={task.id}
-                                            task={task}
-                                            onStatusChange={(status) => updateTask.mutate({ id: task.id, status })}
-                                            onDelete={() => deleteTask.mutate(task.id)}
-                                        />
-                                    ))}
-                                    {stationTasks.length > 0 && (
-                                        <button
-                                            onClick={() => setIsAddingTask(station)}
-                                            className="w-full text-center text-xs text-slate-400 hover:text-slate-600 py-1"
-                                        >
-                                            + Añadir otra
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-            )}
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-3 shadow-[0_18px_48px_rgba(3,7,18,0.45)]">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="space-y-0.5">
+          <p className="text-sm font-semibold text-foreground">{task.title}</p>
+          <p className="text-xs text-muted-foreground">
+            {task.planned_qty ? `${task.planned_qty} ${task.unit || ''}` : 'No qty'} • {task.event_name || 'Event'}
+          </p>
         </div>
+        <Button
+          size="sm"
+          variant={isDone ? 'secondary' : 'primary'}
+          onClick={() => onUpdate(isDone ? 'doing' : 'done')}
+          className="min-w-[120px]"
+        >
+          {isDone ? 'Reopen' : 'Mark as Done'}
+        </Button>
+      </div>
+      <ProgressBar value={progress} />
+      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-1">
+          <span className={`h-2 w-2 rounded-full ${isDone ? 'bg-success' : isInProgress ? 'bg-warning' : 'bg-accent'}`} />
+          {isDone ? 'Completed' : isInProgress ? 'In Progress' : 'Pending'}
+        </span>
+        {task.event_date && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-1">
+            <CalendarClock size={12} />
+            {new Date(task.event_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function StationBlock({
+  station,
+  tasks,
+  onUpdate,
+}: {
+  station: ProductionStation
+  tasks: PlannerTask[]
+  onUpdate: (taskId: string, status: ProductionTaskStatus) => void
+}) {
+  return (
+    <Card className="rounded-3xl border border-border/25 bg-surface/70 p-4 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="space-y-0.5">
+          <p className="text-sm font-semibold text-foreground">{STATION_LABELS[station]}</p>
+          <p className="text-xs text-muted-foreground">Prep Lists</p>
+        </div>
+        <Badge variant="neutral">{tasks.length}</Badge>
+      </div>
+      <div className="space-y-3">
+        {tasks.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-muted-foreground">
+            No tasks for this station
+          </div>
+        ) : (
+          tasks.map((task) => <TaskRow key={task.id} task={task} onUpdate={(status) => onUpdate(task.id, status)} />)
+        )}
+      </div>
+    </Card>
+  )
+}
+
+function SummaryStrip({ total, done, inProgress, pending, pct }: { total: number; done: number; inProgress: number; pending: number; pct: number }) {
+  return (
+    <Card className="rounded-3xl border border-border/25 bg-surface/70 p-4 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-2xl font-semibold text-foreground">Kitchen Production Planner</p>
+          <p className="text-sm text-muted-foreground">Prep Lists and Production Tasks by shift.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-foreground">
+          <span>Total Tasks: {total}</span>
+          <span className="text-success">Completed: {done} ({pct}%)</span>
+          <span className="text-warning">In Progress: {inProgress}</span>
+          <span className="text-muted-foreground">Pending: {pending}</span>
+        </div>
+      </div>
+      <div className="mt-3 h-2 rounded-full bg-white/10">
+        <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} />
+      </div>
+    </Card>
+  )
+}
+
+export default function ProductionPlanView({ serviceId }: Props) {
+  const plan = useProductionPlan(serviceId)
+  const tasks = useProductionTasks(plan.data?.id)
+  const updateTask = useUpdateProductionTask()
+
+  const grouped = useMemo(() => {
+    const result: Record<ProductionStation, PlannerTask[]> = {
+      frio: [],
+      caliente: [],
+      pasteleria: [],
+      barra: [],
+      office: [],
+      almacen: [],
+      externo: [],
+    }
+    ;(tasks.data ?? []).forEach((t) => {
+      result[t.station]?.push(t as PlannerTask)
+    })
+    return result
+  }, [tasks.data])
+
+  const totals = useMemo(() => {
+    const all = tasks.data ?? []
+    const total = all.length
+    const done = all.filter((t) => t.status === 'done').length
+    const inProgress = all.filter((t) => t.status === 'doing').length
+    const pending = total - done - inProgress
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0
+    return { total, done, inProgress, pending, pct }
+  }, [tasks.data])
+
+  const handleUpdate = async (taskId: string, status: ProductionTaskStatus) => {
+    await updateTask.mutateAsync({ id: taskId, status })
+    tasks.refetch()
+  }
+
+  if (plan.isLoading || tasks.isLoading) {
+    return (
+      <div className="py-12 flex justify-center">
+        <Spinner />
+      </div>
     )
+  }
+
+  if (!plan.data) {
+    return (
+      <EmptyState
+        title="No plan yet"
+        description="Genera o crea un plan para ver las tareas de cocina."
+        action={
+          <div className="flex gap-3 justify-center">
+            <Button onClick={() => {}}>Create Plan</Button>
+            <Button variant="secondary" onClick={() => {}}>
+              Generate from Menu
+            </Button>
+          </div>
+        }
+      />
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <SummaryStrip {...totals} />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {STATION_GROUPS.map((group, idx) => (
+          <div key={idx} className="space-y-4">
+            {group.map((station) => (
+              <StationBlock key={station} station={station} tasks={grouped[station]} onUpdate={handleUpdate} />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <Card className="rounded-3xl border border-border/25 bg-surface/70 p-4 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <CircleDot size={14} className="text-accent" />
+          <span>Production Tasks (By Time)</span>
+          <ChevronRight size={14} />
+          <span className="text-foreground">Morning Shift / Lunch Service</span>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Segmenta tareas por turno y marca completados para alinear prep y servicio.
+        </p>
+      </Card>
+    </div>
+  )
 }
