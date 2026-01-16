@@ -15,6 +15,7 @@ import {
   useCreateExpiryRule,
   useToggleExpiryRule,
   type ExpiryAlert,
+  type ExpiryRule,
 } from '@/modules/inventory/data/expiryAlerts'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/modules/shared/ui/Table'
@@ -63,7 +64,7 @@ export default function ExpiryAlertsPage() {
     { key: 'frozen', label: 'Frozen', days: 7 },
   ] as const
   const rulesByType = useMemo(() => {
-    const map = new Map<string, (typeof rules.data)[number]>()
+    const map = new Map<string, ExpiryRule>()
     ;(rules.data ?? []).forEach((rule) => {
       if (rule.productType) map.set(rule.productType, rule)
     })

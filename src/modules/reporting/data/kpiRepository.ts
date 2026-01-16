@@ -35,7 +35,8 @@ export async function getPurchasingMetrics(orgId: string, range: DateRange) {
     type PurchaseOrderRow = {
         id: string;
         total_estimated: number | null;
-        suppliers?: { name: string | null } | null;
+        supplier_id?: string | null;
+        suppliers?: { name: string | null }[] | null;
     };
 
     // Expenses from Purchase Orders
@@ -55,7 +56,7 @@ export async function getPurchasingMetrics(orgId: string, range: DateRange) {
     // Top Suppliers
     const supplierSpend: Record<string, number> = {};
     orders.forEach(order => {
-        const name = order.suppliers?.name || 'Unknown';
+        const name = order.suppliers?.[0]?.name || 'Unknown';
         supplierSpend[name] = (supplierSpend[name] || 0) + (Number(order.total_estimated) || 0);
     });
 
