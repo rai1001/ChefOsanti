@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { LayoutGrid, List } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { List } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useHotels } from '@/modules/events/data/events'
@@ -35,19 +35,15 @@ export default function EventsBoardPage() {
   const { session, loading, error } = useSupabaseSession()
   const hotels = useHotels()
   const [hotelId, setHotelId] = useState<string>('')
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar')
   const [calendarDate, setCalendarDate] = useState(() => new Date())
   const navigate = useNavigate()
+  const resolvedHotelId = hotelId || hotels.data?.[0]?.id || ''
 
   const bookings = useBookingsByHotel({
-    hotelId: hotelId || (hotels.data?.[0]?.id ?? ''),
+    hotelId: resolvedHotelId,
     startsAt: undefined,
     endsAt: undefined,
   })
-
-  useEffect(() => {
-    if (!hotelId && hotels.data?.length) setHotelId(hotels.data[0].id)
-  }, [hotels.data, hotelId])
 
   const events: EventRow[] = useMemo(() => {
     if (!bookings.data) return []
@@ -96,36 +92,15 @@ export default function EventsBoardPage() {
           <h1 className="text-4xl font-semibold text-foreground">Events Management Overview</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-lg border border-border/30 bg-surface/60 p-1">
-            <button
-              type="button"
-              onClick={() => setViewMode('calendar')}
-              className={`rounded-md px-3 py-2 text-sm transition ${
-                viewMode === 'calendar'
-                  ? 'bg-brand-500 text-bg shadow-[0_8px_20px_rgb(var(--accent)/0.25)]'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <LayoutGrid size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`rounded-md px-3 py-2 text-sm transition ${
-                viewMode === 'list'
-                  ? 'bg-brand-500 text-bg shadow-[0_8px_20px_rgb(var(--accent)/0.25)]'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <List size={16} />
-            </button>
+          <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-surface/60 px-3 py-2 text-sm text-muted-foreground">
+            <List size={16} />
+            Vista combinada
           </div>
-
           <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-surface/70 px-3 py-1">
             <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Hotel</span>
             <select
               className="bg-transparent text-sm text-foreground outline-none"
-              value={hotelId}
+              value={resolvedHotelId}
               onChange={(e) => setHotelId(e.target.value)}
             >
               {hotels.data?.map((h) => (
@@ -152,16 +127,14 @@ export default function EventsBoardPage() {
         </div>
       </header>
 
-      {hotelId && <RoomOccupancyPanel hotelId={hotelId} date={calendarDate} />}
+      {resolvedHotelId && <RoomOccupancyPanel hotelId={resolvedHotelId} date={calendarDate} />}
 
-      {viewMode === 'calendar' && (
-        <MonthCalendar
-          currentDate={calendarDate}
-          events={calendarEvents}
-          onNavigate={(date) => setCalendarDate(date)}
-          onSelectEvent={(eventId) => navigate(`/events/${eventId}`)}
-        />
-      )}
+      <MonthCalendar
+        currentDate={calendarDate}
+        events={calendarEvents}
+        onNavigate={(date) => setCalendarDate(date)}
+        onSelectEvent={(eventId) => navigate(`/events/${eventId}#menu-ocr`)}
+      />
 
       <section className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_24px_60px_rgba(3,7,18,0.45)]">
         <div className="flex flex-wrap items-center gap-3">
@@ -233,7 +206,7 @@ export default function EventsBoardPage() {
                   <TableHead>Guest Count</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Assigned Staff</TableHead>
-                  <TableHead className="w-12 text-center"></TableHead>
+                  <TableHead className="w-40 text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -253,12 +226,26 @@ export default function EventsBoardPage() {
                     </TableCell>
                     <TableCell className="text-foreground">{ev.staff}</TableCell>
                     <TableCell className="text-center text-muted-foreground">
-                      <Link
-                        to={`/events/${ev.eventId}`}
-                        className="rounded-md border border-border/20 bg-surface/50 px-2 py-1 text-xs text-muted-foreground hover:border-accent/50 hover:text-foreground"
-                      >
-                        Abrir
-                      </Link>
+                      <div className="flex flex-wrap items-center justify-center gap-1">
+                        <Link
+                          to={`/events/${ev.eventId}`}
+                          className="rounded-md border border-border/20 bg-surface/50 px-2 py-1 text-xs text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                        >
+                          Abrir
+                        </Link>
+                        <Link
+                          to={`/events/${ev.eventId}#menu-ocr`}
+                          className="rounded-md border border-border/20 bg-surface/50 px-2 py-1 text-xs text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                        >
+                          Menu OCR
+                        </Link>
+                        <Link
+                          to={`/events/${ev.eventId}#menu-services`}
+                          className="rounded-md border border-border/20 bg-surface/50 px-2 py-1 text-xs text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                        >
+                          Producción
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

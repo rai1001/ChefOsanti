@@ -44,7 +44,52 @@ export type EventPurchaseOrderLine = {
   unitMismatch: boolean
 }
 
-function mapOrder(row: any): EventPurchaseOrder {
+type EventPurchaseOrderRow = {
+  id: string
+  org_id: string
+  hotel_id: string
+  event_id: string
+  supplier_id: string
+  status: EventPurchaseOrder['status']
+  approval_status?: EventPurchaseOrder['approvalStatus'] | null
+  order_number: string
+  total_estimated?: number | null
+  created_at: string
+}
+
+type EventPurchaseOrderLineRow = {
+  id: string
+  event_purchase_order_id: string
+  supplier_item_id: string
+  item_label: string
+  qty: number
+  purchase_unit: EventPurchaseOrderLine['purchaseUnit']
+  unit_price?: number | null
+  line_total?: number | null
+  freeze?: boolean | null
+  buffer_percent?: number | null
+  buffer_qty?: number | null
+  gross_qty?: number | null
+  on_hand_qty?: number | null
+  on_order_qty?: number | null
+  net_qty?: number | null
+  rounded_qty?: number | null
+  unit_mismatch?: boolean | null
+}
+
+type MenuTemplateItemRow = {
+  id: string
+  template_id: string
+  name: string
+  unit: string
+  qty_per_pax_seated?: number | null
+  qty_per_pax_standing?: number | null
+  rounding_rule?: string | null
+  pack_size?: number | null
+  section?: string | null
+}
+
+function mapOrder(row: EventPurchaseOrderRow): EventPurchaseOrder {
   return {
     id: row.id,
     orgId: row.org_id,
@@ -59,7 +104,7 @@ function mapOrder(row: any): EventPurchaseOrder {
   }
 }
 
-function mapLine(row: any): EventPurchaseOrderLine {
+function mapLine(row: EventPurchaseOrderLineRow): EventPurchaseOrderLine {
   return {
     id: row.id,
     eventPurchaseOrderId: row.event_purchase_order_id,
@@ -68,7 +113,7 @@ function mapLine(row: any): EventPurchaseOrderLine {
     qty: row.qty,
     purchaseUnit: row.purchase_unit,
     unitPrice: row.unit_price,
-    lineTotal: row.line_total,
+    lineTotal: Number(row.line_total ?? 0),
     freeze: Boolean(row.freeze),
     bufferPercent: Number(row.buffer_percent ?? 0),
     bufferQty: Number(row.buffer_qty ?? 0),
@@ -179,15 +224,20 @@ export async function fetchEventNeeds(
         eventId,
       })
     }
-    items?.forEach((row: any) => {
+    items?.forEach((row: MenuTemplateItemRow) => {
+      const unit = row.unit === 'kg' ? 'kg' : 'ud'
+      const roundingRule =
+        row.rounding_rule === 'ceil_pack' || row.rounding_rule === 'ceil_unit' || row.rounding_rule === 'none'
+          ? row.rounding_rule
+          : 'none'
       const mapped: MenuTemplateItem = {
         id: row.id,
         name: row.name,
-        unit: row.unit,
-        qtyPerPaxSeated: row.qty_per_pax_seated,
-        qtyPerPaxStanding: row.qty_per_pax_standing,
-        roundingRule: row.rounding_rule,
-        packSize: row.pack_size,
+        unit,
+        qtyPerPaxSeated: Number(row.qty_per_pax_seated ?? 0),
+        qtyPerPaxStanding: Number(row.qty_per_pax_standing ?? 0),
+        roundingRule,
+        packSize: row.pack_size ?? null,
         section: row.section,
       }
       const list = itemsByTemplate.get(row.template_id) ?? []
@@ -499,7 +549,7 @@ export async function createDraftOrders(params: {
     }
     orderId = orderRow.id as string
     createdOrderIds.push(orderId)
-    const { data: existingLines, error: fetchLinesErr } = await supabase
+    const { data: existingLinesRaw, error: fetchLinesErr } = await supabase
       .from('event_purchase_order_lines')
       .select('*')
       .eq('event_purchase_order_id', orderId)
@@ -511,10 +561,11 @@ export async function createDraftOrders(params: {
         eventId: params.eventId,
       })
     }
-    const frozenLines = (existingLines ?? []).filter((l: any) => l.freeze)
-    const frozenIds = frozenLines.map((l: any) => l.id)
-    const frozenItemIds = new Set(frozenLines.map((l: any) => l.supplier_item_id as string))
-    if (frozenIds.length !== (existingLines ?? []).length) {
+    const existingLines = (existingLinesRaw ?? []) as EventPurchaseOrderLineRow[]
+    const frozenLines = existingLines.filter((line) => Boolean(line.freeze))
+    const frozenIds = frozenLines.map((line) => line.id)
+    const frozenItemIds = new Set(frozenLines.map((line) => line.supplier_item_id))
+    if (frozenIds.length !== existingLines.length) {
       await supabase
         .from('event_purchase_order_lines')
         .delete()
@@ -560,8 +611,8 @@ export async function createDraftOrders(params: {
     }
 
     // Reinsert frozen lines untouched (if deletion happened)
-    if ((existingLines ?? []).some((l: any) => l.freeze)) {
-      for (const frozen of existingLines ?? []) {
+    if (existingLines.some((line) => Boolean(line.freeze))) {
+      for (const frozen of existingLines) {
         if (!frozen.freeze) continue
         const { error: reErr } = await supabase.from('event_purchase_order_lines').upsert(frozen, { onConflict: 'id' })
         if (reErr) {

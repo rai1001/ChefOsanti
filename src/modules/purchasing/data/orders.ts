@@ -44,11 +44,46 @@ export type PurchaseOrderLine = {
   lineTotal: number
 }
 
-function mapHotel(row: any): Hotel {
+type HotelRow = { id: string; name: string; org_id: string }
+type IngredientRow = {
+  id: string
+  name: string
+  hotel_id: string
+  org_id: string
+  base_unit: PurchaseUnit
+  stock?: number | null
+}
+type PurchaseOrderRow = {
+  id: string
+  org_id: string
+  hotel_id: string
+  supplier_id: string
+  status: PurchaseOrderStatus
+  order_number: string
+  notes?: string | null
+  total_estimated?: number | null
+  approval_status?: ApprovalStatus | null
+  created_at: string
+}
+type PurchaseOrderLineRow = {
+  id: string
+  purchase_order_id: string
+  supplier_item_id: string
+  ingredient_id: string
+  requested_qty: number
+  received_qty: number
+  purchase_unit: PurchaseUnit
+  rounding_rule: RoundingRule
+  pack_size?: number | null
+  unit_price?: number | null
+  line_total?: number | null
+}
+
+function mapHotel(row: HotelRow): Hotel {
   return { id: row.id, name: row.name, orgId: row.org_id }
 }
 
-function mapIngredient(row: any): Ingredient {
+function mapIngredient(row: IngredientRow): Ingredient {
   return {
     id: row.id,
     name: row.name,
@@ -59,7 +94,7 @@ function mapIngredient(row: any): Ingredient {
   }
 }
 
-function mapPurchaseOrder(row: any): PurchaseOrder {
+function mapPurchaseOrder(row: PurchaseOrderRow): PurchaseOrder {
   return {
     id: row.id,
     orgId: row.org_id,
@@ -74,7 +109,7 @@ function mapPurchaseOrder(row: any): PurchaseOrder {
   }
 }
 
-function mapPurchaseOrderLine(row: any): PurchaseOrderLine {
+function mapPurchaseOrderLine(row: PurchaseOrderLineRow): PurchaseOrderLine {
   return {
     id: row.id,
     purchaseOrderId: row.purchase_order_id,

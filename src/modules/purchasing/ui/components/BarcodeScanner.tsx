@@ -1,5 +1,10 @@
 import { useEffect, useRef } from 'react'
 
+type BarcodeDetectorResult = { rawValue?: string }
+type BarcodeDetectorLike = { detect: (source: ImageBitmapSource) => Promise<BarcodeDetectorResult[]> }
+type BarcodeDetectorCtor = new (options?: { formats?: string[] }) => BarcodeDetectorLike
+type BarcodeDetectorWindow = Window & { BarcodeDetector?: BarcodeDetectorCtor }
+
 type BarcodeScannerProps = {
   onDetected: (code: string) => void
 }
@@ -11,8 +16,9 @@ export function BarcodeScanner({ onDetected }: BarcodeScannerProps) {
   useEffect(() => {
     let stream: MediaStream | null = null
     let cancelled = false
-    let detector: any = null
-    const hasDetector = typeof (window as any).BarcodeDetector !== 'undefined'
+    let detector: BarcodeDetectorLike | null = null
+    const detectorWindow = window as BarcodeDetectorWindow
+    const hasDetector = typeof detectorWindow.BarcodeDetector !== 'undefined'
 
     const stopStream = () => {
       stream?.getTracks().forEach((t) => t.stop())
@@ -23,14 +29,14 @@ export function BarcodeScanner({ onDetected }: BarcodeScannerProps) {
       try {
         const codes = await detector.detect(videoRef.current)
         if (codes?.length) {
-          const code = codes[0].rawValue || codes[0].rawValue
+          const code = codes[0]?.rawValue ?? ''
           if (code && code !== lastCodeRef.current) {
             lastCodeRef.current = code
             navigator.vibrate?.(100)
             onDetected(code)
           }
         }
-      } catch (_err) {
+      } catch {
         // ignore detection errors
       }
       if (!cancelled) {
@@ -47,11 +53,11 @@ export function BarcodeScanner({ onDetected }: BarcodeScannerProps) {
           videoRef.current.srcObject = stream
           await videoRef.current.play()
         }
-        if (hasDetector) {
-          detector = new (window as any).BarcodeDetector({ formats: ['ean_13', 'code_128', 'qr_code'] })
+        if (hasDetector && detectorWindow.BarcodeDetector) {
+          detector = new detectorWindow.BarcodeDetector({ formats: ['ean_13', 'code_128', 'qr_code'] })
           requestAnimationFrame(readFrame)
         }
-      } catch (_err) {
+      } catch {
         // camera unavailable
       }
     }
@@ -84,7 +90,7 @@ export function BarcodeScanner({ onDetected }: BarcodeScannerProps) {
           type="button"
           className="ds-btn ds-btn-ghost text-xs px-3 py-1"
           onClick={() => {
-            const input = document.querySelector<HTMLInputElement>('[data-testid=\"mock-barcode-input\"]')
+            const input = document.querySelector<HTMLInputElement>('[data-testid="mock-barcode-input"]')
             const code = input?.value ?? ''
             if (code && code !== lastCodeRef.current) {
               lastCodeRef.current = code

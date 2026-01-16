@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import {
   useCreateSupplierItem,
@@ -52,7 +52,7 @@ export default function SupplierDetailPage() {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ItemForm>({
     resolver: zodResolver(itemSchema),
@@ -66,7 +66,7 @@ export default function SupplierDetailPage() {
     },
   })
 
-  const roundingRule = watch('roundingRule')
+  const roundingRule = useWatch({ control, name: 'roundingRule' })
   const supplierName = supplier.data?.name ?? 'Proveedor'
 
   const isPackRule = useMemo(() => roundingRule === 'ceil_pack', [roundingRule])

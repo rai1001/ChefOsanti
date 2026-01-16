@@ -8,6 +8,11 @@ import { listHotelsByOrg } from '@/modules/orgs/data/hotels'
 import { useQuery } from '@tanstack/react-query'
 import type { ImportEntity } from '../domain/types'
 
+type SheetRow = Record<string, unknown> & { __rowNum__?: number }
+type SheetData = SheetRow[]
+type MatrixEventRow = { name: string; date: string; location: string }
+type ImportNotification = { type: 'success' | 'error'; message: string }
+
 export default function ImporterPage() {
     // State
     const { activeOrgId } = useActiveOrgId()
@@ -28,16 +33,16 @@ export default function ImporterPage() {
     const [file, setFile] = useState<File | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [activeJobId, setActiveJobId] = useState<string | null>(null)
-    const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+    const [notification, setNotification] = useState<ImportNotification | null>(null)
 
     // Events Specific State
-    const [rawSheet, setRawSheet] = useState<any[] | null>(null)
-    const [sheets, setSheets] = useState<Record<string, any[]>>({})
+    const [rawSheet, setRawSheet] = useState<SheetData | null>(null)
+    const [sheets, setSheets] = useState<Record<string, SheetData>>({})
     const [sheetNames, setSheetNames] = useState<string[]>([])
     const [selectedSheetName, setSelectedSheetName] = useState<string>('')
     const [dateColumn, setDateColumn] = useState<string>('')
     const [selectedHotelId, setSelectedHotelId] = useState<string>('')
-    const [activeParsedData, setActiveParsedData] = useState<any[] | null>(null) // For non-event standard CSV/Excel
+    const [activeParsedData, setActiveParsedData] = useState<SheetData | null>(null) // For non-event standard CSV/Excel
 
     const { data: hotels } = useQuery({
         queryKey: ['hotels', activeOrgId],
@@ -56,9 +61,9 @@ export default function ImporterPage() {
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Handlers
-    const processMatrixData = (raw: any[], headerIndex: number, dateColKey: string, selectedSheetName: string): any[] => {
+    const processMatrixData = (raw: SheetData, headerIndex: number, dateColKey: string, selectedSheetName: string): MatrixEventRow[] => {
         if (!raw || raw.length <= headerIndex) return []
-        const unpivoted: any[] = []
+        const unpivoted: MatrixEventRow[] = []
 
         // Initialize Quarter/Month Context
         const monthsFull = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
@@ -173,7 +178,7 @@ export default function ImporterPage() {
                     // Strict filter: omit null/undefined and empty/whitespace strings
                     if (cellValue && /\S/.test(String(cellValue))) {
                         unpivoted.push({
-                            name: cellValue,
+                            name: String(cellValue),
                             date: finalDate,
                             location: key, // Using Column Header as Location Name
                         })
@@ -186,15 +191,15 @@ export default function ImporterPage() {
 
     // Helper to normalize dates (Excel can return strings like "10/05/2025" or Date objects)
     // Helper to normalize dates (Excel can return strings like "10/05/2025" or Date objects)
-    const normalizeDate = (input: any, defaultYear?: number): string | null => {
+    const normalizeDate = (input: unknown, defaultYear?: number): string | null => {
         if (!input) return null
         if (input instanceof Date) return input.toISOString()
 
         // Logic for handling Strings
         if (typeof input === 'string') {
             // Case 1: DD/MM/YYYY (Explicit Year)
-            if (input.match(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/)) {
-                const parts = input.split(/[\/\-]/)
+            if (input.match(/^\d{1,2}[/-]\d{1,2}[/-]\d{4}/)) {
+                const parts = input.split(/[/-]/)
                 // Assuming DD/MM/YYYY
                 const day = Number(parts[0])
                 const month = Number(parts[1])
@@ -208,7 +213,7 @@ export default function ImporterPage() {
             // We retry parsing with the year appended if possible, or construct manually.
 
             // DD/MM Regex
-            const shortDateMatch = input.match(/^(\d{1,2})[\/\-](\d{1,2})$/)
+            const shortDateMatch = input.match(/^(\d{1,2})[/-](\d{1,2})$/)
             if (shortDateMatch && defaultYear) {
                 const day = Number(shortDateMatch[1])
                 const month = Number(shortDateMatch[2])
@@ -217,7 +222,7 @@ export default function ImporterPage() {
         }
 
         // Fallback: Standard parsing
-        const d = new Date(input)
+        const d = new Date(typeof input === 'string' || typeof input === 'number' ? input : String(input))
         if (!isNaN(d.getTime())) {
             // Fix: If standard parsing results in "Current Year" (or 2001) but we have a `defaultYear` different from it,
             // AND the input string didn't look like it had a year... we might want to override.
@@ -309,7 +314,7 @@ export default function ImporterPage() {
         if (!activeOrgId || !file) return
         setIsLoading(true)
         try {
-            let rows: any[] = []
+            let rows: Record<string, unknown>[] = []
 
             if (isCsvFile(file.name)) {
                 rows = await parseCSV(file)
@@ -319,7 +324,7 @@ export default function ImporterPage() {
                     if (sheetNames.length === 0) throw new Error('No se encontraron hojas en el Excel')
 
                     // Iterate ALL sheets
-                    const allUnpivoted: any[] = []
+                    const allUnpivoted: MatrixEventRow[] = []
                     const skippedSheets: string[] = []
 
                     for (const sName of sheetNames) {
@@ -386,7 +391,7 @@ export default function ImporterPage() {
 
                     if (allUnpivoted.length === 0) throw new Error('No se pudieron extraer eventos. Hojas omitidas: ' + skippedSheets.join(', '))
 
-                    rows = allUnpivoted.map(u => ({
+                    rows = allUnpivoted.map((u) => ({
                         title: u.name,
                         name: u.name,
                         // Ensure starts_at is ISO8601 to prevent SQL Cast Errors (400 Bad Request)
@@ -443,7 +448,7 @@ export default function ImporterPage() {
         try {
             await validateMutation.mutateAsync(activeJobId)
             setNotification({ type: 'success', message: 'Validación completada' })
-        } catch (err) {
+        } catch {
             setNotification({ type: 'error', message: 'Error durante la validación' })
         } finally {
             setIsLoading(false)
@@ -458,7 +463,7 @@ export default function ImporterPage() {
             setNotification({ type: 'success', message: 'Importación completada con éxito' })
             setFile(null)
             setActiveJobId(null) // Reset to allow new import
-        } catch (err) {
+        } catch {
             setNotification({ type: 'error', message: 'Error al guardar los datos' })
         } finally {
             setIsLoading(false)
@@ -467,7 +472,7 @@ export default function ImporterPage() {
 
     // Render Helpers
     const renderStatusBadge = (status: string) => {
-        const colors: any = {
+        const colors: Record<string, string> = {
             staged: 'bg-slate-500/20 text-slate-400',
             validated: 'bg-blue-500/20 text-blue-400',
             committed: 'bg-green-500/20 text-green-400',

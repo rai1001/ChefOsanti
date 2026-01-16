@@ -23,7 +23,26 @@ export type CreateSupplierItemInput = {
   notes?: string | null
 }
 
-function mapSupplier(row: any): Supplier {
+type SupplierRow = {
+  id: string
+  org_id: string
+  name: string
+  created_at: string
+}
+
+type SupplierItemRow = {
+  id: string
+  supplier_id: string
+  name: string
+  purchase_unit: PurchaseUnit
+  pack_size?: number | null
+  rounding_rule: RoundingRule
+  price_per_unit?: number | null
+  notes?: string | null
+  created_at: string
+}
+
+function mapSupplier(row: SupplierRow): Supplier {
   return {
     id: row.id,
     orgId: row.org_id,
@@ -32,7 +51,7 @@ function mapSupplier(row: any): Supplier {
   }
 }
 
-function mapSupplierItem(row: any): SupplierItem {
+function mapSupplierItem(row: SupplierItemRow): SupplierItem {
   return {
     id: row.id,
     supplierId: row.supplier_id,

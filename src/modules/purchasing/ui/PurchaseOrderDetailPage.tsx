@@ -3,7 +3,7 @@ import { Mail, Printer, Download, CheckCircle, Clock3 } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import {
@@ -69,7 +69,7 @@ export default function PurchaseOrderDetailPage() {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<LineForm>({
     resolver: zodResolver(lineSchema),
@@ -80,7 +80,7 @@ export default function PurchaseOrderDetailPage() {
     },
   })
 
-  const roundingRule = watch('roundingRule')
+  const roundingRule = useWatch({ control, name: 'roundingRule' })
   const isDraft = purchaseOrder.data?.order.status === 'draft'
   const isConfirmed = purchaseOrder.data?.order.status === 'confirmed'
 
@@ -187,7 +187,7 @@ export default function PurchaseOrderDetailPage() {
             <p className="text-sm text-muted-foreground">Supplier: {supplierName}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={statusTone as any} className="capitalize">
+            <Badge variant={statusTone} className="capitalize">
               {order?.approvalStatus ?? 'pending'}
             </Badge>
             <Button variant="secondary" onClick={() => window.print()}>

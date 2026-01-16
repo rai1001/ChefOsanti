@@ -13,6 +13,19 @@ import { PageHeader } from '@/modules/shared/ui/PageHeader'
 import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
 import { useState } from 'react'
 
+type ReservationLine = {
+  supplier_item_id: string
+  qty: number
+  unit: string
+}
+
+type ReservationRow = {
+  id: string
+  status: string
+  event_service_id?: string | null
+  stock_reservation_lines?: ReservationLine[] | null
+}
+
 export default function EventOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { session, loading, error } = useSupabaseSession()
@@ -96,11 +109,12 @@ export default function EventOrderDetailPage() {
     )
 
   const { order: po, lines } = order.data
-  const reservedAggregated = (reservations.data ?? [])
-    .filter((r: any) => r.status === 'active')
-    .reduce<Record<string, number>>((acc, r: any) => {
+  const reservationRows = (reservations.data ?? []) as ReservationRow[]
+  const reservedAggregated = reservationRows
+    .filter((r) => r.status === 'active')
+    .reduce<Record<string, number>>((acc, r) => {
       for (const line of r.stock_reservation_lines ?? []) {
-        const key = line.supplier_item_id as string
+        const key = line.supplier_item_id
         acc[key] = (acc[key] ?? 0) + Number(line.qty ?? 0)
       }
       return acc
@@ -231,16 +245,16 @@ export default function EventOrderDetailPage() {
           {reservations.isLoading && <span className="text-xs text-slate-500">Cargando...</span>}
         </div>
         <div className="divide-y divide-slate-100">
-          {(reservations.data ?? []).filter((r: any) => r.status === 'active').length ? (
-            (reservations.data ?? [])
-              .filter((r: any) => r.status === 'active')
-              .map((r: any) => (
+          {reservationRows.filter((r) => r.status === 'active').length ? (
+            reservationRows
+              .filter((r) => r.status === 'active')
+              .map((r) => (
                 <div key={r.id} className="px-4 py-3 space-y-2">
                   <p className="text-xs font-semibold text-slate-700">
                     Reserva {r.id.slice(0, 6)} - servicio: {r.event_service_id ?? 'evento'}
                   </p>
                   <div className="space-y-1">
-                    {(r.stock_reservation_lines ?? []).map((l: any, idx: number) => {
+                    {(r.stock_reservation_lines ?? []).map((l, idx) => {
                       const stock = stockQuery.data?.[l.supplier_item_id] ?? 0
                       const reservedTotal = reservedAggregated[l.supplier_item_id] ?? l.qty
                       const conflict = detectReservationConflicts(stock, reservedTotal)

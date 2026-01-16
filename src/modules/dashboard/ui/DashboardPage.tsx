@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Activity, AlertTriangle, Building2, CalendarRange, PackageSearch, TrendingUp, Users } from 'lucide-react'
 import { useHotels } from '@/modules/events/data/events'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
@@ -104,17 +104,13 @@ export default function DashboardPage() {
   const hotels = useHotels()
   const [hotelId, setHotelId] = useState<string | undefined>(undefined)
   const [weekStart, setWeekStart] = useState<string>(isoWeekStart())
+  const resolvedHotelId = hotelId ?? hotels.data?.[0]?.id
 
-  useEffect(() => {
-    if (hotels.data?.length && !hotelId) {
-      setHotelId(hotels.data[0].id)
-    }
-  }, [hotels.data, hotelId])
 
-  const weekEvents = useWeekEvents(hotelId, weekStart)
+  const weekEvents = useWeekEvents(resolvedHotelId, weekStart)
   const ordersToDeliver = useOrdersToDeliver(activeOrgId ?? undefined, weekStart, 'all')
-  const availability = useStaffAvailability(hotelId, weekStart)
-  const purchaseMetrics = useDashboardPurchaseMetrics(activeOrgId ?? undefined, hotelId, weekStart)
+  const availability = useStaffAvailability(resolvedHotelId, weekStart)
+  const purchaseMetrics = useDashboardPurchaseMetrics(activeOrgId ?? undefined, resolvedHotelId, weekStart)
 
   const totalEvents = useMemo(
     () => weekEvents.data?.reduce((acc, day) => acc + (day.events?.length ?? 0), 0) ?? 0,
@@ -202,7 +198,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 rounded-full border border-border/30 bg-surface/60 px-3 py-1 text-xs text-muted-foreground">
             <Building2 size={14} />
             <select
-              value={hotelId}
+              value={resolvedHotelId ?? ''}
               onChange={(e) => setHotelId(e.target.value)}
               className="bg-transparent text-foreground outline-none"
             >

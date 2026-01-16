@@ -31,11 +31,12 @@ describe('Purchasing Data Layer Integration', () => {
 
         // Configurar el mock para devolver error
         const fromSpy = vi.spyOn(supabaseClient, 'from')
-        fromSpy.mockReturnValue({
+        const mockQuery = {
             select: vi.fn().mockReturnThis(),
             eq: vi.fn().mockReturnThis(),
             order: vi.fn().mockResolvedValue({ data: null, error: mockError })
-        } as any)
+        } as unknown as ReturnType<typeof supabaseClient.from>
+        fromSpy.mockReturnValue(mockQuery)
 
         try {
             await listHotels('test-org-id')
