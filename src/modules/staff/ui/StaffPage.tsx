@@ -271,10 +271,10 @@ export default function StaffPage() {
         title="Personal"
         entity="staff"
         fields={[
-          { key: 'fullName', label: 'Nombre Completo' },
-          { key: 'role', label: 'Rol', transform: (val) => roles.includes(val as any) ? val : 'cocinero' },
-          { key: 'employmentType', label: 'Tipo (fijo/eventual)', transform: (val) => types.includes(val as any) ? val : 'fijo' },
-          { key: 'maxShifts', label: 'Max Turnos', transform: (val) => Number(val) || 5 },
+          { key: 'full_name', label: 'Nombre Completo', aliases: ['nombre', 'fullName', 'full name'] },
+          { key: 'role', label: 'Rol', aliases: ['role'], transform: (val) => roles.includes(val as any) ? val : 'cocinero' },
+          { key: 'employment_type', label: 'Tipo (fijo/eventual)', aliases: ['tipo', 'employmentType', 'employment type'], transform: (val) => types.includes(val as any) ? val : 'fijo' },
+          { key: 'max_shifts', label: 'Max Turnos', aliases: ['max turnos', 'maxShifts', 'max_shifts'], transform: (val) => Number(val) || 5 },
         ]}
       />
     </div>

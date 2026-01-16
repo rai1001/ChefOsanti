@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useProducts } from '../data/products'
-import { useAddRecipeLine, useRecipe, useRemoveRecipeLine } from '../data/recipes'
+import { useAddRecipeLine, useRecipe, useRemoveRecipeLine, useRecipeCostBreakdown, useRecipeCostSummary } from '../data/recipes'
 import { computeRecipeNeeds } from '../domain/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
@@ -16,10 +16,13 @@ export default function RecipeDetailPage() {
   const products = useProducts(activeOrgId ?? undefined)
   const addLine = useAddRecipeLine(id, activeOrgId ?? undefined)
   const removeLine = useRemoveRecipeLine(id)
+  const costSummary = useRecipeCostSummary(id)
+  const costBreakdown = useRecipeCostBreakdown(id)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'recipes:write')
   const formattedError = useFormattedError(error)
   const recipeError = useFormattedError(recipe.error)
+  const costError = useFormattedError(costSummary.error ?? costBreakdown.error)
 
   const [productId, setProductId] = useState<string>('')
   const [qty, setQty] = useState<number>(0)
@@ -122,6 +125,74 @@ export default function RecipeDetailPage() {
             ))
           ) : (
             <p className="px-4 py-6 text-sm text-slate-400 italic">Sin líneas.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 shadow-xl backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <h2 className="text-sm font-semibold text-white">Costes y escandallo</h2>
+          {costSummary.data && (
+            <span className="text-xs text-slate-400">
+              Total {costSummary.data.totalCost.toFixed(2)} / racion {costSummary.data.costPerServing.toFixed(2)}
+            </span>
+          )}
+        </div>
+        <div className="p-4 space-y-3">
+          {costSummary.isLoading || costBreakdown.isLoading ? (
+            <p className="text-sm text-slate-400">Calculando costes...</p>
+          ) : costError ? (
+            <p className="text-sm text-red-400">No se pudo cargar el coste. {costError}</p>
+          ) : costSummary.data ? (
+            <>
+              <div className="grid gap-2 md:grid-cols-4">
+                <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                  <p className="text-xs text-slate-400">Coste total</p>
+                  <p className="text-lg font-semibold text-white">{costSummary.data.totalCost.toFixed(2)}</p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                  <p className="text-xs text-slate-400">Coste por racion</p>
+                  <p className="text-lg font-semibold text-white">{costSummary.data.costPerServing.toFixed(2)}</p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                  <p className="text-xs text-slate-400">Sin precio</p>
+                  <p className="text-lg font-semibold text-amber-300">{costSummary.data.missingPrices}</p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                  <p className="text-xs text-slate-400">Unidades distintas</p>
+                  <p className="text-lg font-semibold text-amber-300">{costSummary.data.unitMismatches}</p>
+                </div>
+              </div>
+              <div className="divide-y divide-white/10">
+                {costBreakdown.data && costBreakdown.data.length ? (
+                  costBreakdown.data.map((line) => (
+                    <div key={line.lineId} className="flex items-center justify-between py-3 text-sm">
+                      <div>
+                        <p className="text-slate-200 font-semibold">{line.productName}</p>
+                        <p className="text-xs text-slate-500">
+                          {line.qty} {line.unit} | compra {line.purchaseUnit ?? '--'} | precio{' '}
+                          {line.unitPrice !== null && line.unitPrice !== undefined ? line.unitPrice.toFixed(2) : '--'}
+                        </p>
+                        {(line.missingPrice || line.unitMismatch) && (
+                          <p className="text-[11px] text-amber-300">
+                            {line.missingPrice ? 'Sin precio' : 'OK'}
+                            {line.missingPrice && line.unitMismatch ? ' / ' : ''}
+                            {line.unitMismatch ? 'Unidad distinta' : ''}
+                          </p>
+                        )}
+                      </div>
+                      <span className="font-mono text-slate-200">
+                        {line.lineCost !== null && line.lineCost !== undefined ? line.lineCost.toFixed(2) : '--'}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-400 italic">Sin lineas con coste.</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-slate-400 italic">Sin datos de coste.</p>
           )}
         </div>
       </div>

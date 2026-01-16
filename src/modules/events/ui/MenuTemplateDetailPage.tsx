@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -8,6 +9,8 @@ import { useCreateMenuTemplateItem, useMenuTemplateItems, useMenuTemplates } fro
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
+import { useRecipes } from '@/modules/recipes/data/recipes'
+import { useDeleteMenuRecipeAlias, useMenuRecipeAliases, useUpsertMenuRecipeAlias } from '@/modules/recipes/data/recipeAliases'
 
 const schema = z
   .object({
@@ -40,10 +43,22 @@ export default function MenuTemplateDetailPage() {
   const template = templates.data?.find((t) => t.id === id)
   const items = useMenuTemplateItems(id)
   const createItem = useCreateMenuTemplateItem(id, activeOrgId ?? template?.orgId ?? undefined)
+  const recipes = useRecipes(activeOrgId ?? undefined)
+  const recipeAliases = useMenuRecipeAliases(activeOrgId ?? undefined)
+  const upsertRecipeAlias = useUpsertMenuRecipeAlias(activeOrgId ?? undefined)
+  const deleteRecipeAlias = useDeleteMenuRecipeAlias(activeOrgId ?? undefined)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'menus:write')
   const sessionError = useFormattedError(error)
   const createError = useFormattedError(createItem.error)
+
+  const aliasByName = useMemo(() => {
+    const map = new Map<string, string>()
+    recipeAliases.data?.forEach((alias) => {
+      map.set(alias.aliasName.trim().toLowerCase(), alias.recipeId)
+    })
+    return map
+  }, [recipeAliases.data])
 
   const {
     register,
@@ -122,6 +137,31 @@ export default function MenuTemplateDetailPage() {
                   {it.unit} - seated {it.qtyPerPaxSeated} - de_pie {it.qtyPerPaxStanding} -{' '}
                   {it.roundingRule} {it.packSize ? `(pack ${it.packSize})` : ''}
                 </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                  <span className="font-semibold text-slate-300">Receta:</span>
+                  <select
+                    className="rounded border border-white/10 bg-nano-navy-900 px-2 py-1 text-xs text-white focus:border-nano-blue-500 outline-none transition-colors"
+                    value={aliasByName.get(it.name.trim().toLowerCase()) ?? ''}
+                    onChange={(e) => {
+                      if (!activeOrgId) return
+                      const next = e.target.value
+                      if (!next) {
+                        deleteRecipeAlias.mutate({ aliasName: it.name })
+                      } else {
+                        upsertRecipeAlias.mutate({ aliasName: it.name, recipeId: next })
+                      }
+                    }}
+                    disabled={!canWrite || recipes.isLoading}
+                  >
+                    <option value="">Sin receta</option>
+                    {recipes.data?.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
+                  {recipes.isLoading && <span>Cargando recetas...</span>}
+                </div>
               </div>
             ))
           ) : (

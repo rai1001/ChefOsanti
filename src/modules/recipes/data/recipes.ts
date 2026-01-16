@@ -5,6 +5,54 @@ import type { Recipe, RecipeLine, Product } from '../domain/recipes'
 
 export type RecipeWithLines = Recipe & { category?: string | null; notes?: string | null; lines: (RecipeLine & { productName?: string })[] }
 
+export type RecipeCostLine = {
+  lineId: string
+  recipeId: string
+  productId: string
+  productName: string
+  qty: number
+  unit: 'kg' | 'ud'
+  supplierItemId?: string | null
+  purchaseUnit?: 'kg' | 'ud' | null
+  unitPrice?: number | null
+  lineCost?: number | null
+  missingPrice: boolean
+  unitMismatch: boolean
+}
+
+export type RecipeCostSummary = {
+  recipeId: string
+  defaultServings: number
+  totalCost: number
+  costPerServing: number
+  missingPrices: number
+  unitMismatches: number
+}
+
+type RecipeCostBreakdownRow = {
+  line_id: string
+  recipe_id: string
+  product_id: string
+  product_name: string
+  qty: number
+  unit: 'kg' | 'ud'
+  supplier_item_id?: string | null
+  purchase_unit?: 'kg' | 'ud' | null
+  price_per_unit?: number | null
+  line_cost?: number | null
+  missing_price: boolean
+  unit_mismatch: boolean
+}
+
+type RecipeCostSummaryRow = {
+  recipe_id: string
+  default_servings: number
+  total_cost: number
+  cost_per_serving: number
+  missing_prices: number
+  unit_mismatches: number
+}
+
 function mapProduct(row: any): Product & { cost: number } {
   return {
     id: row.id,
@@ -167,6 +215,64 @@ export async function linkIngredientToProduct(ingredientId: string, productId: s
   }
 }
 
+export async function getRecipeCostBreakdown(recipeId: string): Promise<RecipeCostLine[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('recipe_cost_breakdown')
+    .select('*')
+    .eq('recipe_id', recipeId)
+    .order('product_name', { ascending: true })
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'getRecipeCostBreakdown',
+      recipeId,
+    })
+  }
+  return (
+    (data as RecipeCostBreakdownRow[] | null)?.map((row) => ({
+      lineId: row.line_id,
+      recipeId: row.recipe_id,
+      productId: row.product_id,
+      productName: row.product_name,
+      qty: Number(row.qty),
+      unit: row.unit,
+      supplierItemId: row.supplier_item_id ?? null,
+      purchaseUnit: row.purchase_unit ?? null,
+      unitPrice: row.price_per_unit ?? null,
+      lineCost: row.line_cost ?? null,
+      missingPrice: Boolean(row.missing_price),
+      unitMismatch: Boolean(row.unit_mismatch),
+    })) ?? []
+  )
+}
+
+export async function getRecipeCostSummary(recipeId: string): Promise<RecipeCostSummary | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('recipe_cost_summary')
+    .select('*')
+    .eq('recipe_id', recipeId)
+    .maybeSingle()
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'getRecipeCostSummary',
+      recipeId,
+    })
+  }
+  if (!data) return null
+  const row = data as RecipeCostSummaryRow
+  return {
+    recipeId: row.recipe_id,
+    defaultServings: row.default_servings,
+    totalCost: Number(row.total_cost ?? 0),
+    costPerServing: Number(row.cost_per_serving ?? 0),
+    missingPrices: Number(row.missing_prices ?? 0),
+    unitMismatches: Number(row.unit_mismatches ?? 0),
+  }
+}
+
 // Hooks
 export function useRecipes(orgId: string | undefined) {
   return useQuery({
@@ -236,5 +342,21 @@ export function useLinkIngredientToProduct() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ingredients'] })
     },
+  })
+}
+
+export function useRecipeCostBreakdown(recipeId: string | undefined) {
+  return useQuery({
+    queryKey: ['recipe_cost_breakdown', recipeId],
+    queryFn: () => getRecipeCostBreakdown(recipeId ?? ''),
+    enabled: Boolean(recipeId),
+  })
+}
+
+export function useRecipeCostSummary(recipeId: string | undefined) {
+  return useQuery({
+    queryKey: ['recipe_cost_summary', recipeId],
+    queryFn: () => getRecipeCostSummary(recipeId ?? ''),
+    enabled: Boolean(recipeId),
   })
 }

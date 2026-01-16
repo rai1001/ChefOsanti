@@ -219,11 +219,11 @@ export default function ProductsPage() {
         title="Productos"
         entity="products"
         fields={[
-          { key: 'name', label: 'Nombre' },
-          { key: 'base_unit', label: 'Unidad base (kg/ud)', transform: normalizeUnit },
-          { key: 'supplier_name', label: 'Proveedor' },
-          { key: 'purchase_unit', label: 'Unidad compra (kg/ud)', transform: normalizeUnit },
-          { key: 'price', label: 'Precio' },
+          { key: 'name', label: 'Nombre', aliases: ['producto', 'item', 'articulo'] },
+          { key: 'base_unit', label: 'Unidad base (kg/ud)', aliases: ['unidad base', 'unidad', 'base unit'], transform: normalizeUnit },
+          { key: 'supplier_name', label: 'Proveedor', aliases: ['supplier', 'supplier_name', 'proveedor', 'provider'] },
+          { key: 'purchase_unit', label: 'Unidad compra (kg/ud)', aliases: ['unidad compra', 'unidad de compra', 'purchase unit', 'unidad_compra'], transform: normalizeUnit },
+          { key: 'price', label: 'Precio', aliases: ['precio unitario', 'price', 'price_per_unit'] },
         ]}
       />
     </div>

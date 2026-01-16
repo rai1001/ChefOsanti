@@ -7,6 +7,7 @@ import { parseCSV } from '../data/csvParser'
 import { listHotelsByOrg } from '@/modules/orgs/data/hotels'
 import { useQuery } from '@tanstack/react-query'
 import type { ImportEntity } from '../domain/types'
+import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
 
 type SheetRow = Record<string, unknown> & { __rowNum__?: number }
 type SheetData = SheetRow[]
@@ -34,6 +35,7 @@ export default function ImporterPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [activeJobId, setActiveJobId] = useState<string | null>(null)
     const [notification, setNotification] = useState<ImportNotification | null>(null)
+    const [confirmCommitOpen, setConfirmCommitOpen] = useState(false)
 
     // Events Specific State
     const [rawSheet, setRawSheet] = useState<SheetData | null>(null)
@@ -659,7 +661,7 @@ export default function ImporterPage() {
                                             <span className="text-red-400">Errores: {activeJob.summary.errors}</span>
                                         </div>
                                         <button
-                                            onClick={handleCommit}
+                                            onClick={() => setConfirmCommitOpen(true)}
                                             disabled={isLoading || (activeJob.summary.errors ?? 0) > 0}
                                             className="bg-green-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/20"
                                         >
@@ -711,6 +713,10 @@ export default function ImporterPage() {
                                     </tbody>
                                 </table>
                                 {jobRows.isLoading && <div className="p-4 text-center text-slate-500">Cargando filas...</div>}
+                                {jobRows.isError && <div className="p-4 text-center text-red-400">Error al cargar filas.</div>}
+                                {!jobRows.isLoading && !jobRows.isError && (jobRows.data?.length ?? 0) === 0 && (
+                                    <div className="p-4 text-center text-slate-500">Sin filas para mostrar.</div>
+                                )}
                             </div>
                         </section>
                     )}
@@ -745,6 +751,18 @@ export default function ImporterPage() {
                     </div>
                 </div>
             </div >
+        <ConfirmDialog
+            open={confirmCommitOpen}
+            title="Confirmar importacion"
+            description="Se guardaran los datos validados. Esta accion no se puede deshacer."
+            confirmLabel="Importar"
+            onConfirm={async () => {
+                setConfirmCommitOpen(false)
+                await handleCommit()
+            }}
+            onCancel={() => setConfirmCommitOpen(false)}
+        />
+
         </div >
     )
 }

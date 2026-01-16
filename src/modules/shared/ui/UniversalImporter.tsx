@@ -7,6 +7,7 @@ import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { listHotelsByOrg } from '@/modules/orgs/data/hotels'
 import { useQuery } from '@tanstack/react-query'
 import type { ImportEntity } from '@/modules/importer/domain/types'
+import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
 
 interface UniversalImporterProps {
     isOpen: boolean
@@ -17,7 +18,7 @@ interface UniversalImporterProps {
      */
     entity?: ImportEntity
     title: string
-    fields: { key: string; label: string; transform?: (val: string) => unknown }[]
+    fields: { key: string; label: string; aliases?: string[]; transform?: (val: string) => unknown }[]
     onImport?: (rows: Record<string, unknown>[]) => Promise<unknown> | unknown
 }
 
@@ -37,6 +38,7 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
     const [mapping, setMapping] = useState<Record<string, string>>({})
     const [error, setError] = useState<string | null>(null)
     const [selectedHotelId, setSelectedHotelId] = useState<string>('')
+    const [confirmOpen, setConfirmOpen] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const isExcelFile = (name: string) => /\.xls(x|m|b)?$/i.test(name)
     const isCsvFile = (name: string) => /\.csv$/i.test(name)
@@ -141,9 +143,11 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
     }
 
     const autoMapHeaders = (headers: string[]) => {
+        const normalize = (value: string) => value.trim().toLowerCase()
         const initialMapping: Record<string, string> = {}
         fields.forEach(f => {
-            const match = headers.find(h => h.toLowerCase() === f.label.toLowerCase() || h.toLowerCase() === f.key.toLowerCase())
+            const targets = [f.label, f.key, ...(f.aliases ?? [])].map(normalize)
+            const match = headers.find(h => targets.includes(normalize(h)))
             if (match) initialMapping[f.key] = match
         })
         setMapping(initialMapping)
@@ -452,7 +456,7 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
                         )}
                         {step === 'preview' && (
                             <button
-                                onClick={handleCommit}
+                                onClick={() => setConfirmOpen(true)}
                                 disabled={commit.isPending || (!isLocalMode && (rows.data?.some(r => r.errors?.length > 0) ?? false))}
                                 className="rounded-lg bg-nano-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition-all hover:bg-nano-blue-500 disabled:opacity-50"
                             >
@@ -470,6 +474,18 @@ export function UniversalImporter({ isOpen, onClose, entity, title, fields, onIm
                     </div>
                 </div>
             </div>
+        <ConfirmDialog
+            open={confirmOpen}
+            title="Confirmar importacion"
+            description="Se guardaran los datos y no se puede deshacer desde la UI."
+            confirmLabel="Importar"
+            onConfirm={async () => {
+                setConfirmOpen(false)
+                await handleCommit()
+            }}
+            onCancel={() => setConfirmOpen(false)}
+        />
+
         </div>
     )
 }

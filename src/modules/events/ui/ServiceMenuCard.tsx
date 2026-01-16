@@ -403,10 +403,14 @@ export function ServiceMenuCard({
                                     <span className="text-xs text-red-400">Error overrides</span>
                                 )}
                             </div>
+                            <p className="text-xs text-slate-500">
+                                Ajustes solo para este evento, no cambian la plantilla.
+                            </p>
                             {templateItems.length ? (
                                 templateItems.map((item) => {
                                     const isExcluded = excludedSet.has(item.id)
                                     const replacement = replacementsMap.get(item.id)
+                                    const replaceSeed = replacement ? { ...item, ...replacement } : item
                                     return (
                                         <div key={item.id} className="border-t border-white/10 pt-2 first:border-t-0">
                                             <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
@@ -429,10 +433,10 @@ export function ServiceMenuCard({
                                                     {replacement && (
                                                         <div className="mt-1 rounded bg-nano-blue-600/10 p-1 text-xs">
                                                             <span className="font-semibold text-nano-blue-300">
-                                                                Reemplazado por:
+                                                                Override evento:
                                                             </span>{' '}
                                                             <span className="text-slate-300">
-                                                                {replacement.name} ({replacement.unit}) - Ratio:{' '}
+                                                                {replacement.name} ({replacement.unit}) - ratio:{' '}
                                                                 {replacement.qtyPerPaxSeated}/{replacement.qtyPerPaxStanding} - {replacement.roundingRule}
                                                             </span>
                                                         </div>
@@ -448,12 +452,12 @@ export function ServiceMenuCard({
                                                         />
                                                         Excluir
                                                     </label>
-                                                    {!isExcluded && !replacement && (
+                                                    {!isExcluded && (
                                                         <button
-                                                            onClick={() => openReplace(item)}
+                                                            onClick={() => openReplace(replaceSeed)}
                                                             className="text-xs text-nano-blue-300 hover:text-nano-blue-200"
                                                         >
-                                                            Reemplazar
+                                                            Editar ratio
                                                         </button>
                                                     )}
                                                     {replacement && (
@@ -464,7 +468,7 @@ export function ServiceMenuCard({
                                                             }}
                                                             className="text-xs text-red-400 hover:text-red-300"
                                                         >
-                                                            Quitar reemplazo
+                                                            Restablecer ratio
                                                         </button>
                                                     )}
                                                 </div>
@@ -692,10 +696,10 @@ export function ServiceMenuCard({
                 replaceTarget && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                         <div className="w-full max-w-lg bg-nano-navy-800 border border-white/10 rounded-xl p-4">
-                            <h3 className="text-white font-bold mb-4">Reemplazar item</h3>
+                            <h3 className="text-white font-bold mb-4">Editar ratio del evento</h3>
                             <form onSubmit={handleSubmitReplace(onReplaceSubmit)} className="space-y-3">
                                 <label className="block">
-                                    <span className="text-xs text-slate-400">Nuevo Nombre</span>
+                                    <span className="text-xs text-slate-400">Nombre</span>
                                     <input className="w-full mt-1 rounded bg-black/20 border border-white/10 px-3 py-2 text-sm text-white" {...registerReplace('name')} />
                                 </label>
                                 <div className="grid grid-cols-2 gap-3">
