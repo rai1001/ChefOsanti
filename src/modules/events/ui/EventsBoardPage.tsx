@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DataState } from '@/modules/shared/ui/DataState'
 import { Skeleton } from '@/modules/shared/ui/Skeleton'
 import { MonthCalendar } from './MonthCalendar'
+import { RoomOccupancyPanel } from './RoomOccupancyPanel'
 
 type Status = 'Confirmed' | 'Draft' | 'Completed'
 
@@ -150,6 +151,8 @@ export default function EventsBoardPage() {
           </Link>
         </div>
       </header>
+
+      {hotelId && <RoomOccupancyPanel hotelId={hotelId} date={calendarDate} />}
 
       {viewMode === 'calendar' && (
         <MonthCalendar

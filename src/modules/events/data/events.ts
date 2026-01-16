@@ -25,6 +25,23 @@ export type Event = {
   createdAt?: string
 }
 
+export type RoomScheduleEvent = {
+  eventId: string
+  title: string
+  status: string
+  menuStatus?: string | null
+}
+
+export type RoomScheduleEntry = {
+  orgId: string
+  hotelId: string
+  eventDate: string
+  roomName: string
+  eventCount: number
+  confirmedEvents: number
+  events: RoomScheduleEvent[]
+}
+
 export type BookingWithDetails = SpaceBooking & {
   spaceName?: string
   eventTitle?: string
@@ -343,6 +360,42 @@ export async function listBookingsByHotel(params: {
   return data?.map(mapBooking) ?? []
 }
 
+export async function listRoomSchedules(params: { hotelId: string; eventDate: string }): Promise<RoomScheduleEntry[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('event_room_schedule')
+    .select('org_id, hotel_id, event_date, room_name, event_count, confirmed_events, events')
+    .eq('hotel_id', params.hotelId)
+    .eq('event_date', params.eventDate)
+    .order('room_name', { ascending: true })
+
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'events',
+      operation: 'listRoomSchedules',
+      hotelId: params.hotelId,
+      eventDate: params.eventDate,
+    })
+  }
+
+  return (data ?? []).map((row) => ({
+    orgId: row.org_id,
+    hotelId: row.hotel_id,
+    eventDate: row.event_date,
+    roomName: row.room_name,
+    eventCount: Number(row.event_count ?? 0),
+    confirmedEvents: Number(row.confirmed_events ?? 0),
+    events: Array.isArray(row.events)
+      ? row.events.map((evt: any) => ({
+          eventId: evt.event_id,
+          title: evt.title ?? 'Evento',
+          status: evt.status ?? 'pending',
+          menuStatus: evt.menu_status ?? null,
+        }))
+      : [],
+  }))
+}
+
 export async function createBooking(params: {
   orgId: string
   eventId: string
@@ -512,5 +565,13 @@ export function useDeleteEventService(eventId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['event_services', eventId] })
     },
+  })
+}
+
+export function useRoomSchedules(params?: { hotelId?: string; eventDate?: string }) {
+  return useQuery({
+    queryKey: ['room_schedule', params],
+    queryFn: () => listRoomSchedules({ hotelId: params?.hotelId ?? '', eventDate: params?.eventDate ?? '' }),
+    enabled: Boolean(params?.hotelId && params?.eventDate),
   })
 }
