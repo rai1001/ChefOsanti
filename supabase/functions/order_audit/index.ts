@@ -2,7 +2,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4'
 import { GoogleGenerativeAI } from 'https://esm.sh/@google/generative-ai@0.1.3'
-import { checkRateLimit, RateLimitError } from '../_shared/rateLimit.ts'
+import { checkRateLimit } from '../_shared/rateLimit.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -38,7 +38,7 @@ export async function handler(req: Request) {
 
         // 1. Fetch Order & Items
         // Try purchase_orders first
-        let { data: order, error: ordErr } = await client
+        const { data: order } = await client
             .from('purchase_orders')
             .select('*, purchase_order_items(*)')
             .eq('id', orderId)

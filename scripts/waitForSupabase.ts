@@ -17,7 +17,7 @@ async function waitForAuth(url: string) {
         console.log(`Supabase Auth ready after ${attempt} attempts`)
         return
       }
-    } catch (e) {
+    } catch {
       // ignore and retry
     }
     const delay = Math.min(500 * attempt, 4000)

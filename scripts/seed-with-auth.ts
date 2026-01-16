@@ -1,7 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js'
 import dotenv from 'dotenv'
-import { randomUUID } from 'crypto'
 
 // Prioritize .env.local
 dotenv.config({ path: '.env.local' })

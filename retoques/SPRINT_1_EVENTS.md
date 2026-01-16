@@ -1,0 +1,1 @@
+Sprint 1: Core domain, events, Excel import, rooms aggregation.

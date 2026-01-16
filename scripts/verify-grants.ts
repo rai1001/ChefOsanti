@@ -27,7 +27,7 @@ async function verify() {
     console.log('✅ Authenticated')
 
     // Try to select from reporting_generated_reports
-    const { data, error, count } = await supabase
+    const { error, count } = await supabase
         .from('reporting_generated_reports')
         .select('*', { count: 'exact', head: true })
 

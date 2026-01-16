@@ -9,7 +9,7 @@ import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { FileText } from 'lucide-react'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { FormField } from '@/modules/shared/ui/FormField'
-import { toast } from '@/modules/shared/ui/Toast' // Ensure correct path
+import { toast } from 'sonner'
 import { can } from '@/modules/auth/domain/roles'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 

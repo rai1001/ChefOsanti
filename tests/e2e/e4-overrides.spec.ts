@@ -65,7 +65,7 @@ test('E4: overrides recalculan necesidades', async ({ page }) => {
 
   // Aplicar plantilla al servicio
   await page.goto(`/events/${eventId}`)
-  let serviceSection = page.locator('div', { hasText: /coffee_break/i }).first()
+  const serviceSection = page.locator('div', { hasText: /coffee_break/i }).first()
   await serviceSection.getByLabel('Plantilla').selectOption({ label: templateName })
   await expect(
     serviceSection.getByText(`Menu aplicado: ${templateName}`, { exact: false }),

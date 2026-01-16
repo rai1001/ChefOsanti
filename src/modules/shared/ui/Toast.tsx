@@ -19,4 +19,3 @@ export function Toaster() {
 }
 
 // Re-export toast for convenience
-export { toast } from 'sonner';

@@ -7,7 +7,7 @@ import { computeRecipeNeeds } from '../domain/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
-import { toast } from '@/modules/shared/ui/Toast'
+import { toast } from 'sonner'
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
