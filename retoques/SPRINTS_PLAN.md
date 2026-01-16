@@ -3,8 +3,8 @@
 Objetivo: agrupar el backlog pendiente en sprints con dependencias claras.
 
 ## Orden propuesto
-1) Sprint 9 - Staff Vacation and Compensation
-2) Sprint 10 - Scheduling Monthly View
+1) Sprint 9 - Staff Vacation and Compensation (done)
+2) Sprint 10 - Scheduling Monthly View (done)
 3) Sprint 11 - Inventory Expiry and Preparations
 4) Sprint 12 - Procurement and Orders
 5) Sprint 13 - Recipes, Categories, Mise en Place
