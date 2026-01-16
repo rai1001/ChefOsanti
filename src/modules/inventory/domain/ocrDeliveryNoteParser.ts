@@ -19,7 +19,7 @@ export type ParsedDeliveryNote = {
   warnings: string[]
 }
 
-const datePattern = /\b(\d{2}[\/.-]\d{2}[\/.-]\d{2,4}|\d{4}-\d{2}-\d{2})\b/
+const datePattern = /\b(\d{2}[./-]\d{2}[./-]\d{2,4}|\d{4}-\d{2}-\d{2})\b/
 
 function normalizeUnit(unit?: string | null): string | null {
   if (!unit) return null
@@ -73,7 +73,7 @@ export function parseDeliveryNote(text: string): ParsedDeliveryNote {
   const supplierMatch = lines.find((l) => l.length > 3 && l === l.toUpperCase()) || lines[0]
   if (supplierMatch && supplierMatch.length <= 80) header.supplierName = supplierMatch
 
-  const numberRegex = /(albar[aá]n|alb\.?|nº|n\.|numero|número)\s*[:\-]?\s*([A-Za-z0-9\-]+)/i
+  const numberRegex = /(albar[aá]n|alb\.?|nº|n\.|numero|número)\s*[:-]?\s*([A-Za-z0-9-]+)/i
   const numMatch = joined.match(numberRegex)
   if (numMatch) header.deliveryNoteNumber = numMatch[2]
 
@@ -89,7 +89,7 @@ export function parseDeliveryNote(text: string): ParsedDeliveryNote {
       const desc = m[1].trim()
       const qty = Number(m[2].replace(',', '.'))
       const unit = normalizeUnit(m[3] || null)
-      const lotMatch = line.match(/(lot[eo]|batch)\s*[:\-]?\s*([A-Za-z0-9\-_/]+)/i)
+      const lotMatch = line.match(/(lot[eo]|batch)\s*[:-]?\s*([A-Za-z0-9_/-]+)/i)
       const lotCode = lotMatch ? lotMatch[2].toUpperCase() : null
       const expiresAt = parseDate(line)
 

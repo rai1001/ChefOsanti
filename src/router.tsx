@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react'
 import App from './App'
 import { LoginPage } from './modules/auth/ui/LoginPage'
 import { RequireActiveOrg, RequireAuth, RequirePermission } from './modules/auth/ui/RequirePermission'
+import { PageLoader } from './modules/shared/ui/PageLoader'
 
 // ✅ NUEVO: Lazy loading para todos los componentes de página
 const DashboardPage = lazy(() => import('./modules/dashboard/ui/DashboardPage'))
@@ -31,17 +32,6 @@ const ReportsPage = lazy(() => import('./modules/reporting/ui/ReportsPage'))
 const ImporterPage = lazy(() => import('./modules/importer/ui/ImporterPage'))
 const PreparationsPage = lazy(() => import('./modules/inventory/ui/PreparationsPage'))
 const ExpiryAlertsPage = lazy(() => import('./modules/inventory/ui/ExpiryAlertsPage'))
-
-function PageLoader() {
-  return (
-    <div className="flex h-screen items-center justify-center bg-nano-navy-900">
-      <div className="text-center space-y-4">
-        <div className="animate-spin h-12 w-12 border-4 border-nano-blue-500 border-t-transparent rounded-full mx-auto"></div>
-        <p className="text-slate-400 text-sm animate-pulse">Cargando...</p>
-      </div>
-    </div>
-  )
-}
 
 export const appRouter = createBrowserRouter([
   {

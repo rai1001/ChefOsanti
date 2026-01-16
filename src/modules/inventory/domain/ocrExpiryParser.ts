@@ -11,7 +11,7 @@ function toIsoDate(value: string): string | undefined {
   let month: number
   let day: number
 
-  if (/^\d{4}[\/.-]\d{2}[\/.-]\d{2}$/.test(value)) {
+  if (/^\d{4}[./-]\d{2}[./-]\d{2}$/.test(value)) {
     year = Number(clean.slice(0, 4))
     month = Number(clean.slice(4, 6))
     day = Number(clean.slice(6, 8))
@@ -24,10 +24,6 @@ function toIsoDate(value: string): string | undefined {
     month = Number(clean.slice(2, 4))
     const yy = Number(clean.slice(4, 6))
     year = yy >= 70 ? 1900 + yy : 2000 + yy
-  } else if (clean.length === 8 && value.startsWith('20')) {
-    year = Number(clean.slice(0, 4))
-    month = Number(clean.slice(4, 6))
-    day = Number(clean.slice(6, 8))
   } else {
     return undefined
   }
@@ -38,7 +34,7 @@ function toIsoDate(value: string): string | undefined {
 
 export function parseExpiryAndLot(text: string): ExpiryLotSuggestion {
   const rawMatches: string[] = []
-  const dateRegex = /\b(\d{2}[\/.-]\d{2}[\/.-]\d{2,4}|\d{4}-\d{2}-\d{2})\b/g
+  const dateRegex = /\b(\d{2}[./-]\d{2}[./-]\d{2,4}|\d{4}-\d{2}-\d{2})\b/g
   let expiresAt: string | undefined
   let confidence = 0
 
@@ -53,7 +49,7 @@ export function parseExpiryAndLot(text: string): ExpiryLotSuggestion {
     confidence = keywordBeforeDate.test(text) ? 0.9 : Math.max(confidence, 0.6)
   }
 
-  const lotRegex = /(lot[eo]?:?\s*([A-Za-z0-9\-_/]+)|batch\s*([A-Za-z0-9\-_/]+))/i
+  const lotRegex = /(lot[eo]?:?\s*([A-Za-z0-9_/-]+)|batch\s*([A-Za-z0-9_/-]+))/i
   const lotMatch = text.toLowerCase().match(lotRegex)
   const lotCode = lotMatch ? (lotMatch[2] || lotMatch[3] || '').toUpperCase() : undefined
   if (lotCode) rawMatches.push(lotCode)

@@ -32,9 +32,14 @@ export async function getEventsMetrics(orgId: string, range: DateRange) {
 
 export async function getPurchasingMetrics(orgId: string, range: DateRange) {
     const supabase = getSupabaseClient();
+    type PurchaseOrderRow = {
+        id: string;
+        total_estimated: number | null;
+        suppliers?: { name: string | null } | null;
+    };
 
     // Expenses from Purchase Orders
-    const { data: orders, error } = await supabase
+    const { data: ordersRaw, error } = await supabase
         .from('purchase_orders')
         .select('id, total_estimated, supplier_id, suppliers(name)')
         .eq('org_id', orgId)
@@ -44,12 +49,12 @@ export async function getPurchasingMetrics(orgId: string, range: DateRange) {
 
     if (error) throw error;
 
+    const orders = (ordersRaw ?? []) as PurchaseOrderRow[];
     const total_spend = orders.reduce((sum, order) => sum + (Number(order.total_estimated) || 0), 0);
 
     // Top Suppliers
     const supplierSpend: Record<string, number> = {};
     orders.forEach(order => {
-        // @ts-ignore join result
         const name = order.suppliers?.name || 'Unknown';
         supplierSpend[name] = (supplierSpend[name] || 0) + (Number(order.total_estimated) || 0);
     });
