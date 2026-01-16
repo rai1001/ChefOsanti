@@ -1,1 +1,5 @@
-Sprint 3: Rolling 7-day operational briefing.
+# Sprint 3 - Briefing
+- [x] Rolling 7-day operational briefing
+- [x] Daily brief widget + generator
+
+Estado: completado
