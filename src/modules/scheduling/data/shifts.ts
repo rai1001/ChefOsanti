@@ -40,7 +40,11 @@ function mapShift(row: any): ShiftRow {
   }
 }
 
-export async function listShifts(params: { hotelId?: string; weekStart?: string }): Promise<ShiftRow[]> {
+export async function listShifts(params: {
+  hotelId?: string
+  rangeStart?: string
+  rangeEnd?: string
+}): Promise<ShiftRow[]> {
   const supabase = getSupabaseClient()
   let query = supabase
     .from('shifts')
@@ -48,11 +52,16 @@ export async function listShifts(params: { hotelId?: string; weekStart?: string 
     .order('shift_date', { ascending: true })
     .order('shift_type', { ascending: true })
   if (params.hotelId) query = query.eq('hotel_id', params.hotelId)
-  if (params.weekStart) {
-    const start = params.weekStart
-    const end = new Date(start + 'T00:00:00')
-    end.setDate(end.getDate() + 6)
-    query = query.gte('shift_date', start).lte('shift_date', end.toISOString().slice(0, 10))
+  if (params.rangeStart) {
+    const start = params.rangeStart
+    const end =
+      params.rangeEnd ??
+      (() => {
+        const fallback = new Date(start + 'T00:00:00')
+        fallback.setDate(fallback.getDate() + 6)
+        return fallback.toISOString().slice(0, 10)
+      })()
+    query = query.gte('shift_date', start).lte('shift_date', end)
   }
   const { data, error } = await query
   if (error) {
@@ -60,7 +69,7 @@ export async function listShifts(params: { hotelId?: string; weekStart?: string 
       module: 'scheduling',
       operation: 'listShifts',
       hotelId: params.hotelId,
-      weekStart: params.weekStart,
+      rangeStart: params.rangeStart,
     })
   }
   return data?.map(mapShift) ?? []
@@ -136,15 +145,15 @@ export async function unassignStaff(assignmentId: string) {
   }
 }
 
-export function useShifts(hotelId?: string, weekStart?: string) {
+export function useShifts(hotelId?: string, rangeStart?: string, rangeEnd?: string) {
   return useQuery({
-    queryKey: ['shifts', hotelId, weekStart],
-    queryFn: () => listShifts({ hotelId, weekStart }),
+    queryKey: ['shifts', hotelId, rangeStart, rangeEnd],
+    queryFn: () => listShifts({ hotelId, rangeStart, rangeEnd }),
     enabled: Boolean(hotelId),
   })
 }
 
-export function useUpsertShift(orgId?: string, hotelId?: string, weekStart?: string) {
+export function useUpsertShift(orgId?: string, hotelId?: string, rangeStart?: string, rangeEnd?: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: { shiftDate: string; shiftType: ShiftType; startsAt: string; endsAt: string; requiredCount: number; notes?: string | null }) => {
@@ -152,12 +161,12 @@ export function useUpsertShift(orgId?: string, hotelId?: string, weekStart?: str
       return upsertShift({ orgId, hotelId, ...payload })
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['shifts', hotelId, weekStart] })
+      qc.invalidateQueries({ queryKey: ['shifts', hotelId, rangeStart, rangeEnd] })
     },
   })
 }
 
-export function useAssignStaff(orgId?: string, hotelId?: string, weekStart?: string) {
+export function useAssignStaff(orgId?: string, hotelId?: string, rangeStart?: string, rangeEnd?: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: { shiftId: string; staffMemberId: string }) => {
@@ -165,17 +174,17 @@ export function useAssignStaff(orgId?: string, hotelId?: string, weekStart?: str
       return assignStaff({ orgId, ...payload })
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['shifts', hotelId, weekStart] })
+      qc.invalidateQueries({ queryKey: ['shifts', hotelId, rangeStart, rangeEnd] })
     },
   })
 }
 
-export function useUnassignStaff(hotelId?: string, weekStart?: string) {
+export function useUnassignStaff(hotelId?: string, rangeStart?: string, rangeEnd?: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (assignmentId: string) => unassignStaff(assignmentId),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['shifts', hotelId, weekStart] })
+      qc.invalidateQueries({ queryKey: ['shifts', hotelId, rangeStart, rangeEnd] })
     },
   })
 }

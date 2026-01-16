@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Filter, LayoutGrid, MapPin, PlayCircle } fro
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useHotels } from '@/modules/events/data/events'
 import { useStaffMembers } from '@/modules/staff/data/staff'
-import { computeMissing, getWeekDays, type ShiftType } from '../domain/shifts'
+import { computeMissing, getWeekDays } from '../domain/shifts'
 import { useAssignStaff, useShifts, useUnassignStaff, useUpsertShift, type ShiftRow } from '../data/shifts'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
@@ -13,7 +13,6 @@ import { Button } from '@/modules/shared/ui/Button'
 import { Badge } from '@/modules/shared/ui/Badge'
 import { useVirtualizer } from '@tanstack/react-virtual'
 
-const shiftOrder: ShiftType[] = ['desayuno', 'bar_tarde', 'eventos', 'produccion', 'libre']
 
 function getMonday(): string {
   const today = new Date()
@@ -35,6 +34,46 @@ function formatWeekRange(weekStart: string): string {
   end.setUTCDate(end.getUTCDate() + 6)
   const formatter = new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric' })
   return `${formatter.format(start)} - ${formatter.format(end)}`
+}
+
+type ViewMode = 'day' | 'week' | 'month'
+
+function formatDayLabel(dateStr: string) {
+  const date = new Date(dateStr + 'T00:00:00Z')
+  return new Intl.DateTimeFormat('es-ES', { month: 'short', day: 'numeric' }).format(date)
+}
+
+function formatMonthLabel(dateStr: string) {
+  const date = new Date(dateStr + 'T00:00:00Z')
+  return new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(date)
+}
+
+function startOfMonth(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00Z')
+  date.setUTCDate(1)
+  return date.toISOString().slice(0, 10)
+}
+
+function endOfMonth(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00Z')
+  date.setUTCMonth(date.getUTCMonth() + 1, 0)
+  return date.toISOString().slice(0, 10)
+}
+
+function getMonthDays(dateStr: string): string[] {
+  const start = new Date(startOfMonth(dateStr) + 'T00:00:00Z')
+  const end = new Date(endOfMonth(dateStr) + 'T00:00:00Z')
+  const days: string[] = []
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+    days.push(d.toISOString().slice(0, 10))
+  }
+  return days
+}
+
+function addMonths(dateStr: string, delta: number): string {
+  const date = new Date(dateStr + 'T00:00:00Z')
+  date.setUTCMonth(date.getUTCMonth() + delta)
+  return date.toISOString().slice(0, 10)
 }
 
 function ShiftPill({
@@ -77,31 +116,72 @@ export default function SchedulingPage() {
   const formattedError = useFormattedError(error)
   const [selectedHotel, setSelectedHotel] = useState<string>('')
   const [weekStart, setWeekStart] = useState<string>(getMonday())
-  const shifts = useShifts(selectedHotel, weekStart)
+  const [viewMode, setViewMode] = useState<ViewMode>('week')
+  const rangeStart = useMemo(() => (viewMode === 'month' ? startOfMonth(weekStart) : weekStart), [viewMode, weekStart])
+  const rangeEnd = useMemo(() => {
+    if (viewMode === 'month') return endOfMonth(weekStart)
+    if (viewMode === 'day') return weekStart
+    return addDays(weekStart, 6)
+  }, [viewMode, weekStart])
+  const shifts = useShifts(selectedHotel, rangeStart, rangeEnd)
   const staff = useStaffMembers(activeOrgId ?? undefined, true)
-  useUpsertShift(activeOrgId ?? undefined, selectedHotel, weekStart)
-  useAssignStaff(activeOrgId ?? undefined, selectedHotel, weekStart)
-  useUnassignStaff(selectedHotel, weekStart)
+  useUpsertShift(activeOrgId ?? undefined, selectedHotel, rangeStart, rangeEnd)
+  useAssignStaff(activeOrgId ?? undefined, selectedHotel, rangeStart, rangeEnd)
+  useUnassignStaff(selectedHotel, rangeStart, rangeEnd)
   const shiftsError = useFormattedError(shifts.error)
-  const weekLabel = useMemo(() => formatWeekRange(weekStart), [weekStart])
+  const weekLabel = useMemo(() => {
+    if (viewMode === 'month') return formatMonthLabel(weekStart)
+    if (viewMode === 'day') return formatDayLabel(weekStart)
+    return formatWeekRange(weekStart)
+  }, [viewMode, weekStart])
 
-  const days = useMemo(() => getWeekDays(weekStart), [weekStart])
+  const handlePrev = () => {
+    setWeekStart((prev) => (viewMode === 'month' ? addMonths(prev, -1) : addDays(prev, -1)))
+  }
+
+  const handleNext = () => {
+    setWeekStart((prev) => (viewMode === 'month' ? addMonths(prev, 1) : addDays(prev, 1)))
+  }
+
+  const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart])
+  const displayDays = useMemo(() => {
+    if (viewMode === 'month') return getMonthDays(weekStart)
+    if (viewMode === 'day') return [weekStart]
+    return weekDays
+  }, [viewMode, weekStart, weekDays])
+  const gridTemplateColumns = useMemo(() => {
+    const minWidth = viewMode === 'month' ? '70px' : '120px'
+    return `220px repeat(${displayDays.length}, minmax(${minWidth}, 1fr))`
+  }, [displayDays.length, viewMode])
   const hotelOptions = hotels.data ?? []
 
-  const shiftsByKey = useMemo(() => {
-    const map = new Map<string, ShiftRow>()
+  const shiftsByDay = useMemo(() => {
+    const map = new Map<string, ShiftRow[]>()
     shifts.data?.forEach((s) => {
-      map.set(`${s.shiftDate}-${s.shiftType}`, s)
+      const list = map.get(s.shiftDate) ?? []
+      list.push(s)
+      map.set(s.shiftDate, list)
+    })
+    return map
+  }, [shifts.data])
+  const missingByDay = useMemo(() => {
+    const map = new Map<string, number>()
+    shifts.data?.forEach((s) => {
+      const missing = computeMissing(s.requiredCount, s.assignments.length)
+      if (missing > 0) {
+        map.set(s.shiftDate, (map.get(s.shiftDate) ?? 0) + missing)
+      }
     })
     return map
   }, [shifts.data])
   const staffCount = staff.data?.length ?? 0
   const gridRef = useRef<HTMLDivElement>(null)
+  const rowSize = viewMode === 'month' ? 96 : 132
   // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: staffCount,
     getScrollElement: () => gridRef.current,
-    estimateSize: () => 132,
+    estimateSize: () => rowSize,
     overscan: 6,
   })
   const virtualRows = virtualizer.getVirtualItems()
@@ -132,7 +212,7 @@ export default function SchedulingPage() {
               variant="ghost"
               className="p-1 text-muted-foreground"
               aria-label="Previous day"
-              onClick={() => setWeekStart((prev) => addDays(prev, -1))}
+              onClick={handlePrev}
             >
               <ChevronLeft size={16} />
             </Button>
@@ -142,7 +222,7 @@ export default function SchedulingPage() {
               variant="ghost"
               className="p-1 text-muted-foreground"
               aria-label="Next day"
-              onClick={() => setWeekStart((prev) => addDays(prev, 1))}
+              onClick={handleNext}
             >
               <ChevronRight size={16} />
             </Button>
@@ -184,14 +264,14 @@ export default function SchedulingPage() {
             </select>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <Button size="sm" variant="secondary">Day</Button>
-            <Button size="sm" variant="primary">Week</Button>
-            <Button size="sm" variant="secondary">Month</Button>
+            <Button size="sm" variant={viewMode === 'day' ? 'primary' : 'secondary'} onClick={() => setViewMode('day')}>Day</Button>
+            <Button size="sm" variant={viewMode === 'week' ? 'primary' : 'secondary'} onClick={() => setViewMode('week')}>Week</Button>
+            <Button size="sm" variant={viewMode === 'month' ? 'primary' : 'secondary'} onClick={() => setViewMode('month')}>Month</Button>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-2 font-semibold text-foreground">
-            <span>Week</span>
+            <span>{viewMode === 'month' ? 'Mes' : viewMode === 'day' ? 'DÌa' : 'Week'}</span>
             <Badge variant="info">{weekLabel}</Badge>
             <span>Role: All</span>
           </div>
@@ -221,12 +301,21 @@ export default function SchedulingPage() {
       ) : shifts.isError ? (
         <ErrorBanner title="Error al cargar turnos" message={shiftsError} onRetry={() => shifts.refetch()} />
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-border/25 bg-surface/80 shadow-[0_24px_60px_rgba(3,7,18,0.45)]">
-          <div className="grid grid-cols-[220px_repeat(7,1fr)] gap-2 border-b border-white/10 px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="overflow-x-auto rounded-3xl border border-border/25 bg-surface/80 shadow-[0_24px_60px_rgba(3,7,18,0.45)]">
+          <div
+            className="grid gap-2 border-b border-white/10 px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            style={{ gridTemplateColumns }}
+          >
             <span>Staff</span>
-            {days.map((day) => (
-              <span key={day}>{new Date(day).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })}</span>
-            ))}
+            {displayDays.map((day) => {
+              const missing = missingByDay.get(day) ?? 0
+              return (
+                <div key={day} className="flex flex-col gap-1">
+                  <span>{formatDayLabel(day)}</span>
+                  {missing > 0 && <span className="text-[10px] text-warning">Faltan {missing}</span>}
+                </div>
+              )
+            })}
           </div>
           {staffCount === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground">Sin personal activo en esta sucursal.</div>
@@ -242,7 +331,10 @@ export default function SchedulingPage() {
                       className="absolute left-0 right-0 px-5 py-3"
                       style={{ transform: `translateY(${virtualRow.start}px)` }}
                     >
-                      <div className="grid grid-cols-[220px_repeat(7,1fr)] gap-3 rounded-3xl border border-white/10 bg-white/5 p-3 shadow-[0_10px_30px_rgba(3,7,18,0.35)]">
+                      <div
+                        className="grid gap-3 rounded-3xl border border-white/10 bg-white/5 p-3 shadow-[0_10px_30px_rgba(3,7,18,0.35)]"
+                        style={{ gridTemplateColumns }}
+                      >
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-full bg-white/10" />
                           <div>
@@ -250,26 +342,32 @@ export default function SchedulingPage() {
                             <p className="text-xs text-muted-foreground">{member.role}</p>
                           </div>
                         </div>
-                        {days.map((day) => {
-                          const shift = shiftsByKey.get(`${day}-${shiftOrder[0]}`)
-                          const missing = shift ? computeMissing(shift.requiredCount, shift.assignments.length) : 0
-                          const overtime = shift ? shift.assignments.length > shift.requiredCount : false
+                        {displayDays.map((day) => {
+                          const shiftsForDay = shiftsByDay.get(day) ?? []
+                          const assigned = shiftsForDay.filter((s) =>
+                            s.assignments.some((a) => a.staffMemberId === member.id),
+                          )
                           return (
                             <div key={`${member.id}-${day}`} className="min-h-[90px]">
-                              {shift ? (
+                              {viewMode === 'month' ? (
+                                assigned.length ? (
+                                  <div className="flex h-full items-center justify-center">
+                                    <Badge variant="neutral">{assigned.length}</Badge>
+                                  </div>
+                                ) : (
+                                  <div className="flex h-full items-center justify-center text-[11px] text-muted-foreground">-</div>
+                                )
+                              ) : assigned.length ? (
                                 <div className="space-y-2">
-                                  <ShiftPill
-                                    staffName={member.fullName}
-                                    role={shift.shiftType}
-                                    starts={shift.startsAt}
-                                    ends={shift.endsAt}
-                                    status={missing > 0 ? 'under' : overtime ? 'overtime' : undefined}
-                                  />
-                                  {missing > 0 && (
-                                    <p className="text-[11px] text-warning font-semibold">
-                                      Understaffed: {missing} m√°s
-                                    </p>
-                                  )}
+                                  {assigned.map((shift) => (
+                                    <ShiftPill
+                                      key={shift.id}
+                                      staffName={member.fullName}
+                                      role={shift.shiftType}
+                                      starts={shift.startsAt}
+                                      ends={shift.endsAt}
+                                    />
+                                  ))}
                                 </div>
                               ) : (
                                 <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5 px-3 py-4 text-[11px] text-muted-foreground">

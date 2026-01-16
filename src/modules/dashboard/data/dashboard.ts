@@ -66,6 +66,16 @@ export type DashboardDeadline = {
   reminderActive: boolean
 }
 
+export type DashboardShift = {
+  id: string
+  shiftDate: string
+  shiftType: string
+  startsAt: string
+  endsAt: string
+  requiredCount: number
+  assignments: { staffMemberId: string; staffName: string }[]
+}
+
 function toIsoDate(date: Date) {
   return date.toISOString().slice(0, 10)
 }
@@ -336,6 +346,45 @@ async function fetchDashboardBriefing(
   )
 }
 
+async function fetchDashboardStaffShifts(
+  orgId: string,
+  hotelId: string,
+  day: string,
+): Promise<DashboardShift[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('shifts')
+    .select('id,shift_date,shift_type,starts_at,ends_at,required_count, staff_assignments(staff_member_id, staff_members(full_name))')
+    .eq('org_id', orgId)
+    .eq('hotel_id', hotelId)
+    .eq('shift_date', day)
+    .order('shift_type', { ascending: true })
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'dashboard',
+      operation: 'fetchDashboardStaffShifts',
+      orgId,
+      hotelId,
+      day,
+    })
+  }
+  return (
+    (data as any[] | null)?.map((row) => ({
+      id: row.id,
+      shiftDate: row.shift_date,
+      shiftType: row.shift_type,
+      startsAt: row.starts_at,
+      endsAt: row.ends_at,
+      requiredCount: Number(row.required_count ?? 0),
+      assignments:
+        row.staff_assignments?.map((a: any) => ({
+          staffMemberId: a.staff_member_id,
+          staffName: a.staff_members?.full_name ?? a.staff_member_id,
+        })) ?? [],
+    })) ?? []
+  )
+}
+
 export type OrderToDeliver = {
   id: string
   orderNumber: string
@@ -558,6 +607,14 @@ export function useDashboardBriefing(orgId?: string, hotelId?: string, rangeStar
     queryKey: ['dashboard', 'briefing', orgId, hotelId, rangeStart],
     queryFn: () => fetchDashboardBriefing(orgId ?? '', hotelId ?? '', rangeStart ?? toIsoDate(new Date())),
     enabled: Boolean(orgId && hotelId && rangeStart),
+  })
+}
+
+export function useDashboardStaffShifts(orgId?: string, hotelId?: string, day?: string) {
+  return useQuery({
+    queryKey: ['dashboard', 'staffShifts', orgId, hotelId, day],
+    queryFn: () => fetchDashboardStaffShifts(orgId ?? '', hotelId ?? '', day ?? toIsoDate(new Date())),
+    enabled: Boolean(orgId && hotelId && day),
   })
 }
 

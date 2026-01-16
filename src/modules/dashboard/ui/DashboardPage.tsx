@@ -7,6 +7,7 @@ import {
   useDashboardHighlights,
   useDashboardPurchaseMetrics,
   useDashboardRollingGrid,
+  useDashboardStaffShifts,
   useOrdersToDeliver,
   useStaffAvailability,
   useWeekEvents,
@@ -121,6 +122,7 @@ export default function DashboardPage() {
   const rollingGrid = useDashboardRollingGrid(activeOrgId ?? undefined, resolvedHotelId, rangeStart)
   const highlights = useDashboardHighlights(activeOrgId ?? undefined, resolvedHotelId, rangeStart)
   const briefing = useDashboardBriefing(activeOrgId ?? undefined, resolvedHotelId, rangeStart)
+  const staffShifts = useDashboardStaffShifts(activeOrgId ?? undefined, resolvedHotelId, rangeStart)
 
   const totalEvents = useMemo(
     () => weekEvents.data?.reduce((acc, day) => acc + (day.events?.length ?? 0), 0) ?? 0,
@@ -446,6 +448,45 @@ export default function DashboardPage() {
                       <Badge variant={item.reminderActive ? 'warning' : 'neutral'}>{item.productType}</Badge>
                     </div>
                   ))}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-surface/70 border border-border/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-foreground">Horario de personal (hoy)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {staffShifts.isLoading && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Spinner />
+                  <span>Cargando turnos...</span>
+                </div>
+              )}
+              {!staffShifts.isLoading && (staffShifts.data?.length ?? 0) === 0 && (
+                <p className="text-sm text-muted-foreground">Sin turnos cargados para hoy.</p>
+              )}
+              {staffShifts.data?.map((shift) => (
+                <div key={shift.id} className="rounded-xl border border-border/20 bg-surface/60 p-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-foreground">{shift.shiftType}</span>
+                    <span className="text-muted-foreground">{shift.startsAt} - {shift.endsAt}</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    {shift.assignments.length}/{shift.requiredCount} asignados
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1 text-[11px] text-muted-foreground">
+                    {shift.assignments.length ? (
+                      shift.assignments.map((a) => (
+                        <span key={a.staffMemberId} className="rounded-full bg-white/5 px-2 py-1">
+                          {a.staffName}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-warning">Sin asignaciones</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </CardContent>
