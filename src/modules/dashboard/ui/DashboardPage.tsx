@@ -3,7 +3,10 @@ import { Activity, AlertTriangle, Building2, CalendarRange, PackageSearch, Trend
 import { useHotels } from '@/modules/events/data/events'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import {
+  useDashboardBriefing,
+  useDashboardHighlights,
   useDashboardPurchaseMetrics,
+  useDashboardRollingGrid,
   useOrdersToDeliver,
   useStaffAvailability,
   useWeekEvents,
@@ -14,11 +17,15 @@ import { Badge } from '@/modules/shared/ui/Badge'
 
 const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-function isoWeekStart(date = new Date()) {
+function isoRangeStart(date = new Date()) {
   const d = new Date(date)
-  const day = d.getDay() || 7
-  if (day !== 1) d.setHours(-24 * (day - 1))
   d.setHours(0, 0, 0, 0)
+  return d.toISOString().slice(0, 10)
+}
+
+function shiftIsoDate(base: string, offsetDays: number) {
+  const d = new Date(`${base}T00:00:00`)
+  d.setUTCDate(d.getUTCDate() + offsetDays)
   return d.toISOString().slice(0, 10)
 }
 
@@ -103,14 +110,17 @@ export default function DashboardPage() {
   const { activeOrgId, loading: orgLoading, memberships, setOrg } = useActiveOrgId()
   const hotels = useHotels()
   const [hotelId, setHotelId] = useState<string | undefined>(undefined)
-  const [weekStart, setWeekStart] = useState<string>(isoWeekStart())
+  const [rangeStart, setRangeStart] = useState<string>(isoRangeStart())
   const resolvedHotelId = hotelId ?? hotels.data?.[0]?.id
 
 
-  const weekEvents = useWeekEvents(resolvedHotelId, weekStart)
-  const ordersToDeliver = useOrdersToDeliver(activeOrgId ?? undefined, weekStart, 'all')
-  const availability = useStaffAvailability(resolvedHotelId, weekStart)
-  const purchaseMetrics = useDashboardPurchaseMetrics(activeOrgId ?? undefined, resolvedHotelId, weekStart)
+  const weekEvents = useWeekEvents(resolvedHotelId, rangeStart)
+  const ordersToDeliver = useOrdersToDeliver(activeOrgId ?? undefined, rangeStart, 'all')
+  const availability = useStaffAvailability(resolvedHotelId, rangeStart)
+  const purchaseMetrics = useDashboardPurchaseMetrics(activeOrgId ?? undefined, resolvedHotelId, rangeStart)
+  const rollingGrid = useDashboardRollingGrid(activeOrgId ?? undefined, resolvedHotelId, rangeStart)
+  const highlights = useDashboardHighlights(activeOrgId ?? undefined, resolvedHotelId, rangeStart)
+  const briefing = useDashboardBriefing(activeOrgId ?? undefined, resolvedHotelId, rangeStart)
 
   const totalEvents = useMemo(
     () => weekEvents.data?.reduce((acc, day) => acc + (day.events?.length ?? 0), 0) ?? 0,
@@ -129,6 +139,48 @@ export default function DashboardPage() {
 
   const productionPercent = availability.data?.percent ?? 85
   const urgentAlerts = Math.max(ordersToDeliver.data?.length ?? 0, 0)
+
+  const rollingDays = rollingGrid.data ?? []
+  const gridDays = useMemo(() => {
+    if (rollingDays.length) return rollingDays
+    return Array.from({ length: 7 }, (_, idx) => ({
+      day: shiftIsoDate(rangeStart, idx),
+      eventsCount: 0,
+      purchasePending: 0,
+      purchaseOrdered: 0,
+      purchaseReceived: 0,
+      productionDraft: 0,
+      productionInProgress: 0,
+      productionDone: 0,
+      staffRequired: 0,
+      staffAssigned: 0,
+    }))
+  }, [rollingDays, rangeStart])
+
+  const staffTotals = useMemo(() => {
+    const base = gridDays.reduce(
+      (acc, day) => {
+        acc.required += day.staffRequired
+        acc.assigned += day.staffAssigned
+        return acc
+      },
+      { required: 0, assigned: 0 },
+    )
+    const percent = base.required > 0 ? (base.assigned / base.required) * 100 : 100
+    return { ...base, percent }
+  }, [gridDays])
+
+  const highlightItems = highlights.data ?? []
+  const briefingItems = briefing.data ?? []
+  const briefingByDay = useMemo(() => {
+    const map = new Map<string, typeof briefingItems>()
+    briefingItems.forEach((item) => {
+      const key = item.deadlineDay
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(item)
+    })
+    return map
+  }, [briefingItems])
 
   const chartData = [
     { planned: 100, actual: 90 },
@@ -227,12 +279,26 @@ export default function DashboardPage() {
           )}
           <div className="flex items-center gap-2 rounded-full border border-border/30 bg-surface/60 px-3 py-1 text-xs text-muted-foreground">
             <CalendarRange size={14} />
+            <button
+              type="button"
+              onClick={() => setRangeStart(shiftIsoDate(rangeStart, -1))}
+              className="rounded-full border border-border/30 px-2 py-0.5 text-[11px] text-muted-foreground"
+            >
+              -1
+            </button>
             <input
               type="date"
-              value={weekStart}
-              onChange={(e) => setWeekStart(isoWeekStart(new Date(e.target.value)))}
+              value={rangeStart}
+              onChange={(e) => setRangeStart(isoRangeStart(new Date(e.target.value)))}
               className="bg-transparent text-foreground outline-none"
             />
+            <button
+              type="button"
+              onClick={() => setRangeStart(shiftIsoDate(rangeStart, 1))}
+              className="rounded-full border border-border/30 px-2 py-0.5 text-[11px] text-muted-foreground"
+            >
+              +1
+            </button>
           </div>
         </div>
       </header>
@@ -246,7 +312,7 @@ export default function DashboardPage() {
           detail={`${confirmedMenus} men˙s confirmados`}
         />
         <StatCard
-          title="Active Events (week)"
+          title="Active Events (7d)"
           value={`${totalEvents}`}
           icon={<TrendingUp size={18} />}
           accent="success"
@@ -275,10 +341,122 @@ export default function DashboardPage() {
         />
       </section>
 
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr,1fr]">
+        <Card className="bg-surface/70 border border-border/20">
+          <CardHeader className="flex flex-col gap-2 pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-foreground">Horizonte 7 dias (rolling)</CardTitle>
+              <Badge variant="neutral">{gridDays.length} dias</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">Staff coverage {Math.round(staffTotals.percent)}% ({staffTotals.assigned}/{staffTotals.required})</p>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <div className="grid grid-cols-[140px_repeat(7,minmax(0,1fr))] gap-2 text-xs">
+              <div />
+              {gridDays.map((day) => (
+                <div key={day.day} className="text-center text-muted-foreground">{day.day.slice(5)}</div>
+              ))}
+
+              <div className="text-muted-foreground">Eventos</div>
+              {gridDays.map((day) => (
+                <div key={`${day.day}-events`} className="flex justify-center">
+                  <Badge variant="neutral">{day.eventsCount}</Badge>
+                </div>
+              ))}
+
+              <div className="text-muted-foreground">Compras</div>
+              {gridDays.map((day) => (
+                <div key={`${day.day}-purchases`} className="flex items-center justify-center gap-1">
+                  <span className="text-[11px] text-warning">{day.purchasePending}</span>
+                  <span className="text-[11px] text-brand-500">{day.purchaseOrdered}</span>
+                  <span className="text-[11px] text-success">{day.purchaseReceived}</span>
+                </div>
+              ))}
+
+              <div className="text-muted-foreground">Produccion</div>
+              {gridDays.map((day) => (
+                <div key={`${day.day}-production`} className="flex items-center justify-center gap-1">
+                  <span className="text-[11px] text-muted-foreground">{day.productionDraft}</span>
+                  <span className="text-[11px] text-warning">{day.productionInProgress}</span>
+                  <span className="text-[11px] text-success">{day.productionDone}</span>
+                </div>
+              ))}
+
+              <div className="text-muted-foreground">Staff</div>
+              {gridDays.map((day) => (
+                <div key={`${day.day}-staff`} className="text-center text-[11px] text-muted-foreground">
+                  {day.staffAssigned}/{day.staffRequired}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Card className="bg-surface/70 border border-border/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-foreground">Highlights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {highlights.isLoading && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Spinner />
+                  <span>Cargando highlights...</span>
+                </div>
+              )}
+              {!highlights.isLoading && highlightItems.length === 0 && (
+                <p className="text-sm text-muted-foreground">Sin eventos destacados en el horizonte.</p>
+              )}
+              {highlightItems.map((item) => (
+                <div key={item.eventId} className="rounded-xl border border-border/20 bg-surface/60 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                    <Badge variant="neutral">{item.status}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{item.startsAt?.slice(0, 10)} ∑ Pax {item.paxTotal} ∑ Servicios {item.servicesCount}</p>
+                  <p className="text-[11px] text-muted-foreground">Produccion: {item.productionStatus ?? 'n/a'}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-surface/70 border border-border/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-foreground">Briefing 7 dias</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {briefing.isLoading && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Spinner />
+                  <span>Cargando briefing...</span>
+                </div>
+              )}
+              {!briefing.isLoading && briefingByDay.size === 0 && (
+                <p className="text-sm text-muted-foreground">Sin deadlines en los proximos 7 dias.</p>
+              )}
+              {Array.from(briefingByDay.entries()).map(([day, items]) => (
+                <div key={day} className="space-y-2">
+                  <p className="text-xs font-semibold text-foreground">{day}</p>
+                  {items.map((item) => (
+                    <div key={item.eventPurchaseOrderId} className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex flex-col">
+                        <span className="text-muted-foreground">{item.orderNumber} ∑ {item.supplierName}</span>
+                        <span className="text-[11px] text-muted-foreground">{item.eventTitle}</span>
+                      </div>
+                      <Badge variant={item.reminderActive ? 'warning' : 'neutral'}>{item.productType}</Badge>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2 bg-surface/70 border border-border/20">
           <CardHeader className="flex flex-col gap-2 pb-2">
-            <CardTitle className="text-xl text-foreground">Daily Production Overview - Last 7 Days</CardTitle>
+            <CardTitle className="text-xl text-foreground">Rolling Production Overview</CardTitle>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-brand-500" />
@@ -340,13 +518,13 @@ export default function DashboardPage() {
       )}
       {!weekEvents.isLoading && (weekEvents.data?.length ?? 0) === 0 && (
         <div className="rounded-xl border border-border/20 bg-surface/60 p-4 text-sm text-muted-foreground">
-          No hay datos de eventos para esta semana.
+          No hay datos de eventos para este horizonte.
         </div>
       )}
       {!weekEvents.isLoading && (weekEvents.data?.length ?? 0) > 0 && (
         <Card className="border border-border/20 bg-surface/70">
           <CardHeader className="flex items-center justify-between">
-            <CardTitle className="text-lg text-foreground">Eventos de la semana</CardTitle>
+            <CardTitle className="text-lg text-foreground">Eventos 7 dias</CardTitle>
             <Badge variant="neutral">{weekEvents.data?.length} d√≠as</Badge>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">

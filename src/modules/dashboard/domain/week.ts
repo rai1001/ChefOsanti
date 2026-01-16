@@ -35,3 +35,17 @@ export function endOfWeek(weekStart: Date | string, timeZone: string = DEFAULT_T
   end.setUTCHours(23, 59, 59, 999)
   return end
 }
+
+export function startOfRange(dateInput: Date | string = new Date(), timeZone: string = DEFAULT_TZ) {
+  const start = toZonedDate(dateInput, timeZone)
+  start.setUTCHours(0, 0, 0, 0)
+  return start
+}
+
+export function endOfRange(dateInput: Date | string, days: number = 7, timeZone: string = DEFAULT_TZ) {
+  const start = startOfRange(dateInput, timeZone)
+  const end = new Date(start)
+  end.setUTCDate(start.getUTCDate() + Math.max(days - 1, 0))
+  end.setUTCHours(23, 59, 59, 999)
+  return end
+}

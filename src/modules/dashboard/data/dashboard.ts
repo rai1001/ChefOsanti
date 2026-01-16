@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
-import { endOfWeek, startOfWeek } from '../domain/week'
+import { endOfRange, startOfRange } from '../domain/week'
 
 export type WeekEvent = {
   id: string
@@ -29,14 +29,51 @@ export type DashboardPurchaseMetrics = {
   receivedValue: number
 }
 
+export type DashboardRollingDay = {
+  day: string
+  eventsCount: number
+  purchasePending: number
+  purchaseOrdered: number
+  purchaseReceived: number
+  productionDraft: number
+  productionInProgress: number
+  productionDone: number
+  staffRequired: number
+  staffAssigned: number
+}
+
+export type DashboardEventHighlight = {
+  eventId: string
+  title: string
+  startsAt: string | null
+  status: string
+  paxTotal: number
+  servicesCount: number
+  productionStatus?: string | null
+}
+
+export type DashboardDeadline = {
+  deadlineDay: string
+  eventPurchaseOrderId: string
+  orderNumber: string
+  status: string
+  productType: string
+  supplierName: string
+  eventTitle: string
+  leadTimeDays: number
+  orderDeadlineAt: string
+  reminderEndAt: string
+  reminderActive: boolean
+}
+
 function toIsoDate(date: Date) {
   return date.toISOString().slice(0, 10)
 }
 
 async function fetchWeekEvents(hotelId: string, weekStart: string): Promise<WeekEventsByDay> {
   const supabase = getSupabaseClient()
-  const start = startOfWeek(weekStart)
-  const end = endOfWeek(weekStart)
+  const start = startOfRange(weekStart)
+  const end = endOfRange(weekStart, 7)
   const { data, error } = await supabase
     .from('events')
     .select('*, event_services (*), space_bookings (*, spaces (name))')
@@ -103,8 +140,8 @@ export type StaffAvailability = {
 
 async function fetchOrdersSummary(orgId: string, weekStart: string): Promise<OrdersSummary> {
   const supabase = getSupabaseClient()
-  const start = startOfWeek(weekStart).toISOString()
-  const end = endOfWeek(weekStart).toISOString()
+  const start = startOfRange(weekStart).toISOString()
+  const end = endOfRange(weekStart, 7).toISOString()
   const [purchase, eventOrders] = await Promise.all([
     supabase
       .from('purchase_orders')
@@ -190,6 +227,115 @@ async function fetchDashboardPurchaseMetrics(
   }
 }
 
+async function fetchDashboardRollingGrid(
+  orgId: string,
+  hotelId: string,
+  rangeStart: string,
+): Promise<DashboardRollingDay[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.rpc('dashboard_rolling_grid', {
+    p_org_id: orgId,
+    p_hotel_id: hotelId,
+    p_start: rangeStart,
+    p_days: 7,
+  })
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'dashboard',
+      operation: 'fetchDashboardRollingGrid',
+      orgId,
+      hotelId,
+      rangeStart,
+    })
+  }
+  return (
+    (data as any[] | null)?.map((row) => ({
+      day: row.day,
+      eventsCount: Number(row.events_count ?? 0),
+      purchasePending: Number(row.purchase_pending ?? 0),
+      purchaseOrdered: Number(row.purchase_ordered ?? 0),
+      purchaseReceived: Number(row.purchase_received ?? 0),
+      productionDraft: Number(row.production_draft ?? 0),
+      productionInProgress: Number(row.production_in_progress ?? 0),
+      productionDone: Number(row.production_done ?? 0),
+      staffRequired: Number(row.staff_required ?? 0),
+      staffAssigned: Number(row.staff_assigned ?? 0),
+    })) ?? []
+  )
+}
+
+async function fetchDashboardHighlights(
+  orgId: string,
+  hotelId: string,
+  rangeStart: string,
+): Promise<DashboardEventHighlight[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.rpc('dashboard_event_highlights', {
+    p_org_id: orgId,
+    p_hotel_id: hotelId,
+    p_start: rangeStart,
+    p_days: 7,
+  })
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'dashboard',
+      operation: 'fetchDashboardHighlights',
+      orgId,
+      hotelId,
+      rangeStart,
+    })
+  }
+  return (
+    (data as any[] | null)?.map((row) => ({
+      eventId: row.event_id,
+      title: row.title,
+      startsAt: row.starts_at,
+      status: row.status,
+      paxTotal: Number(row.pax_total ?? 0),
+      servicesCount: Number(row.services_count ?? 0),
+      productionStatus: row.production_status ?? null,
+    })) ?? []
+  )
+}
+
+async function fetchDashboardBriefing(
+  orgId: string,
+  hotelId: string,
+  rangeStart: string,
+): Promise<DashboardDeadline[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.rpc('dashboard_briefing', {
+    p_org_id: orgId,
+    p_hotel_id: hotelId,
+    p_start: rangeStart,
+    p_days: 7,
+  })
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'dashboard',
+      operation: 'fetchDashboardBriefing',
+      orgId,
+      hotelId,
+      rangeStart,
+    })
+  }
+  return (
+    (data as any[] | null)?.map((row) => ({
+      deadlineDay: row.deadline_day,
+      eventPurchaseOrderId: row.event_purchase_order_id,
+      orderNumber: row.order_number,
+      status: row.status,
+      productType: row.product_type,
+      supplierName: row.supplier_name,
+      eventTitle: row.event_title,
+      leadTimeDays: Number(row.lead_time_days ?? 0),
+      orderDeadlineAt: row.order_deadline_at,
+      reminderEndAt: row.reminder_end_at,
+      reminderActive: Boolean(row.reminder_active),
+    })) ?? []
+  )
+}
+
 export type OrderToDeliver = {
   id: string
   orderNumber: string
@@ -200,8 +346,8 @@ export type OrderToDeliver = {
 
 async function fetchOrdersToDeliver(orgId: string, weekStart: string, scope: 'week' | 'all') {
   const supabase = getSupabaseClient()
-  const start = startOfWeek(weekStart).toISOString()
-  const end = endOfWeek(weekStart).toISOString()
+  const start = startOfRange(weekStart).toISOString()
+  const end = endOfRange(weekStart, 7).toISOString()
   const purchaseQuery = supabase
     .from('purchase_orders')
     .select('id,order_number,status,created_at')
@@ -388,6 +534,30 @@ export function useDashboardPurchaseMetrics(orgId?: string, hotelId?: string, da
     queryKey: ['dashboard', 'purchaseMetrics', orgId, hotelId, day],
     queryFn: () => fetchDashboardPurchaseMetrics(orgId ?? '', hotelId ?? '', day ?? toIsoDate(new Date())),
     enabled: Boolean(orgId && hotelId && day),
+  })
+}
+
+export function useDashboardRollingGrid(orgId?: string, hotelId?: string, rangeStart?: string) {
+  return useQuery({
+    queryKey: ['dashboard', 'rollingGrid', orgId, hotelId, rangeStart],
+    queryFn: () => fetchDashboardRollingGrid(orgId ?? '', hotelId ?? '', rangeStart ?? toIsoDate(new Date())),
+    enabled: Boolean(orgId && hotelId && rangeStart),
+  })
+}
+
+export function useDashboardHighlights(orgId?: string, hotelId?: string, rangeStart?: string) {
+  return useQuery({
+    queryKey: ['dashboard', 'highlights', orgId, hotelId, rangeStart],
+    queryFn: () => fetchDashboardHighlights(orgId ?? '', hotelId ?? '', rangeStart ?? toIsoDate(new Date())),
+    enabled: Boolean(orgId && hotelId && rangeStart),
+  })
+}
+
+export function useDashboardBriefing(orgId?: string, hotelId?: string, rangeStart?: string) {
+  return useQuery({
+    queryKey: ['dashboard', 'briefing', orgId, hotelId, rangeStart],
+    queryFn: () => fetchDashboardBriefing(orgId ?? '', hotelId ?? '', rangeStart ?? toIsoDate(new Date())),
+    enabled: Boolean(orgId && hotelId && rangeStart),
   })
 }
 
