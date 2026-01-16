@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useProducts } from '../data/products'
-import { useAddRecipeLine, useRecipe, useRemoveRecipeLine, useRecipeCostBreakdown, useRecipeCostSummary } from '../data/recipes'
-import { computeRecipeNeeds } from '../domain/recipes'
+import { useAddRecipeLine, useRecipe, useRemoveRecipeLine, useRecipeCostBreakdown, useRecipeCostSummary, useRecipeMiseEnPlace } from '../data/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
@@ -27,25 +26,20 @@ export default function RecipeDetailPage() {
   const [productId, setProductId] = useState<string>('')
   const [qty, setQty] = useState<number>(0)
   const [unit, setUnit] = useState<'kg' | 'ud'>('ud')
-  const [servingsTarget, setServingsTarget] = useState<number>(0)
+  const [miseMode, setMiseMode] = useState<'servings' | 'packs'>('servings')
+  const [miseQty, setMiseQty] = useState<number>(0)
 
-  const linesScaled = useMemo(() => {
-    if (!recipe.data || servingsTarget <= 0) return []
-    try {
-      return computeRecipeNeeds(
-        recipe.data.lines.map((l) => ({
-          productId: l.productId,
-          qty: l.qty,
-          unit: l.unit,
-          productBaseUnit: l.productBaseUnit,
-        })),
-        servingsTarget,
-        recipe.data.defaultServings,
-      )
-    } catch (_e) {
-      return []
-    }
-  }, [recipe.data, servingsTarget])
+  const miseParams = useMemo(() => {
+    if (miseQty <= 0) return undefined
+    return miseMode === 'servings' ? { servings: miseQty } : { packs: miseQty }
+  }, [miseMode, miseQty])
+  const mise = useRecipeMiseEnPlace(id, miseParams)
+  const effectiveServings =
+    miseMode === 'packs' && recipe.data && miseQty > 0
+      ? Math.round(recipe.data.defaultServings * miseQty)
+      : miseMode === 'servings'
+        ? miseQty
+        : 0
 
   if (loading) return <p className="p-4 text-sm text-slate-400">Cargando organización...</p>
   if (error || !activeOrgId) {
@@ -266,30 +260,50 @@ export default function RecipeDetailPage() {
       </div>
 
       <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
-        <h3 className="text-sm font-semibold text-white">Calcular raciones</h3>
-        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+        <h3 className="text-sm font-semibold text-white">Mise en place</h3>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <label className="flex items-center gap-2 text-sm text-slate-300">
-            Raciones objetivo:
+            Modo:
+            <select
+              className="rounded-md border border-white/10 bg-nano-navy-900 px-2 py-1 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
+              value={miseMode}
+              onChange={(e) => setMiseMode(e.target.value as 'servings' | 'packs')}
+            >
+              <option value="servings">Raciones</option>
+              <option value="packs">Packs</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            {miseMode === 'servings' ? 'Raciones objetivo:' : 'Packs objetivo:'}
             <input
               type="number"
               className="rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors w-24"
-              value={servingsTarget}
-              onChange={(e) => setServingsTarget(Number(e.target.value) || 0)}
+              value={miseQty}
+              onChange={(e) => setMiseQty(Number(e.target.value) || 0)}
             />
           </label>
+          {miseMode === 'packs' && recipe.data && miseQty > 0 && (
+            <span className="text-xs text-slate-400">Total raciones: {effectiveServings}</span>
+          )}
         </div>
         <div className="mt-3 divide-y divide-white/10">
-          {linesScaled.length ? (
-            linesScaled.map((l, idx) => (
+          {mise.isLoading ? (
+            <p className="text-sm text-slate-400">Calculando mise en place...</p>
+          ) : mise.isError ? (
+            <p className="text-sm text-red-400">No se pudo calcular la mise en place.</p>
+          ) : mise.data && mise.data.length ? (
+            mise.data.map((l, idx) => (
               <div key={idx} className="flex items-center justify-between py-2 text-sm">
-                <span className="text-slate-200">{products.data?.find((p) => p.id === l.productId)?.name ?? l.productId}</span>
+                <span className="text-slate-200">{l.productName ?? l.productId}</span>
                 <span className="text-slate-400 font-mono">
                   {l.qty.toFixed(2)} {l.unit}
                 </span>
               </div>
             ))
           ) : (
-            <p className="text-sm text-slate-400 italic">Introduce raciones objetivo para ver cantidades.</p>
+            <p className="text-sm text-slate-400 italic">
+              Define raciones o packs para ver cantidades.
+            </p>
           )}
         </div>
       </div>

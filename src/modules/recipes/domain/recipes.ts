@@ -1,5 +1,7 @@
 export type ProductType = 'fresh' | 'pasteurized' | 'frozen'
 
+export type RecipeCategory = 'bases' | 'salsas' | 'platos' | 'quinta_gama'
+
 export type Product = {
   id: string
   name: string
@@ -11,6 +13,7 @@ export type Product = {
 export type Recipe = {
   id: string
   name: string
+  category?: RecipeCategory | null
   defaultServings: number
 }
 

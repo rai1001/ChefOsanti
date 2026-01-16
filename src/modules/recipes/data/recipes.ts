@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
-import type { Recipe, RecipeLine, Product } from '../domain/recipes'
+import type { Recipe, RecipeLine, Product, RecipeCategory } from '../domain/recipes'
 
-export type RecipeWithLines = Recipe & { category?: string | null; notes?: string | null; lines: (RecipeLine & { productName?: string })[] }
+export type RecipeWithLines = Recipe & { notes?: string | null; lines: (RecipeLine & { productName?: string })[] }
 
 export type RecipeCostLine = {
   lineId: string
@@ -53,6 +53,13 @@ type RecipeCostSummaryRow = {
   unit_mismatches: number
 }
 
+export type RecipeMiseEnPlaceRow = {
+  productId: string
+  productName: string
+  qty: number
+  unit: 'kg' | 'ud'
+}
+
 function mapProduct(row: any): Product & { cost: number } {
   return {
     id: row.id,
@@ -66,6 +73,7 @@ function mapRecipe(row: any): Recipe {
   return {
     id: row.id,
     name: row.name,
+    category: row.category ?? null,
     defaultServings: row.default_servings,
   }
 }
@@ -81,16 +89,23 @@ function mapLine(row: any): RecipeLine & { productName?: string } {
   }
 }
 
-export async function listRecipes(orgId?: string): Promise<Recipe[]> {
+export async function listRecipes(params: {
+  orgId?: string
+  search?: string
+  category?: RecipeCategory | null
+}): Promise<Recipe[]> {
   const supabase = getSupabaseClient()
   let query = supabase.from('recipes').select('*').order('created_at', { ascending: false })
-  if (orgId) query = query.eq('org_id', orgId)
+  if (params.orgId) query = query.eq('org_id', params.orgId)
+  const term = params.search?.trim()
+  if (term) query = query.ilike('name', `%${term}%`)
+  if (params.category) query = query.eq('category', params.category)
   const { data, error } = await query
   if (error) {
     throw mapSupabaseError(error, {
       module: 'recipes',
       operation: 'listRecipes',
-      orgId,
+      orgId: params.orgId,
     })
   }
   return data?.map(mapRecipe) ?? []
@@ -115,7 +130,7 @@ export async function createRecipe(params: {
   orgId: string
   name: string
   defaultServings: number
-  category?: string | null
+  category?: RecipeCategory | null
   notes?: string | null
 }): Promise<Recipe> {
   const supabase = getSupabaseClient()
@@ -156,7 +171,6 @@ export async function getRecipeWithLines(id: string): Promise<RecipeWithLines> {
   }
   return {
     ...mapRecipe(data),
-    category: data.category,
     notes: data.notes,
     lines: (data.recipe_lines ?? []).map(mapLine),
   }
@@ -273,11 +287,49 @@ export async function getRecipeCostSummary(recipeId: string): Promise<RecipeCost
   }
 }
 
+export async function computeRecipeMiseEnPlace(params: {
+  recipeId: string
+  servings?: number
+  packs?: number
+}): Promise<RecipeMiseEnPlaceRow[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.rpc('compute_recipe_mise_en_place', {
+    p_recipe_id: params.recipeId,
+    p_servings: params.servings ?? null,
+    p_packs: params.packs ?? null,
+  })
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'recipes',
+      operation: 'computeRecipeMiseEnPlace',
+      recipeId: params.recipeId,
+    })
+  }
+  return (
+    (data as { product_id: string; product_name: string; qty: number; unit: 'kg' | 'ud' }[] | null)?.map(
+      (row) => ({
+        productId: row.product_id,
+        productName: row.product_name,
+        qty: Number(row.qty ?? 0),
+        unit: row.unit,
+      }),
+    ) ?? []
+  )
+}
+
 // Hooks
-export function useRecipes(orgId: string | undefined) {
+export function useRecipes(
+  orgId: string | undefined,
+  filters?: { search?: string; category?: RecipeCategory | null },
+) {
   return useQuery({
-    queryKey: ['recipes', orgId],
-    queryFn: () => listRecipes(orgId),
+    queryKey: ['recipes', orgId, filters?.search ?? '', filters?.category ?? null],
+    queryFn: () =>
+      listRecipes({
+        orgId,
+        search: filters?.search,
+        category: filters?.category ?? null,
+      }),
     enabled: Boolean(orgId),
   })
 }
@@ -301,7 +353,7 @@ export function useRecipe(recipeId: string | undefined) {
 export function useCreateRecipe(orgId: string | undefined) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { name: string; defaultServings: number; category?: string | null }) => {
+    mutationFn: (payload: { name: string; defaultServings: number; category?: RecipeCategory | null }) => {
       if (!orgId) throw new Error('Falta orgId')
       return createRecipe({ orgId, ...payload })
     },
@@ -358,5 +410,25 @@ export function useRecipeCostSummary(recipeId: string | undefined) {
     queryKey: ['recipe_cost_summary', recipeId],
     queryFn: () => getRecipeCostSummary(recipeId ?? ''),
     enabled: Boolean(recipeId),
+  })
+}
+
+export function useRecipeMiseEnPlace(
+  recipeId: string | undefined,
+  params?: { servings?: number; packs?: number },
+) {
+  const enabled =
+    Boolean(recipeId) &&
+    ((typeof params?.servings === 'number' && params.servings > 0) ||
+      (typeof params?.packs === 'number' && params.packs > 0))
+  return useQuery({
+    queryKey: ['recipe_mise_en_place', recipeId, params?.servings ?? null, params?.packs ?? null],
+    queryFn: () =>
+      computeRecipeMiseEnPlace({
+        recipeId: recipeId ?? '',
+        servings: params?.servings,
+        packs: params?.packs,
+      }),
+    enabled,
   })
 }

@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { ChefHat, Filter, Sparkles, SlidersHorizontal } from 'lucide-react'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateRecipe, useRecipes } from '../data/recipes'
+import type { RecipeCategory } from '../domain/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
@@ -15,13 +16,26 @@ import { Button } from '@/modules/shared/ui/Button'
 import { Spinner } from '@/modules/shared/ui/Spinner'
 import { DataState } from '@/modules/shared/ui/DataState'
 
+const RECIPE_CATEGORIES: { value: RecipeCategory; label: string }[] = [
+  { value: 'bases', label: 'Bases' },
+  { value: 'salsas', label: 'Salsas' },
+  { value: 'platos', label: 'Platos' },
+  { value: 'quinta_gama', label: 'Quinta gama' },
+]
+
 export default function RecipesPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
-  const recipes = useRecipes(activeOrgId ?? undefined)
+  const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<'all' | RecipeCategory>('all')
+  const deferredSearch = useDeferredValue(search)
+  const recipes = useRecipes(activeOrgId ?? undefined, {
+    search: deferredSearch,
+    category: categoryFilter === 'all' ? null : categoryFilter,
+  })
   const createRecipe = useCreateRecipe(activeOrgId ?? undefined)
   const [name, setName] = useState('')
   const [servings, setServings] = useState(10)
-  const [search, setSearch] = useState('')
+  const [category, setCategory] = useState<RecipeCategory | ''>('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [scale, setScale] = useState(1)
   const { role } = useCurrentRole()
@@ -29,11 +43,7 @@ export default function RecipesPage() {
   const formattedError = useFormattedError(error)
   const createError = useFormattedError(createRecipe.error)
 
-  const filtered = useMemo(() => {
-    const list = recipes.data ?? []
-    const term = search.toLowerCase().trim()
-    return term.length ? list.filter((r) => r.name.toLowerCase().includes(term)) : list
-  }, [recipes.data, search])
+  const filtered = useMemo(() => recipes.data ?? [], [recipes.data])
 
   const selected = useMemo(() => {
     if (selectedId) return filtered.find((r) => r.id === selectedId) ?? null
@@ -44,10 +54,15 @@ export default function RecipesPage() {
     e.preventDefault()
     if (!name.trim() || servings <= 0 || !canWrite) return
     try {
-      await createRecipe.mutateAsync({ name: name.trim(), defaultServings: servings })
+      await createRecipe.mutateAsync({
+        name: name.trim(),
+        defaultServings: servings,
+        category: category || null,
+      })
       toast.success('Receta creada correctamente')
       setName('')
       setServings(10)
+      setCategory('')
       recipes.refetch()
     } catch {
       toast.error('Error al crear la receta')
@@ -75,7 +90,14 @@ export default function RecipesPage() {
           <p className="text-sm text-muted-foreground">Cards con imagen, side panel y scaling por raciones.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="secondary" onClick={() => setSelectedId(null)}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setSelectedId(null)
+              setSearch('')
+              setCategoryFilter('all')
+            }}
+          >
             <Filter size={16} />
             Limpiar filtros
           </Button>
@@ -95,6 +117,18 @@ export default function RecipesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            <select
+              className="ds-input min-w-[180px]"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value as 'all' | RecipeCategory)}
+            >
+              <option value="all">Todas las categorias</option>
+              {RECIPE_CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
             <Badge variant="neutral">Total: {filtered.length}</Badge>
           </div>
 
@@ -131,7 +165,7 @@ export default function RecipesPage() {
                       </div>
                     </div>
                     <div className="mt-3 flex items-center justify-between text-xs">
-                      <Badge variant="neutral">Global</Badge>
+                      <Badge variant="neutral">{r.category ?? 'Sin categoria'}</Badge>
                       <span className="text-muted-foreground">ID: {r.id.slice(0, 6)}...</span>
                     </div>
                   </Link>
@@ -208,6 +242,25 @@ export default function RecipesPage() {
                 disabled={!canWrite}
                 className="bg-surface/80 text-foreground"
               />
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground" htmlFor="recipe-category">
+                  Categoria
+                </label>
+                <select
+                  id="recipe-category"
+                  className="ds-input"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as RecipeCategory | '')}
+                  disabled={!canWrite}
+                >
+                  <option value="">Sin categoria</option>
+                  {RECIPE_CATEGORIES.map((cat) => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
               {createError && <p className="text-xs text-danger">{createError}</p>}
               <Button type="submit" disabled={createRecipe.isPending || !canWrite} className="w-full">
                 {createRecipe.isPending ? 'Guardando...' : 'Crear'}
