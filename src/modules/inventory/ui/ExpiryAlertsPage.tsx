@@ -56,8 +56,19 @@ export default function ExpiryAlertsPage() {
   const dismissAlert = useDismissExpiryAlert(activeOrgId ?? undefined)
   const createRule = useCreateExpiryRule()
   const toggleRule = useToggleExpiryRule(activeOrgId ?? undefined)
-  const [newRuleDays, setNewRuleDays] = useState<number>(3)
   const [disposeTarget, setDisposeTarget] = useState<ExpiryAlert | null>(null)
+  const ruleDefaults = [
+    { key: 'fresh', label: 'Fresh', days: 2 },
+    { key: 'pasteurized', label: 'Pasteurized', days: 2 },
+    { key: 'frozen', label: 'Frozen', days: 7 },
+  ] as const
+  const rulesByType = useMemo(() => {
+    const map = new Map<string, (typeof rules.data)[number]>()
+    ;(rules.data ?? []).forEach((rule) => {
+      if (rule.productType) map.set(rule.productType, rule)
+    })
+    return map
+  }, [rules.data])
 
   const formattedError = useFormattedError(error || alerts.error || rules.error)
   const rulesError = useFormattedError(rules.error)
@@ -274,26 +285,7 @@ export default function ExpiryAlertsPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-accent">Expiry rules</p>
-            <p className="text-sm text-muted-foreground">Generan alertas sobre lotes con caducidad.</p>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <input
-              type="number"
-              className="ds-input w-24"
-              value={newRuleDays}
-              onChange={(e) => setNewRuleDays(Number(e.target.value) || 0)}
-              min={0}
-            />
-            <Button
-              variant="primary"
-              disabled={createRule.isPending || !activeOrgId}
-              onClick={async () => {
-                if (!activeOrgId) return
-                await createRule.mutateAsync({ orgId: activeOrgId, daysBefore: newRuleDays })
-              }}
-            >
-              {createRule.isPending ? 'Creando...' : 'Anadir regla (dias)'}
-            </Button>
+            <p className="text-sm text-muted-foreground">Reglas por tipo (fresh/pasteurized/frozen).</p>
           </div>
         </div>
 
@@ -302,21 +294,51 @@ export default function ExpiryAlertsPage() {
           error={rules.error}
           errorTitle="Error al cargar reglas"
           errorMessage={rulesError ?? formattedError ?? undefined}
-          empty={(rules.data ?? []).length === 0}
-          emptyState={<p className="text-sm text-muted-foreground">Aun no hay reglas. Crea una para empezar.</p>}
-          skeleton={<Skeleton className="h-10 w-full" />}
+          empty={false}
+          skeleton={<Skeleton className="h-20 w-full" />}
         >
-          <div className="flex flex-wrap gap-2">
-            {rules.data?.map((rule) => (
-              <Button
-                key={rule.id}
-                variant={rule.isEnabled ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => toggleRule.mutate({ ruleId: rule.id, isEnabled: !rule.isEnabled })}
-              >
-                {rule.daysBefore}d {rule.isEnabled ? '(on)' : '(off)'}
-              </Button>
-            ))}
+          <div className="grid gap-3 md:grid-cols-3">
+            {ruleDefaults.map((ruleDef) => {
+              const rule = rulesByType.get(ruleDef.key)
+              return (
+                <div key={ruleDef.key} className="rounded-2xl border border-border/25 bg-surface/60 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{ruleDef.label}</p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-2xl font-semibold text-foreground">{rule?.daysBefore ?? ruleDef.days}d</span>
+                    <Badge variant={rule?.isEnabled ? 'success' : 'neutral'}>
+                      {rule?.isEnabled ? 'On' : 'Off'}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    {rule ? (
+                      <Button
+                        variant={rule.isEnabled ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => toggleRule.mutate({ ruleId: rule.id, isEnabled: !rule.isEnabled })}
+                      >
+                        {rule.isEnabled ? 'Desactivar' : 'Activar'}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        disabled={createRule.isPending || !activeOrgId}
+                        onClick={async () => {
+                          if (!activeOrgId) return
+                          await createRule.mutateAsync({
+                            orgId: activeOrgId,
+                            daysBefore: ruleDef.days,
+                            productType: ruleDef.key,
+                          })
+                        }}
+                      >
+                        Crear regla
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </DataState>
       </Card>

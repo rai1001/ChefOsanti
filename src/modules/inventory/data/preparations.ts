@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
-import { buildRunAndBatch } from '../domain/preparations'
-
 export type Preparation = {
   id: string
   orgId: string
@@ -11,6 +9,7 @@ export type Preparation = {
   defaultYieldUnit: string
   shelfLifeDays: number
   storage: 'ambient' | 'fridge' | 'freezer'
+  defaultProcessType?: 'cooked' | 'pasteurized' | 'vacuum' | 'frozen' | 'pasteurized_frozen'
   allergens?: string | null
 }
 
@@ -25,7 +24,7 @@ export async function listPreparations(orgId: string | undefined) {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('preparations')
-    .select('id, org_id, name, default_yield_qty, default_yield_unit, shelf_life_days, storage, allergens')
+    .select('id, org_id, name, default_yield_qty, default_yield_unit, shelf_life_days, storage, default_process_type, allergens')
     .eq('org_id', orgId)
     .order('name')
   if (error) {
@@ -40,6 +39,7 @@ export async function listPreparations(orgId: string | undefined) {
       defaultYieldUnit: row.default_yield_unit,
       shelfLifeDays: row.shelf_life_days,
       storage: row.storage,
+      defaultProcessType: row.default_process_type ?? undefined,
       allergens: row.allergens,
     })) ?? []
   ) as Preparation[]
@@ -60,6 +60,7 @@ export async function createPreparation(input: {
   defaultYieldUnit: string
   shelfLifeDays: number
   storage: 'ambient' | 'fridge' | 'freezer'
+  defaultProcessType?: 'cooked' | 'pasteurized' | 'vacuum' | 'frozen' | 'pasteurized_frozen'
   allergens?: string | null
 }) {
   const supabase = getSupabaseClient()
@@ -70,6 +71,7 @@ export async function createPreparation(input: {
     default_yield_unit: input.defaultYieldUnit,
     shelf_life_days: input.shelfLifeDays,
     storage: input.storage,
+    default_process_type: input.defaultProcessType ?? 'cooked',
     allergens: input.allergens ?? null,
   })
   if (error) throw mapSupabaseError(error, { module: 'inventory', operation: 'createPreparation' })
@@ -92,54 +94,28 @@ export async function createPreparationRun(input: {
   producedQty: number
   producedUnit: string
   producedAt: string
-  shelfLifeDays: number
+  processType?: 'cooked' | 'pasteurized' | 'vacuum' | 'frozen' | 'pasteurized_frozen'
   labelsCount?: number
 }) {
   const supabase = getSupabaseClient()
-  const { runRecord, batchRecord, expiresAt } = buildRunAndBatch({
-    orgId: input.orgId,
-    preparationId: input.preparationId,
-    locationId: input.locationId,
-    producedQty: input.producedQty,
-    producedUnit: input.producedUnit,
-    producedAt: input.producedAt,
-    shelfLifeDays: input.shelfLifeDays,
-    labelsCount: input.labelsCount ?? 1,
+  const { data, error } = await supabase.rpc('create_preparation_run', {
+    p_org_id: input.orgId,
+    p_preparation_id: input.preparationId,
+    p_location_id: input.locationId,
+    p_produced_qty: input.producedQty,
+    p_produced_unit: input.producedUnit,
+    p_produced_at: input.producedAt,
+    p_process_type: input.processType ?? null,
+    p_labels_count: input.labelsCount ?? 1,
   })
-
-  const { data: batch, error: batchErr } = await supabase
-    .from('stock_batches')
-    .insert({
-      ...batchRecord,
-      lot_code: null,
-      created_by: null,
-    })
-    .select('id')
-    .single()
-  if (batchErr) throw mapSupabaseError(batchErr, { module: 'inventory', operation: 'createPrepBatch' })
-
-  const batchId = batch.id as string
-
-  const { error: mvErr } = await supabase.from('stock_movements').insert({
-    org_id: input.orgId,
-    batch_id: batchId,
-    delta_qty: batchRecord.qty,
-    reason: 'prep',
-    note: 'Elaboracion',
-  })
-  if (mvErr) throw mapSupabaseError(mvErr, { module: 'inventory', operation: 'logPrepMovement' })
-
-  const { data: run, error: runErr } = await supabase
-    .from('preparation_runs')
-    .insert({
-      ...runRecord,
-      stock_batch_id: batchId,
-    })
-    .select('id')
-    .single()
-  if (runErr) throw mapSupabaseError(runErr, { module: 'inventory', operation: 'createPrepRun' })
-
-  return { runId: run.id as string, batchId, expiresAt } as PreparationRunResult
+  if (error) {
+    throw mapSupabaseError(error, { module: 'inventory', operation: 'createPrepRun' })
+  }
+  return {
+    runId: data?.[0]?.run_id as string,
+    batchId: data?.[0]?.batch_id as string,
+    expiresAt: data?.[0]?.expires_at as string | null,
+  } as PreparationRunResult
 }
 
 export function useCreatePreparationRun() {

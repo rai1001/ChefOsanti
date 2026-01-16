@@ -9,7 +9,7 @@ import {
   useSupplier,
   useSupplierItems,
 } from '@/modules/purchasing/data/suppliers'
-import type { PurchaseUnit, RoundingRule } from '@/modules/purchasing/domain/types'
+import type { ProductType, PurchaseUnit, RoundingRule } from '@/modules/purchasing/domain/types'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { PageHeader } from '@/modules/shared/ui/PageHeader'
 import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
@@ -24,6 +24,8 @@ const itemSchema = z
     packSize: z.number().optional(),
     pricePerUnit: z.number().optional(),
     notes: z.string().optional(),
+    productTypeOverride: z.union([z.enum(['fresh', 'pasteurized', 'frozen']), z.literal('')]).optional(),
+    leadTimeDaysOverride: z.number().min(0).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.roundingRule === 'ceil_pack' && (!data.packSize || data.packSize <= 0)) {
@@ -63,6 +65,8 @@ export default function SupplierDetailPage() {
       packSize: undefined,
       pricePerUnit: undefined,
       notes: '',
+      productTypeOverride: '',
+      leadTimeDaysOverride: undefined,
     },
   })
 
@@ -98,6 +102,14 @@ export default function SupplierDetailPage() {
       typeof values.pricePerUnit === 'number' && !Number.isNaN(values.pricePerUnit)
         ? values.pricePerUnit
         : undefined
+    const productTypeOverride =
+      typeof values.productTypeOverride === 'string' && values.productTypeOverride !== ''
+        ? (values.productTypeOverride as ProductType)
+        : undefined
+    const leadTimeDaysOverride =
+      typeof values.leadTimeDaysOverride === 'number' && !Number.isNaN(values.leadTimeDaysOverride)
+        ? values.leadTimeDaysOverride
+        : undefined
 
     await createItem.mutateAsync({
       name: values.name,
@@ -106,6 +118,8 @@ export default function SupplierDetailPage() {
       packSize: packSize ?? null,
       pricePerUnit: pricePerUnit ?? null,
       notes: values.notes ?? null,
+      productTypeOverride: productTypeOverride ?? null,
+      leadTimeDaysOverride: leadTimeDaysOverride ?? null,
     })
     reset({
       name: '',
@@ -114,6 +128,8 @@ export default function SupplierDetailPage() {
       packSize: undefined,
       pricePerUnit: undefined,
       notes: '',
+      productTypeOverride: '',
+      leadTimeDaysOverride: undefined,
     })
   }
 
@@ -171,6 +187,8 @@ export default function SupplierDetailPage() {
                     Unidad: {item.purchaseUnit} ú Regla: {item.roundingRule}
                     {item.packSize ? ` ú Pack: ${item.packSize}` : ''}{' '}
                     {item.pricePerUnit ? `ú Precio: ?${item.pricePerUnit}` : ''}
+                    {item.productTypeOverride ? ` ú Tipo: ${item.productTypeOverride}` : ''}
+                    {typeof item.leadTimeDaysOverride === 'number' ? ` ú Lead: ${item.leadTimeDaysOverride}d` : ''}
                   </p>
                 </div>
               </div>
@@ -247,6 +265,29 @@ export default function SupplierDetailPage() {
             {errors.pricePerUnit && (
               <p className="text-xs text-red-500">{errors.pricePerUnit.message}</p>
             )}
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-slate-300">Override tipo</span>
+            <select className="ds-input" {...register('productTypeOverride')}>
+              <option value="">Sin override</option>
+              <option value="fresh">Fresh</option>
+              <option value="pasteurized">Pasteurized</option>
+              <option value="frozen">Frozen</option>
+            </select>
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-slate-300">Override lead time (dias)</span>
+            <input
+              type="number"
+              step="1"
+              className="ds-input"
+              placeholder="Ej: 2"
+              {...register('leadTimeDaysOverride', {
+                setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
+              })}
+            />
           </label>
 
           <label className="space-y-1 md:col-span-2">

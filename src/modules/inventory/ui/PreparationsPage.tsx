@@ -16,6 +16,7 @@ type PrepForm = {
   defaultYieldUnit: string
   shelfLifeDays: number
   storage: 'ambient' | 'fridge' | 'freezer'
+  defaultProcessType: 'cooked' | 'pasteurized' | 'vacuum' | 'frozen' | 'pasteurized_frozen'
   allergens?: string
 }
 
@@ -25,9 +26,20 @@ type ProduceForm = {
   producedUnit: string
   producedAt: string
   labelsCount: number
+  processType: 'cooked' | 'pasteurized' | 'vacuum' | 'frozen' | 'pasteurized_frozen'
 }
 
-function printLabel(prep: Preparation, run: { producedAt: string; expiresAt?: string | null; locationName?: string; batchId: string }) {
+function printLabel(
+  prep: Preparation,
+  run: {
+    producedAt: string
+    expiresAt?: string | null
+    locationName?: string
+    batchId: string
+    processType?: string
+    packedBy?: string
+  },
+) {
   const win = window.open('', '_blank', 'width=400,height=300')
   if (!win) return
   const produced = new Date(run.producedAt).toLocaleString()
@@ -50,7 +62,9 @@ function printLabel(prep: Preparation, run: { producedAt: string; expiresAt?: st
         <div class="name">${prep.name}</div>
         <div class="meta">Elaborado: ${produced}</div>
         <div class="meta">Caduca: ${expires}</div>
-        <div class="meta">Ubicacionn: ${run.locationName ?? '-'}</div>
+        <div class="meta">Ubicacion: ${run.locationName ?? '-'}</div>
+        <div class="meta">Proceso: ${run.processType ?? prep.defaultProcessType ?? 'cooked'}</div>
+        <div class="meta">Empaquetado por: ${run.packedBy ?? '-'}</div>
         <div class="meta">Almacenaje: ${prep.storage}</div>
         <div class="bar"></div>
         <div class="code">BATCH:${run.batchId}</div>
@@ -77,6 +91,7 @@ export default function PreparationsPage() {
     defaultYieldUnit: 'kg',
     shelfLifeDays: 3,
     storage: 'fridge',
+    defaultProcessType: 'cooked',
     allergens: '',
   })
   const [produceForm, setProduceForm] = useState<ProduceForm>({
@@ -85,6 +100,7 @@ export default function PreparationsPage() {
     producedUnit: 'kg',
     producedAt: new Date().toISOString(),
     labelsCount: 1,
+    processType: 'cooked',
   })
 
   const formattedError = useFormattedError(preps.error || createPrep.error || createRun.error)
@@ -161,6 +177,7 @@ export default function PreparationsPage() {
                               producedQty: prep.defaultYieldQty || 1,
                               producedUnit: prep.defaultYieldUnit,
                               producedAt: new Date().toISOString(),
+                              processType: prep.defaultProcessType ?? 'cooked',
                             }))
                           }}
                         >
@@ -228,6 +245,20 @@ export default function PreparationsPage() {
                   <option value="freezer">Congelado</option>
                 </select>
               </label>
+              <label className="text-xs text-slate-300 space-y-1">
+                <span>Proceso por defecto</span>
+                <select
+                  className="ds-input"
+                  value={form.defaultProcessType}
+                  onChange={(e) => setForm((f) => ({ ...f, defaultProcessType: e.target.value as any }))}
+                >
+                  <option value="cooked">Cocinado</option>
+                  <option value="pasteurized">Pasteurizado</option>
+                  <option value="vacuum">Vacio</option>
+                  <option value="frozen">Congelado</option>
+                  <option value="pasteurized_frozen">Pasteurizado + congelado</option>
+                </select>
+              </label>
               <label className="text-xs text-slate-300 space-y-1 md:col-span-2">
                 <span>Alérgenos</span>
                 <input
@@ -255,6 +286,7 @@ export default function PreparationsPage() {
                     defaultYieldUnit: form.defaultYieldUnit,
                     shelfLifeDays: form.shelfLifeDays,
                     storage: form.storage,
+                    defaultProcessType: form.defaultProcessType,
                     allergens: form.allergens,
                   })
                   setShowForm(false)
@@ -278,7 +310,7 @@ export default function PreparationsPage() {
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               <label className="text-xs text-slate-300 space-y-1">
-                <span>Ubicacionn</span>
+                <span>Ubicacion</span>
                 <select
                   className="ds-input"
                   value={produceForm.locationId}
@@ -322,6 +354,20 @@ export default function PreparationsPage() {
                 />
               </label>
               <label className="text-xs text-slate-300 space-y-1">
+                <span>Proceso</span>
+                <select
+                  className="ds-input"
+                  value={produceForm.processType}
+                  onChange={(e) => setProduceForm((f) => ({ ...f, processType: e.target.value as any }))}
+                >
+                  <option value="cooked">Cocinado</option>
+                  <option value="pasteurized">Pasteurizado</option>
+                  <option value="vacuum">Vacio</option>
+                  <option value="frozen">Congelado</option>
+                  <option value="pasteurized_frozen">Pasteurizado + congelado</option>
+                </select>
+              </label>
+              <label className="text-xs text-slate-300 space-y-1">
                 <span>Etiquetas</span>
                 <input
                   type="number"
@@ -348,7 +394,7 @@ export default function PreparationsPage() {
                     producedQty: produceForm.producedQty,
                     producedUnit: produceForm.producedUnit,
                     producedAt: produceForm.producedAt,
-                    shelfLifeDays: showProduceFor.shelfLifeDays,
+                    processType: produceForm.processType,
                     labelsCount: produceForm.labelsCount,
                   })
                   printLabel(showProduceFor, {
@@ -356,6 +402,8 @@ export default function PreparationsPage() {
                     expiresAt: res.expiresAt,
                     locationName: locationNameById[produceForm.locationId],
                     batchId: res.batchId,
+                    processType: produceForm.processType,
+                    packedBy: session?.user?.email ?? session?.user?.id ?? '-',
                   })
                   setShowProduceFor(null)
                 }}

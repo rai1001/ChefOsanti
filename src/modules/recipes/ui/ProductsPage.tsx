@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Filter, Package, Plus, Sparkles } from 'lucide-react'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
-import { useCreateProduct, useProducts } from '../data/products'
+import { useCreateProduct, useProducts, useUpdateProduct } from '../data/products'
+import type { ProductType } from '../domain/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { UniversalImporter } from '@/modules/shared/ui/UniversalImporter'
@@ -19,8 +20,13 @@ export default function ProductsPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
   const products = useProducts(activeOrgId ?? undefined)
   const createProduct = useCreateProduct(activeOrgId ?? undefined)
+  const updateProduct = useUpdateProduct(activeOrgId ?? undefined)
   const [name, setName] = useState('')
   const [baseUnit, setBaseUnit] = useState<'kg' | 'ud'>('ud')
+  const [productType, setProductType] = useState<ProductType>('fresh')
+  const [leadTimeDays, setLeadTimeDays] = useState<number>(2)
+  const [editProductType, setEditProductType] = useState<ProductType>('fresh')
+  const [editLeadTimeDays, setEditLeadTimeDays] = useState<number>(2)
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const { role } = useCurrentRole()
@@ -35,6 +41,14 @@ export default function ProductsPage() {
     if (['ud', 'uds', 'unidad', 'unidades', 'unit', 'units', 'pcs', 'pieza', 'pzas'].includes(unit)) return 'ud'
     return unit
   }
+  const normalizeProductType = (value: unknown): ProductType | undefined => {
+    const raw = String(value ?? '').trim().toLowerCase()
+    if (!raw) return undefined
+    if (['fresh', 'fresco', 'frescos'].includes(raw)) return 'fresh'
+    if (['pasteurized', 'pasteurizado', 'pasteurizados'].includes(raw)) return 'pasteurized'
+    if (['frozen', 'congelado', 'congelados'].includes(raw)) return 'frozen'
+    return undefined
+  }
 
   const filtered = useMemo(() => {
     const list = products.data ?? []
@@ -47,14 +61,27 @@ export default function ProductsPage() {
     return filtered[0] ?? null
   }, [filtered, selectedId])
 
+  useEffect(() => {
+    if (!selected) return
+    setEditProductType(selected.productType ?? 'fresh')
+    setEditLeadTimeDays(typeof selected.leadTimeDays === 'number' ? selected.leadTimeDays : 2)
+  }, [selected?.id])
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !canWrite) return
     try {
-      await createProduct.mutateAsync({ name: name.trim(), baseUnit })
+      await createProduct.mutateAsync({
+        name: name.trim(),
+        baseUnit,
+        productType,
+        leadTimeDays,
+      })
       toast.success('Producto creado')
       setName('')
       setBaseUnit('ud')
+      setProductType('fresh')
+      setLeadTimeDays(2)
       products.refetch()
     } catch (e) {
       toast.error('Error al crear producto')
@@ -141,7 +168,7 @@ export default function ProductsPage() {
                     </div>
                     <div className="mt-3 flex items-center justify-between text-xs">
                       <Badge variant={p.active ? 'success' : 'neutral'}>{p.active ? 'Activo' : 'Inactivo'}</Badge>
-                      <span className="text-muted-foreground">Global</span>
+                      <span className="text-muted-foreground">{p.productType ?? 'fresh'}</span>
                     </div>
                   </button>
                 )
@@ -169,7 +196,52 @@ export default function ProductsPage() {
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-1">Estado: {selected.active ? 'Activo' : 'Inactivo'}</span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-1">ID: {selected.id.slice(0, 6)}...</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-1">Tipo: {selected.productType ?? 'fresh'}</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-1">Lead: {selected.leadTimeDays ?? 0}d</span>
               </div>
+              <div className="grid gap-2 pt-2 md:grid-cols-2">
+                <label className="space-y-1 text-xs text-muted-foreground">
+                  <span>Tipo producto</span>
+                  <select
+                    className="ds-input"
+                    value={editProductType}
+                    onChange={(e) => setEditProductType(e.target.value as ProductType)}
+                    disabled={!canWrite}
+                  >
+                    <option value="fresh">Fresh</option>
+                    <option value="pasteurized">Pasteurized</option>
+                    <option value="frozen">Frozen</option>
+                  </select>
+                </label>
+                <label className="space-y-1 text-xs text-muted-foreground">
+                  <span>Lead time (dias)</span>
+                  <input
+                    type="number"
+                    min={0}
+                    className="ds-input"
+                    value={Number.isFinite(editLeadTimeDays) ? editLeadTimeDays : 0}
+                    onChange={(e) => setEditLeadTimeDays(Number(e.target.value) || 0)}
+                    disabled={!canWrite}
+                  />
+                </label>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mt-2 w-full"
+                disabled={!canWrite || updateProduct.isPending || !selected}
+                onClick={async () => {
+                  if (!selected) return
+                  await updateProduct.mutateAsync({
+                    id: selected.id,
+                    productType: editProductType,
+                    leadTimeDays: editLeadTimeDays,
+                  })
+                  toast.success('Producto actualizado')
+                }}
+              >
+                {updateProduct.isPending ? 'Guardando...' : 'Guardar cambios'}
+              </Button>
             </div>
           ) : (
             <EmptyState title="Selecciona un producto" description="Verás aquí el detalle y estado." />
@@ -205,6 +277,32 @@ export default function ProductsPage() {
                 </select>
               </div>
               {createError && <p className="text-xs text-danger">{createError}</p>}
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground" htmlFor="product-type">Tipo</label>
+                <select
+                  id="product-type"
+                  className="ds-input"
+                  value={productType}
+                  onChange={(e) => setProductType(e.target.value as ProductType)}
+                  disabled={!canWrite}
+                >
+                  <option value="fresh">Fresh</option>
+                  <option value="pasteurized">Pasteurized</option>
+                  <option value="frozen">Frozen</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground" htmlFor="product-lead">Lead time (dias)</label>
+                <input
+                  id="product-lead"
+                  type="number"
+                  min={0}
+                  className="ds-input"
+                  value={Number.isFinite(leadTimeDays) ? leadTimeDays : 0}
+                  onChange={(e) => setLeadTimeDays(Number(e.target.value) || 0)}
+                  disabled={!canWrite}
+                />
+              </div>
               <Button type="submit" disabled={createProduct.isPending || !canWrite} className="w-full">
                 {createProduct.isPending ? 'Guardando...' : 'Crear'}
               </Button>
@@ -221,6 +319,8 @@ export default function ProductsPage() {
         fields={[
           { key: 'name', label: 'Nombre', aliases: ['producto', 'item', 'articulo'] },
           { key: 'base_unit', label: 'Unidad base (kg/ud)', aliases: ['unidad base', 'unidad', 'base unit'], transform: normalizeUnit },
+          { key: 'product_type', label: 'Tipo (fresh/pasteurized/frozen)', aliases: ['tipo', 'product type', 'tipo producto'], transform: normalizeProductType },
+          { key: 'lead_time_days', label: 'Lead time (dias)', aliases: ['lead time', 'lead_time_days', 'tiempo pedido', 'dias pedido'] },
           { key: 'supplier_name', label: 'Proveedor', aliases: ['supplier', 'supplier_name', 'proveedor', 'provider'] },
           { key: 'purchase_unit', label: 'Unidad compra (kg/ud)', aliases: ['unidad compra', 'unidad de compra', 'purchase unit', 'unidad_compra'], transform: normalizeUnit },
           { key: 'price', label: 'Precio', aliases: ['precio unitario', 'price', 'price_per_unit'] },

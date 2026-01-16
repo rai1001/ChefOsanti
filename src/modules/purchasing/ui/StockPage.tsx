@@ -8,6 +8,7 @@ import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useHotels } from '@/modules/events/data/events'
 import { useBatches, useCreateManualEntry, useLocations } from '@/modules/inventory/data/batches'
+import { useInboundMissingExpiry } from '@/modules/inventory/data/inboundAlerts'
 import { getExpiryState } from '@/modules/inventory/domain/batches'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { useSupplierItemsByOrg } from '../data/suppliers'
@@ -58,7 +59,13 @@ export default function StockPage() {
     lotCode: null,
   })
   const expiryAlerts = useExpiryAlerts({ orgId: activeOrgId ?? undefined, status: 'open' })
+  const missingExpiry = useInboundMissingExpiry({
+    orgId: activeOrgId ?? undefined,
+    hotelId: hotelId || undefined,
+    locationId: locationId || undefined,
+  })
   const batchesError = useFormattedError(batches.error)
+  const missingExpiryError = useFormattedError(missingExpiry.error)
   const createEntryError = useFormattedError(createEntry.error)
 
   const hotelsOptions = hotels.data ?? []
@@ -67,6 +74,7 @@ export default function StockPage() {
     const all = expiryAlerts.data ?? []
     return all.filter((a) => (!hotelId || a.hotelId === hotelId) && (!locationId || a.locationId === locationId)).length
   }, [expiryAlerts.data, hotelId, locationId])
+  const missingExpiryCount = useMemo(() => (missingExpiry.data ?? []).length, [missingExpiry.data])
 
   const batchStats = useMemo(() => {
     const list = batches.data ?? []
@@ -173,6 +181,18 @@ export default function StockPage() {
             </span>
           </div>
           <p className="text-sm text-muted-foreground">Caducidades abiertas.</p>
+        </Card>
+        <Card className="rounded-3xl border border-border/20 bg-surface/70 p-4 shadow-[0_16px_48px_rgba(3,7,18,0.45)]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-warning/80">Falta caducidad</p>
+              <p className="mt-2 text-3xl font-bold text-foreground">{missingExpiryCount}</p>
+            </div>
+            <span className="rounded-full bg-warning/10 p-3 text-warning">
+              <AlertTriangle size={18} />
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">Albaranes sin fecha de caducidad.</p>
         </Card>
       </section>
 
@@ -336,6 +356,54 @@ export default function StockPage() {
           </DataState>
         </div>
       </Card>
+
+      {missingExpiryCount > 0 && (
+        <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_24px_60px_rgba(3,7,18,0.45)]">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-warning/80">Caducidad pendiente</p>
+              <p className="text-sm text-muted-foreground">Lineas de albaran sin fecha de caducidad.</p>
+            </div>
+            <Badge variant="warning">{missingExpiryCount}</Badge>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-border/20 bg-surface/50 backdrop-blur-lg">
+            <DataState
+              loading={missingExpiry.isLoading}
+              error={missingExpiry.error}
+              errorTitle="Error al cargar pendientes"
+              errorMessage={missingExpiryError ?? undefined}
+              empty={(missingExpiry.data ?? []).length === 0}
+              emptyState={<div className="p-4 text-sm text-muted-foreground">Sin pendientes.</div>}
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Proveedor</TableHead>
+                    <TableHead>Ubicacion</TableHead>
+                    <TableHead className="text-right">Qty</TableHead>
+                    <TableHead>Fecha albaran</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {missingExpiry.data?.map((line) => (
+                    <TableRow key={line.lineId}>
+                      <TableCell className="font-semibold text-foreground">{line.description}</TableCell>
+                      <TableCell className="text-muted-foreground">{line.supplierName}</TableCell>
+                      <TableCell className="text-muted-foreground">{line.locationName}</TableCell>
+                      <TableCell className="text-right text-foreground">{line.qty.toFixed(2)}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {line.deliveredAt ?? '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </DataState>
+          </div>
+        </Card>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">

@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
 import type {
+  ProductType,
   PurchaseUnit,
   RoundingRule,
   Supplier,
@@ -21,6 +22,8 @@ export type CreateSupplierItemInput = {
   packSize?: number | null
   pricePerUnit?: number | null
   notes?: string | null
+  productTypeOverride?: ProductType | null
+  leadTimeDaysOverride?: number | null
 }
 
 type SupplierRow = {
@@ -39,6 +42,8 @@ type SupplierItemRow = {
   rounding_rule: RoundingRule
   price_per_unit?: number | null
   notes?: string | null
+  product_type_override?: ProductType | null
+  lead_time_days_override?: number | null
   created_at: string
 }
 
@@ -61,6 +66,8 @@ function mapSupplierItem(row: SupplierItemRow): SupplierItem {
     roundingRule: row.rounding_rule,
     pricePerUnit: row.price_per_unit,
     notes: row.notes,
+    productTypeOverride: row.product_type_override ?? null,
+    leadTimeDaysOverride: typeof row.lead_time_days_override === 'number' ? row.lead_time_days_override : null,
     createdAt: row.created_at,
   }
 }
@@ -125,7 +132,7 @@ async function fetchSupplierItems(supplierId: string): Promise<SupplierItem[]> {
   const { data, error } = await supabase
     .from('supplier_items')
     .select(
-      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, created_at',
+      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, product_type_override, lead_time_days_override, created_at',
     )
     .eq('supplier_id', supplierId)
     .order('created_at', { ascending: false })
@@ -175,9 +182,11 @@ export async function insertSupplierItem(input: CreateSupplierItemInput): Promis
       pack_size: input.packSize ?? null,
       price_per_unit: input.pricePerUnit ?? null,
       notes: input.notes ?? null,
+      product_type_override: input.productTypeOverride ?? null,
+      lead_time_days_override: typeof input.leadTimeDaysOverride === 'number' ? input.leadTimeDaysOverride : null,
     })
     .select(
-      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, created_at',
+      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, product_type_override, lead_time_days_override, created_at',
     )
     .single()
 
@@ -270,7 +279,7 @@ export async function listSupplierItemsByOrg(orgId: string): Promise<SupplierIte
   const { data, error } = await supabase
     .from('supplier_items')
     .select(
-      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, created_at, suppliers!inner(org_id)',
+      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, product_type_override, lead_time_days_override, created_at, suppliers!inner(org_id)',
     )
     .eq('suppliers.org_id', orgId)
     .order('created_at')

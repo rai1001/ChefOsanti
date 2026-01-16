@@ -8,6 +8,7 @@ export type ExpiryRule = {
   orgId: string
   daysBefore: number
   isEnabled: boolean
+  productType?: 'fresh' | 'pasteurized' | 'frozen' | null
   createdAt: string
 }
 
@@ -37,7 +38,7 @@ export async function listExpiryRules(orgId: string | undefined) {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('expiry_rules')
-    .select('id, org_id, days_before, is_enabled, created_at')
+    .select('id, org_id, days_before, is_enabled, product_type, created_at')
     .eq('org_id', orgId)
     .order('days_before')
   if (error) throw mapSupabaseError(error, { module: 'inventory', operation: 'listExpiryRules', orgId })
@@ -47,6 +48,7 @@ export async function listExpiryRules(orgId: string | undefined) {
       orgId: row.org_id as string,
       daysBefore: row.days_before as number,
       isEnabled: row.is_enabled as boolean,
+      productType: (row.product_type as ExpiryRule['productType']) ?? null,
       createdAt: row.created_at as string,
     })) ?? []
   ) as ExpiryRule[]
@@ -60,11 +62,12 @@ export function useExpiryRules(orgId: string | undefined) {
   })
 }
 
-export async function createExpiryRule(input: { orgId: string; daysBefore: number }) {
+export async function createExpiryRule(input: { orgId: string; daysBefore: number; productType?: ExpiryRule['productType'] }) {
   const supabase = getSupabaseClient()
   const { error } = await supabase.from('expiry_rules').insert({
     org_id: input.orgId,
     days_before: input.daysBefore,
+    product_type: input.productType ?? null,
   })
   if (error) throw mapSupabaseError(error, { module: 'inventory', operation: 'createExpiryRule' })
 }
@@ -104,32 +107,17 @@ export async function listExpiryAlerts(params: {
 }) {
   if (!params.orgId) return []
   const supabase = getSupabaseClient()
-  const { data, error } = await supabase
-    .from('expiry_alerts')
-    .select(
-      `
-      id, org_id, batch_id, rule_id, status, created_at, sent_at,
-      expiry_rules (days_before),
-      stock_batches (
-        expires_at, qty, unit, lot_code, source, location_id,
-        supplier_items (name),
-        preparations (name),
-        inventory_locations (id, name, hotel_id)
-      )
-    `,
-    )
-    .eq('org_id', params.orgId)
-    .eq('status', params.status ?? 'open')
-    .order('created_at', { ascending: false })
+  const { data, error } = await supabase.rpc('list_expiry_alerts', {
+    p_org_id: params.orgId,
+    p_status: params.status ?? 'open',
+  })
 
   if (error) throw mapSupabaseError(error, { module: 'inventory', operation: 'listExpiryAlerts', orgId: params.orgId })
 
   return (
-    data?.map((row: any) => {
-      const batch = row.stock_batches ?? {}
-      const location = batch.inventory_locations ?? {}
-      const productName = batch.supplier_items?.name ?? batch.preparations?.name ?? 'Lote'
-      const expiresAt = batch.expires_at as string | null
+    (data as any[])?.map((row: any) => {
+      const productName = row.product_name ?? 'Lote'
+      const expiresAt = row.expires_at as string | null
       const daysUntil = daysUntilExpiry(expiresAt)
       const expiryCategory = categorizeExpiry(expiresAt)
       return {
@@ -139,16 +127,16 @@ export async function listExpiryAlerts(params: {
         status: row.status as 'open' | 'dismissed' | 'sent',
         createdAt: row.created_at as string,
         sentAt: row.sent_at as string | null,
-        daysBefore: row.expiry_rules?.days_before ?? null,
+        daysBefore: row.days_before ?? null,
         expiresAt,
-        qty: Number(batch.qty ?? 0),
-        unit: batch.unit as string,
+        qty: Number(row.qty ?? 0),
+        unit: row.unit as string,
         productName,
-        locationId: location.id as string,
-        locationName: location.name as string,
-        hotelId: location.hotel_id as string | null,
-        lotCode: batch.lot_code as string | null,
-        source: batch.source as string | null,
+        locationId: row.location_id as string,
+        locationName: row.location_name as string,
+        hotelId: row.hotel_id as string | null,
+        lotCode: row.lot_code as string | null,
+        source: row.source as string | null,
         expiryCategory,
         daysUntil,
       } as ExpiryAlert

@@ -1,7 +1,11 @@
+export type ProductType = 'fresh' | 'pasteurized' | 'frozen'
+
 export type Product = {
   id: string
   name: string
   baseUnit: 'kg' | 'ud'
+  productType?: ProductType
+  leadTimeDays?: number | null
 }
 
 export type Recipe = {
