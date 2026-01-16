@@ -1,1 +1,6 @@
-Sprint 1: Core domain, events, Excel import, rooms aggregation.
+# Sprint 1 - Events
+- [x] Core domain (events)
+- [x] Excel import (matrix + multi-sheet)
+- [x] Rooms aggregation (bookings/occupancy view)
+
+Estado: completado
