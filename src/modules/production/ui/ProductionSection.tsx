@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import type { EventService } from '@/modules/events/domain/event'
 import ProductionPlanView from './ProductionPlanView'
 
@@ -17,12 +17,10 @@ function getServiceLabel(service: EventService) {
 
 export function ProductionSection({ services, orgId, hotelId, eventId }: ProductionSectionProps) {
     const [selectedServiceId, setSelectedServiceId] = useState<string>('')
-
-    // Select first service by default
-    useEffect(() => {
-        if (services.length > 0 && !selectedServiceId) {
-            setSelectedServiceId(services[0].id)
-        }
+    const resolvedSelectedId = useMemo(() => {
+        if (!services.length) return ''
+        const exists = services.some((service) => service.id === selectedServiceId)
+        return exists ? selectedServiceId : services[0].id
     }, [services, selectedServiceId])
 
     if (services.length === 0) {
@@ -44,7 +42,7 @@ export function ProductionSection({ services, orgId, hotelId, eventId }: Product
                 {/* Service Selector */}
                 <div className="relative">
                     <select
-                        value={selectedServiceId}
+                        value={resolvedSelectedId}
                         onChange={(e) => setSelectedServiceId(e.target.value)}
                         className="h-8 rounded-md border-slate-300 bg-white pl-3 pr-8 text-xs font-medium text-slate-700 shadow-sm focus:border-nano-blue-500 focus:outline-none focus:ring-1 focus:ring-nano-blue-500"
                     >
@@ -58,10 +56,10 @@ export function ProductionSection({ services, orgId, hotelId, eventId }: Product
             </div>
 
             <div className="bg-white p-4 min-h-[400px]">
-                {selectedServiceId ? (
+                {resolvedSelectedId ? (
                     <ProductionPlanView
-                        key={selectedServiceId} // Force remount on change
-                        serviceId={selectedServiceId}
+                        key={resolvedSelectedId} // Force remount on change
+                        serviceId={resolvedSelectedId}
                         orgId={orgId}
                         hotelId={hotelId}
                         eventId={eventId}

@@ -1,99 +1,99 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { useUserMemberships } from './memberships'
 
 const STORAGE_KEY = 'activeOrgId'
 const SYNC_CHANNEL = 'chefos_org_sync'
+const ORG_EVENT = 'chefos-org-changed'
+
+function subscribeStoredOrg(listener: () => void) {
+  if (typeof window === 'undefined') return () => {}
+  let bc: BroadcastChannel | null = null
+
+  const handleMessage = (event: MessageEvent) => {
+    if (event.data?.type === 'ORG_CHANGED') {
+      listener()
+    }
+  }
+
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      bc = new BroadcastChannel(SYNC_CHANNEL)
+      bc.addEventListener('message', handleMessage)
+    }
+  } catch (e) {
+    console.warn('BroadcastChannel not supported', e)
+  }
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY) {
+      listener()
+    }
+  }
+
+  const handleCustom = () => listener()
+
+  window.addEventListener('storage', handleStorage)
+  window.addEventListener(ORG_EVENT, handleCustom)
+
+  return () => {
+    bc?.removeEventListener('message', handleMessage)
+    bc?.close()
+    window.removeEventListener('storage', handleStorage)
+    window.removeEventListener(ORG_EVENT, handleCustom)
+  }
+}
+
+function getStoredOrgId() {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem(STORAGE_KEY)
+}
+
+function notifyOrgChanged() {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new Event(ORG_EVENT))
+}
 
 export function useActiveOrgId() {
   const memberships = useUserMemberships()
-  const [activeOrgId, setActiveOrgId] = useState<string | null>(null)
+  const storedOrgId = useSyncExternalStore(subscribeStoredOrg, getStoredOrgId, getStoredOrgId)
 
-  // BroadcastChannel para sincronización entre pestañas
-  useEffect(() => {
-    let bc: BroadcastChannel | null = null
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'ORG_CHANGED' && event.data.orgId) {
-        setActiveOrgId(event.data.orgId)
-      }
-    }
+  const activeOrgId = useMemo(() => {
+    if (!memberships.data || memberships.data.length === 0) return null
+    const activeFlag = memberships.data.find((m) => m.isActive)?.orgId ?? null
+    const storedValid =
+      storedOrgId && memberships.data.some((m) => m.orgId === storedOrgId) ? storedOrgId : null
+    return activeFlag ?? storedValid ?? memberships.data[0]?.orgId ?? null
+  }, [memberships.data, storedOrgId])
 
-    try {
-      if (typeof BroadcastChannel !== 'undefined') {
-        bc = new BroadcastChannel(SYNC_CHANNEL)
-        bc.addEventListener('message', handleMessage)
-      }
-    } catch (e) {
-      console.warn('BroadcastChannel not supported', e)
-    }
-
-    // Fallback: storage event para navegadores antiguos o si BC falla
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        setActiveOrgId(e.newValue)
-      }
-    }
-    window.addEventListener('storage', handleStorage)
-
-    return () => {
-      bc?.removeEventListener('message', handleMessage)
-      bc?.close()
-      window.removeEventListener('storage', handleStorage)
-    }
-  }, [])
-
-  // Cargar posible selección previa
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) setActiveOrgId(stored)
-  }, [])
-
-  // Resolver org activa con prioridad: membership.isActive -> stored válido -> primera
   useEffect(() => {
     if (!memberships.data) return
     if (memberships.data.length === 0) {
-      setActiveOrgId(null)
       localStorage.removeItem(STORAGE_KEY)
       return
     }
-
-    const activeFlag = memberships.data.find((m) => m.isActive)?.orgId ?? null
-    const stored = localStorage.getItem(STORAGE_KEY)
-    const storedValid = stored && memberships.data.some((m) => m.orgId === stored) ? stored : null
-
-    // Si lo guardado ya no es válido (ej: usuario perdió acceso), limpiar
-    if (stored && !storedValid) {
+    if (storedOrgId && !memberships.data.some((m) => m.orgId === storedOrgId)) {
       localStorage.removeItem(STORAGE_KEY)
     }
-
-    setActiveOrgId((prev) => {
-      // Si ya tenemos uno seleccionado y sigue siendo válido, mantenerlo
-      const prevValid = prev && memberships.data.some((m) => m.orgId === prev) ? prev : null
-      const candidate = activeFlag ?? storedValid ?? prevValid ?? memberships.data?.[0]?.orgId ?? null
-
-      if (candidate && candidate !== prev) {
-        localStorage.setItem(STORAGE_KEY, candidate)
-      }
-      return candidate
-    })
-  }, [memberships.data])
+    if (activeOrgId && storedOrgId !== activeOrgId) {
+      localStorage.setItem(STORAGE_KEY, activeOrgId)
+      notifyOrgChanged()
+    }
+  }, [memberships.data, storedOrgId, activeOrgId])
 
   const loading = memberships.isLoading
   const error = memberships.isError ? memberships.error : undefined
 
-  // Memoizar el selector para evitar recreaciones
   const selector = useMemo(() => {
-    // Función para cambiar org y notificar
     const setOrg = (id: string) => {
-      setActiveOrgId(id)
       localStorage.setItem(STORAGE_KEY, id)
+      notifyOrgChanged()
 
-      // Notificar a otras pestañas
       try {
         const bc = new BroadcastChannel(SYNC_CHANNEL)
         bc.postMessage({ type: 'ORG_CHANGED', orgId: id })
         bc.close()
       } catch (e) {
-        // Ignorar si BC falla, el storage event hará de fallback (aunque storage event no se dispara en la misma pestaña, pero aquí seteamos state directo)
+        // ignore; storage + custom event already handled
       }
     }
 
