@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Activity, AlertTriangle, Building2, CalendarRange, PackageSearch, TrendingUp, Users } from 'lucide-react'
 import { useHotels } from '@/modules/events/data/events'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
-import { useOrdersSummary, useOrdersToDeliver, useStaffAvailability, useWeekEvents } from '../data/dashboard'
+import {
+  useDashboardPurchaseMetrics,
+  useOrdersToDeliver,
+  useStaffAvailability,
+  useWeekEvents,
+} from '../data/dashboard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shared/ui/Card'
 import { Spinner } from '@/modules/shared/ui/Spinner'
 import { Badge } from '@/modules/shared/ui/Badge'
@@ -107,23 +112,27 @@ export default function DashboardPage() {
   }, [hotels.data, hotelId])
 
   const weekEvents = useWeekEvents(hotelId, weekStart)
-  const ordersSummary = useOrdersSummary(activeOrgId ?? undefined, weekStart)
   const ordersToDeliver = useOrdersToDeliver(activeOrgId ?? undefined, weekStart, 'all')
   const availability = useStaffAvailability(hotelId, weekStart)
+  const purchaseMetrics = useDashboardPurchaseMetrics(activeOrgId ?? undefined, hotelId, weekStart)
 
   const totalEvents = useMemo(
     () => weekEvents.data?.reduce((acc, day) => acc + (day.events?.length ?? 0), 0) ?? 0,
     [weekEvents.data],
   )
 
+  const pendingValue = purchaseMetrics.data?.pendingValue ?? 0
+  const eventsToday = purchaseMetrics.data?.eventsCount ?? 0
+  const confirmedMenus = purchaseMetrics.data?.confirmedMenus ?? 0
+  const pendingOrders = purchaseMetrics.data?.pendingOrders ?? 0
+  const currencyFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+  const pendingValueLabel = currencyFormatter.format(pendingValue)
+
   const largeEvents = Math.max(0, Math.min(totalEvents, Math.round(totalEvents * 0.2)))
   const smallEvents = Math.max(0, totalEvents - largeEvents)
 
   const productionPercent = availability.data?.percent ?? 85
-  const purchasePending = ordersSummary.data?.purchaseOrders?.porEstado?.pending ?? 0
-  const purchaseTotal = ordersSummary.data?.purchaseOrders?.total ?? 0
   const urgentAlerts = Math.max(ordersToDeliver.data?.length ?? 0, 0)
-  const urgentAmount = ordersSummary.data?.purchaseOrders?.totalEstimado ?? 0
 
   const chartData = [
     { planned: 100, actual: 90 },
@@ -232,13 +241,27 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <StatCard
-          title="Active Events"
+          title="Eventos del día"
+          value={`${eventsToday}`}
+          icon={<CalendarRange size={18} />}
+          accent="info"
+          detail={`${confirmedMenus} menús confirmados`}
+        />
+        <StatCard
+          title="Active Events (week)"
           value={`${totalEvents}`}
           icon={<TrendingUp size={18} />}
           accent="success"
           detail={`${largeEvents} Large, ${smallEvents} Small`}
+        />
+        <StatCard
+          title="Pending Purchase Orders"
+          value={`${pendingOrders}`}
+          icon={<PackageSearch size={18} />}
+          accent="warning"
+          detail={`Valor ${pendingValueLabel}`}
         />
         <StatCard
           title="Production Status"
@@ -246,13 +269,6 @@ export default function DashboardPage() {
           icon={<Users size={18} />}
           accent="info"
           detail={productionPercent >= 90 ? 'On Schedule' : 'Con retraso'}
-        />
-        <StatCard
-          title="Pending Purchase Orders"
-          value={`${purchaseTotal}`}
-          icon={<PackageSearch size={18} />}
-          accent="warning"
-          detail={`${purchasePending} Urgentes â€¢ Total: â‚¬${urgentAmount.toLocaleString('es-ES')}`}
         />
         <StatCard
           title="Urgent Stock Alerts"

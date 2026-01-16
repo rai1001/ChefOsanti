@@ -16,6 +16,19 @@ export type WeekEvent = {
 
 export type WeekEventsByDay = { date: string; events: WeekEvent[] }[]
 
+export type DashboardPurchaseMetrics = {
+  orgId: string
+  hotelId: string
+  day: string
+  eventsCount: number
+  confirmedMenus: number
+  pendingOrders: number
+  receivedOrders: number
+  totalOrderValue: number
+  pendingValue: number
+  receivedValue: number
+}
+
 function toIsoDate(date: Date) {
   return date.toISOString().slice(0, 10)
 }
@@ -137,6 +150,43 @@ async function fetchOrdersSummary(orgId: string, weekStart: string): Promise<Ord
   return {
     purchaseOrders: reduce(purchase.data ?? []),
     eventOrders: reduce(eventOrders.data ?? []),
+  }
+}
+
+async function fetchDashboardPurchaseMetrics(
+  orgId: string,
+  hotelId: string,
+  day: string,
+): Promise<DashboardPurchaseMetrics> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('dashboard_purchase_event_metrics')
+    .select('*')
+    .eq('org_id', orgId)
+    .eq('hotel_id', hotelId)
+    .eq('day', day)
+    .maybeSingle()
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'dashboard',
+      operation: 'fetchDashboardPurchaseMetrics',
+      orgId,
+      hotelId,
+      day,
+    })
+  }
+  const row = data ?? null
+  return {
+    orgId,
+    hotelId,
+    day,
+    eventsCount: Number(row?.events_count ?? 0),
+    confirmedMenus: Number(row?.confirmed_menus ?? 0),
+    pendingOrders: Number(row?.pending_orders ?? 0),
+    receivedOrders: Number(row?.received_orders ?? 0),
+    totalOrderValue: Number(row?.total_order_value ?? 0),
+    pendingValue: Number(row?.pending_value ?? 0),
+    receivedValue: Number(row?.received_value ?? 0),
   }
 }
 
@@ -330,6 +380,14 @@ export function useOrdersToDeliver(orgId?: string, weekStart?: string, scope: 'w
     queryKey: ['dashboard', 'ordersToDeliver', orgId, weekStart, scope],
     queryFn: () => fetchOrdersToDeliver(orgId ?? '', weekStart ?? toIsoDate(new Date()), scope),
     enabled: Boolean(orgId && weekStart),
+  })
+}
+
+export function useDashboardPurchaseMetrics(orgId?: string, hotelId?: string, day?: string) {
+  return useQuery({
+    queryKey: ['dashboard', 'purchaseMetrics', orgId, hotelId, day],
+    queryFn: () => fetchDashboardPurchaseMetrics(orgId ?? '', hotelId ?? '', day ?? toIsoDate(new Date())),
+    enabled: Boolean(orgId && hotelId && day),
   })
 }
 
