@@ -31,6 +31,7 @@ import type { PurchaseOrderStatus } from '../domain/purchaseOrder'
 
 const supplierSchema = z.object({
   name: z.string().min(1, 'Nombre requerido'),
+  leadTimeDays: z.number().min(0).optional(),
 })
 
 type SupplierForm = z.infer<typeof supplierSchema>
@@ -43,7 +44,8 @@ const SUPPLIER_STATUS_OPTIONS = ['All', 'Active', 'Inactive'] as const
 const ORDER_STATUS_OPTIONS: (PurchaseOrderStatus | 'all')[] = [
   'all',
   'draft',
-  'confirmed',
+  'approved',
+  'ordered',
   'received',
   'cancelled',
 ]
@@ -128,7 +130,7 @@ export default function SuppliersPage() {
     formState: { errors, isSubmitting },
   } = useForm<SupplierForm>({
     resolver: zodResolver(supplierSchema),
-    defaultValues: { name: '' },
+    defaultValues: { name: '', leadTimeDays: undefined },
   })
 
   const hotelList = useMemo(() => hotels.data ?? [], [hotels.data])
@@ -388,6 +390,17 @@ export default function SuppliersPage() {
               error={errors.name}
               {...register('name')}
             />
+            <FormField
+              id="supplier-lead-time"
+              label="Lead time (dias)"
+              placeholder="Ej: 2"
+              type="number"
+              className="bg-surface2/80 text-foreground"
+              error={errors.leadTimeDays}
+              {...register('leadTimeDays', {
+                setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
+              })}
+            />
             <div className="flex items-center gap-2">
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : 'Create supplier'}
@@ -509,7 +522,7 @@ export default function SuppliersPage() {
                     const statusTone =
                       order.status === 'received'
                         ? 'success'
-                        : order.status === 'confirmed'
+                        : order.status === 'ordered'
                         ? 'warning'
                         : 'neutral'
                     const approvalTone =

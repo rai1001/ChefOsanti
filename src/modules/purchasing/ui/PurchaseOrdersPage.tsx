@@ -72,7 +72,8 @@ export default function PurchaseOrdersPage() {
         >
           <option value="">Todos los estados</option>
           <option value="draft">Borrador</option>
-          <option value="confirmed">Confirmado</option>
+          <option value="approved">Aprobado</option>
+          <option value="ordered">Pedido</option>
           <option value="received">Recibido</option>
           <option value="cancelled">Cancelado</option>
         </select>

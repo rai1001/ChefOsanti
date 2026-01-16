@@ -7,6 +7,7 @@ export type Supplier = {
   orgId: string
   name: string
   createdAt: string
+  leadTimeDays?: number | null
 }
 
 export type SupplierItem = {
@@ -19,6 +20,7 @@ export type SupplierItem = {
   pricePerUnit?: number | null
   notes?: string | null
   productTypeOverride?: ProductType | null
+  productType?: ProductType | null
   leadTimeDaysOverride?: number | null
   createdAt: string
 }

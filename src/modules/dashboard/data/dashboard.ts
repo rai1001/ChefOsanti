@@ -206,14 +206,14 @@ async function fetchOrdersToDeliver(orgId: string, weekStart: string, scope: 'we
     .from('purchase_orders')
     .select('id,order_number,status,created_at')
     .eq('org_id', orgId)
-    .in('status', ['confirmed'])
+    .in('status', ['ordered'])
     .order('created_at', { ascending: true })
     .limit(20)
   const eventQuery = supabase
     .from('event_purchase_orders')
     .select('id,order_number,status,created_at')
     .eq('org_id', orgId)
-    .in('status', ['sent'])
+    .in('status', ['ordered'])
     .order('created_at', { ascending: true })
     .limit(20)
   if (scope === 'week') {

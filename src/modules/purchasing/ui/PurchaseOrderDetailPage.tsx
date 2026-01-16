@@ -25,6 +25,7 @@ import { Badge } from '@/modules/shared/ui/Badge'
 import { Button } from '@/modules/shared/ui/Button'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
 import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
+import { downloadPurchaseOrderPdf } from '../data/pdf'
 
 const lineSchema = z
   .object({
@@ -64,6 +65,8 @@ export default function PurchaseOrderDetailPage() {
   const poError = useFormattedError(purchaseOrder.error)
   const receiveError = useFormattedError(receivePo.error)
   const [confirmReceiveOpen, setConfirmReceiveOpen] = useState(false)
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfError, setPdfError] = useState<string | null>(null)
 
   const {
     register,
@@ -82,7 +85,7 @@ export default function PurchaseOrderDetailPage() {
 
   const roundingRule = useWatch({ control, name: 'roundingRule' })
   const isDraft = purchaseOrder.data?.order.status === 'draft'
-  const isConfirmed = purchaseOrder.data?.order.status === 'confirmed'
+  const isOrdered = purchaseOrder.data?.order.status === 'ordered'
 
   const supplierName = useMemo(
     () => suppliers.data?.find((s) => s.id === supplierId)?.name ?? 'Proveedor',
@@ -147,6 +150,20 @@ export default function PurchaseOrderDetailPage() {
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 
+  const handlePdfExport = async () => {
+    if (!purchaseOrder.data?.order) return
+    setPdfError(null)
+    setPdfLoading(true)
+    try {
+      await downloadPurchaseOrderPdf({ orderId: purchaseOrder.data.order.id, orderType: 'purchase' })
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'No se pudo generar el PDF.'
+      setPdfError(message)
+    } finally {
+      setPdfLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="p-4 space-y-2">
@@ -176,6 +193,20 @@ export default function PurchaseOrderDetailPage() {
   const totalLines = lines.length
   const totalCost = order?.totalEstimated ?? 0
   const statusTone = order?.approvalStatus === 'approved' ? 'success' : order?.approvalStatus === 'pending' ? 'warning' : 'neutral'
+  const orderTone =
+    order?.status === 'received'
+      ? order?.receivedState === 'partial'
+        ? 'warning'
+        : 'success'
+      : order?.status === 'ordered'
+      ? 'warning'
+      : 'neutral'
+  const orderStatusLabel =
+    order?.status === 'received' && order?.receivedState === 'partial'
+      ? 'Recibido parcial'
+      : order?.status === 'received' && order?.receivedState === 'full'
+      ? 'Recibido completo'
+      : order?.status
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -187,12 +218,15 @@ export default function PurchaseOrderDetailPage() {
             <p className="text-sm text-muted-foreground">Supplier: {supplierName}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={orderTone} className="capitalize">
+              {orderStatusLabel ?? 'draft'}
+            </Badge>
             <Badge variant={statusTone} className="capitalize">
               {order?.approvalStatus ?? 'pending'}
             </Badge>
-            <Button variant="secondary" onClick={() => window.print()}>
+            <Button variant="secondary" onClick={handlePdfExport} disabled={pdfLoading}>
               <Printer size={16} />
-              PDF
+              {pdfLoading ? 'Generando...' : 'PDF'}
             </Button>
             <Button variant="secondary" onClick={handleEmailExport}>
               <Mail size={16} />
@@ -228,6 +262,8 @@ export default function PurchaseOrderDetailPage() {
           </div>
         </div>
       </Card>
+
+      {pdfError && <ErrorBanner title="Error al generar PDF" message={pdfError} />}
 
       {order && (
         <ApprovalActions entityType="purchase_order" entityId={order.id} currentStatus={order.approvalStatus} />
@@ -394,7 +430,7 @@ export default function PurchaseOrderDetailPage() {
         </Card>
       )}
 
-      {isConfirmed && (
+      {isOrdered && (
         <>
           <Card className="rounded-3xl border border-border/25 bg-surface/70 p-5 shadow-[0_22px_60px_rgba(3,7,18,0.5)]">
             <div className="flex items-center justify-between">

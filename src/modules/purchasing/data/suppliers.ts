@@ -12,6 +12,7 @@ import type {
 export type CreateSupplierInput = {
   orgId: string
   name: string
+  leadTimeDays?: number | null
 }
 
 export type CreateSupplierItemInput = {
@@ -31,6 +32,7 @@ type SupplierRow = {
   org_id: string
   name: string
   created_at: string
+  lead_time_days?: number | null
 }
 
 type SupplierItemRow = {
@@ -45,6 +47,7 @@ type SupplierItemRow = {
   product_type_override?: ProductType | null
   lead_time_days_override?: number | null
   created_at: string
+  products?: { product_type?: ProductType | null } | null
 }
 
 function mapSupplier(row: SupplierRow): Supplier {
@@ -53,6 +56,7 @@ function mapSupplier(row: SupplierRow): Supplier {
     orgId: row.org_id,
     name: row.name,
     createdAt: row.created_at,
+    leadTimeDays: typeof row.lead_time_days === 'number' ? row.lead_time_days : null,
   }
 }
 
@@ -67,6 +71,7 @@ function mapSupplierItem(row: SupplierItemRow): SupplierItem {
     pricePerUnit: row.price_per_unit,
     notes: row.notes,
     productTypeOverride: row.product_type_override ?? null,
+    productType: row.products?.product_type ?? null,
     leadTimeDaysOverride: typeof row.lead_time_days_override === 'number' ? row.lead_time_days_override : null,
     createdAt: row.created_at,
   }
@@ -87,7 +92,7 @@ async function fetchSuppliersInfinite({
 
   const { data, error } = await supabase
     .from('suppliers')
-    .select('id, org_id, name, created_at')
+    .select('id, org_id, name, created_at, lead_time_days')
     .eq('org_id', orgId)
     .order('created_at', { ascending: false })
     .order('name', { ascending: false })
@@ -113,7 +118,7 @@ async function fetchSupplier(id: string): Promise<Supplier | null> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('suppliers')
-    .select('id, org_id, name, created_at')
+    .select('id, org_id, name, created_at, lead_time_days')
     .eq('id', id)
     .single()
 
@@ -132,7 +137,7 @@ async function fetchSupplierItems(supplierId: string): Promise<SupplierItem[]> {
   const { data, error } = await supabase
     .from('supplier_items')
     .select(
-      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, product_type_override, lead_time_days_override, created_at',
+      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, product_type_override, lead_time_days_override, created_at, products(product_type)',
     )
     .eq('supplier_id', supplierId)
     .order('created_at', { ascending: false })
@@ -155,8 +160,9 @@ export async function insertSupplier(input: CreateSupplierInput): Promise<Suppli
     .insert({
       org_id: input.orgId,
       name: input.name,
+      lead_time_days: typeof input.leadTimeDays === 'number' ? input.leadTimeDays : undefined,
     })
-    .select('id, org_id, name, created_at')
+    .select('id, org_id, name, created_at, lead_time_days')
     .single()
 
   if (error) {
@@ -167,6 +173,24 @@ export async function insertSupplier(input: CreateSupplierInput): Promise<Suppli
     })
   }
 
+  return mapSupplier(data)
+}
+
+export async function updateSupplierLeadTime(input: { supplierId: string; leadTimeDays: number }) {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('suppliers')
+    .update({ lead_time_days: input.leadTimeDays })
+    .eq('id', input.supplierId)
+    .select('id, org_id, name, created_at, lead_time_days')
+    .single()
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'updateSupplierLeadTime',
+      supplierId: input.supplierId,
+    })
+  }
   return mapSupplier(data)
 }
 
@@ -186,7 +210,7 @@ export async function insertSupplierItem(input: CreateSupplierItemInput): Promis
       lead_time_days_override: typeof input.leadTimeDaysOverride === 'number' ? input.leadTimeDaysOverride : null,
     })
     .select(
-      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, product_type_override, lead_time_days_override, created_at',
+      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, product_type_override, lead_time_days_override, created_at, products(product_type)',
     )
     .single()
 
@@ -256,6 +280,22 @@ export function useCreateSupplier(orgId: string | undefined) {
   })
 }
 
+export function useUpdateSupplierLeadTime(supplierId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (leadTimeDays: number) => {
+      if (!supplierId) {
+        throw new Error('No se puede actualizar lead time sin proveedor.')
+      }
+      return updateSupplierLeadTime({ supplierId, leadTimeDays })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] })
+      queryClient.invalidateQueries({ queryKey: ['suppliers', supplierId] })
+    },
+  })
+}
+
 export function useCreateSupplierItem(supplierId: string | undefined) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -279,7 +319,7 @@ export async function listSupplierItemsByOrg(orgId: string): Promise<SupplierIte
   const { data, error } = await supabase
     .from('supplier_items')
     .select(
-      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, product_type_override, lead_time_days_override, created_at, suppliers!inner(org_id)',
+      'id, supplier_id, name, purchase_unit, pack_size, rounding_rule, price_per_unit, notes, product_type_override, lead_time_days_override, created_at, products(product_type), suppliers!inner(org_id)',
     )
     .eq('suppliers.org_id', orgId)
     .order('created_at')
@@ -302,5 +342,110 @@ export function useSupplierItemsByOrg(orgId: string | undefined) {
     queryKey: ['supplier_items_by_org', orgId],
     queryFn: () => listSupplierItemsByOrg(orgId!),
     enabled: Boolean(orgId),
+  })
+}
+
+export type SupplierLeadTime = {
+  id: string
+  orgId: string
+  supplierId: string
+  productType: ProductType
+  leadTimeDays: number
+  createdAt: string
+}
+
+type SupplierLeadTimeRow = {
+  id: string
+  org_id: string
+  supplier_id: string
+  product_type: ProductType
+  lead_time_days: number
+  created_at: string
+}
+
+function mapSupplierLeadTime(row: SupplierLeadTimeRow): SupplierLeadTime {
+  return {
+    id: row.id,
+    orgId: row.org_id,
+    supplierId: row.supplier_id,
+    productType: row.product_type,
+    leadTimeDays: row.lead_time_days,
+    createdAt: row.created_at,
+  }
+}
+
+export async function listSupplierLeadTimes(supplierId: string): Promise<SupplierLeadTime[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('supplier_lead_times')
+    .select('id, org_id, supplier_id, product_type, lead_time_days, created_at')
+    .eq('supplier_id', supplierId)
+    .order('product_type')
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'listSupplierLeadTimes',
+      supplierId,
+    })
+  }
+  return data?.map(mapSupplierLeadTime) ?? []
+}
+
+export async function upsertSupplierLeadTime(input: {
+  orgId: string
+  supplierId: string
+  productType: ProductType
+  leadTimeDays: number
+}): Promise<SupplierLeadTime> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('supplier_lead_times')
+    .upsert(
+      {
+        org_id: input.orgId,
+        supplier_id: input.supplierId,
+        product_type: input.productType,
+        lead_time_days: input.leadTimeDays,
+      },
+      { onConflict: 'supplier_id,product_type' },
+    )
+    .select('id, org_id, supplier_id, product_type, lead_time_days, created_at')
+    .single()
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'upsertSupplierLeadTime',
+      supplierId: input.supplierId,
+    })
+  }
+  return mapSupplierLeadTime(data)
+}
+
+export function useSupplierLeadTimes(supplierId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ['supplier_lead_times', supplierId],
+    queryFn: () => listSupplierLeadTimes(supplierId!),
+    enabled: enabled && Boolean(supplierId),
+  })
+}
+
+export function useUpsertSupplierLeadTime(orgId: string | undefined, supplierId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { productType: ProductType; leadTimeDays: number }) => {
+      if (!orgId || !supplierId) {
+        throw new Error('No se puede actualizar lead times sin org/proveedor.')
+      }
+      return upsertSupplierLeadTime({
+        orgId,
+        supplierId,
+        productType: input.productType,
+        leadTimeDays: input.leadTimeDays,
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supplier_lead_times', supplierId] })
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] })
+    },
   })
 }

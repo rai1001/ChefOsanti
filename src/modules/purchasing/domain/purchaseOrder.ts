@@ -1,7 +1,7 @@
 import { roundRequestedQuantity } from './rounding'
 import type { PurchaseUnit, RoundingRule } from './types'
 
-export type PurchaseOrderStatus = 'draft' | 'confirmed' | 'received' | 'cancelled'
+export type PurchaseOrderStatus = 'draft' | 'approved' | 'ordered' | 'received' | 'cancelled'
 
 export type PurchaseOrderLineInput = {
   requestedQty: number
@@ -13,8 +13,9 @@ export type PurchaseOrderLineInput = {
 export function assertValidStatusTransition(from: PurchaseOrderStatus, to: PurchaseOrderStatus) {
   if (from === to) return
   const allowed: Record<PurchaseOrderStatus, PurchaseOrderStatus[]> = {
-    draft: ['confirmed', 'cancelled'],
-    confirmed: ['received', 'cancelled'],
+    draft: ['approved', 'cancelled'],
+    approved: ['ordered', 'cancelled'],
+    ordered: ['received', 'cancelled'],
     received: [],
     cancelled: [],
   }

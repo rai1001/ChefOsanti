@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -8,6 +8,9 @@ import {
   useCreateSupplierItem,
   useSupplier,
   useSupplierItems,
+  useSupplierLeadTimes,
+  useUpsertSupplierLeadTime,
+  useUpdateSupplierLeadTime,
 } from '@/modules/purchasing/data/suppliers'
 import type { ProductType, PurchaseUnit, RoundingRule } from '@/modules/purchasing/domain/types'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
@@ -39,16 +42,29 @@ const itemSchema = z
 
 type ItemForm = z.infer<typeof itemSchema>
 
+const leadTimeSchema = z.object({
+  defaultLeadTimeDays: z.number().min(0, 'Minimo 0').optional(),
+  freshLeadTimeDays: z.number().min(0, 'Minimo 0').optional(),
+  pasteurizedLeadTimeDays: z.number().min(0, 'Minimo 0').optional(),
+  frozenLeadTimeDays: z.number().min(0, 'Minimo 0').optional(),
+})
+
+type LeadTimeForm = z.infer<typeof leadTimeSchema>
+
 export default function SupplierDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { session, loading, error } = useSupabaseSession()
   const supplier = useSupplier(id, !!session && !loading)
   const items = useSupplierItems(id, !!session && !loading)
+  const leadTimes = useSupplierLeadTimes(id, !!session && !loading)
   const createItem = useCreateSupplierItem(id)
+  const updateSupplierLeadTime = useUpdateSupplierLeadTime(id)
+  const upsertLeadTime = useUpsertSupplierLeadTime(supplier.data?.orgId, id)
   const sessionError = useFormattedError(error)
   const createError = useFormattedError(createItem.error)
   const supplierError = useFormattedError(supplier.error)
   const itemsError = useFormattedError(items.error)
+  const leadTimesError = useFormattedError(leadTimes.error)
 
   const {
     register,
@@ -70,10 +86,41 @@ export default function SupplierDetailPage() {
     },
   })
 
+  const {
+    register: registerLeadTime,
+    handleSubmit: handleSubmitLeadTime,
+    reset: resetLeadTime,
+    formState: { errors: leadTimeErrors, isSubmitting: leadTimeSubmitting },
+  } = useForm<LeadTimeForm>({
+    resolver: zodResolver(leadTimeSchema),
+    defaultValues: {
+      defaultLeadTimeDays: undefined,
+      freshLeadTimeDays: undefined,
+      pasteurizedLeadTimeDays: undefined,
+      frozenLeadTimeDays: undefined,
+    },
+  })
+
   const roundingRule = useWatch({ control, name: 'roundingRule' })
   const supplierName = supplier.data?.name ?? 'Proveedor'
 
   const isPackRule = useMemo(() => roundingRule === 'ceil_pack', [roundingRule])
+  const leadTimesByType = useMemo(() => {
+    const map: Record<string, number | undefined> = {}
+    for (const lt of leadTimes.data ?? []) {
+      map[lt.productType] = lt.leadTimeDays
+    }
+    return map
+  }, [leadTimes.data])
+
+  useEffect(() => {
+    resetLeadTime({
+      defaultLeadTimeDays: typeof supplier.data?.leadTimeDays === 'number' ? supplier.data.leadTimeDays : undefined,
+      freshLeadTimeDays: leadTimesByType.fresh,
+      pasteurizedLeadTimeDays: leadTimesByType.pasteurized,
+      frozenLeadTimeDays: leadTimesByType.frozen,
+    })
+  }, [leadTimesByType, resetLeadTime, supplier.data?.leadTimeDays])
 
   if (loading) {
     return (
@@ -133,6 +180,21 @@ export default function SupplierDetailPage() {
     })
   }
 
+  const onSubmitLeadTimes = async (values: LeadTimeForm) => {
+    if (typeof values.defaultLeadTimeDays === 'number') {
+      await updateSupplierLeadTime.mutateAsync(values.defaultLeadTimeDays)
+    }
+    if (typeof values.freshLeadTimeDays === 'number') {
+      await upsertLeadTime.mutateAsync({ productType: 'fresh', leadTimeDays: values.freshLeadTimeDays })
+    }
+    if (typeof values.pasteurizedLeadTimeDays === 'number') {
+      await upsertLeadTime.mutateAsync({ productType: 'pasteurized', leadTimeDays: values.pasteurizedLeadTimeDays })
+    }
+    if (typeof values.frozenLeadTimeDays === 'number') {
+      await upsertLeadTime.mutateAsync({ productType: 'frozen', leadTimeDays: values.frozenLeadTimeDays })
+    }
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
@@ -155,6 +217,81 @@ export default function SupplierDetailPage() {
           onRetry={() => supplier.refetch()}
         />
       )}
+
+      <section className="ds-card">
+        <h3 className="text-sm font-semibold text-white">Lead times</h3>
+        {leadTimes.isError && (
+          <div className="mt-2">
+            <ErrorBanner title="Error al cargar lead times" message={leadTimesError} />
+          </div>
+        )}
+        <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={handleSubmitLeadTime(onSubmitLeadTimes)}>
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-slate-300">Lead time base (dias)</span>
+            <input
+              type="number"
+              step="1"
+              className="ds-input"
+              placeholder="Ej: 2"
+              {...registerLeadTime('defaultLeadTimeDays', {
+                setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
+              })}
+            />
+            {leadTimeErrors.defaultLeadTimeDays && (
+              <p className="text-xs text-red-500">{leadTimeErrors.defaultLeadTimeDays.message}</p>
+            )}
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-slate-300">Lead time fresco (dias)</span>
+            <input
+              type="number"
+              step="1"
+              className="ds-input"
+              placeholder="Ej: 2"
+              {...registerLeadTime('freshLeadTimeDays', {
+                setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
+              })}
+            />
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-slate-300">Lead time pasteurizado (dias)</span>
+            <input
+              type="number"
+              step="1"
+              className="ds-input"
+              placeholder="Ej: 2"
+              {...registerLeadTime('pasteurizedLeadTimeDays', {
+                setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
+              })}
+            />
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-sm font-medium text-slate-300">Lead time congelado (dias)</span>
+            <input
+              type="number"
+              step="1"
+              className="ds-input"
+              placeholder="Ej: 7"
+              {...registerLeadTime('frozenLeadTimeDays', {
+                setValueAs: (v) => (v === '' || Number.isNaN(Number(v)) ? undefined : Number(v)),
+              })}
+            />
+          </label>
+
+          <div className="md:col-span-2">
+            <button
+              type="submit"
+              disabled={leadTimeSubmitting || updateSupplierLeadTime.isPending || upsertLeadTime.isPending}
+              className="ds-btn ds-btn-primary w-full disabled:opacity-60"
+            >
+              {leadTimeSubmitting ? 'Guardando...' : 'Guardar lead times'}
+            </button>
+          </div>
+        </form>
+      </section>
 
       <section className="ds-card p-0">
         <div className="ds-section-header">

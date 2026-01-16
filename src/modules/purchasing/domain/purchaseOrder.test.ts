@@ -8,14 +8,15 @@ import {
 } from './purchaseOrder'
 
 describe('assertValidStatusTransition', () => {
-  it('permite transiciones válidas', () => {
-    expect(() => assertValidStatusTransition('draft', 'confirmed')).not.toThrow()
-    expect(() => assertValidStatusTransition('confirmed', 'received')).not.toThrow()
+  it('permite transiciones validas', () => {
+    expect(() => assertValidStatusTransition('draft', 'approved')).not.toThrow()
+    expect(() => assertValidStatusTransition('approved', 'ordered')).not.toThrow()
+    expect(() => assertValidStatusTransition('ordered', 'received')).not.toThrow()
   })
 
-  it('rechaza transiciones inválidas', () => {
+  it('rechaza transiciones invalidas', () => {
     expect(() => assertValidStatusTransition('received', 'draft')).toThrow()
-    expect(() => assertValidStatusTransition('cancelled', 'confirmed')).toThrow()
+    expect(() => assertValidStatusTransition('cancelled', 'ordered')).toThrow()
   })
 })
 
@@ -30,7 +31,7 @@ describe('computeLineTotal', () => {
 })
 
 describe('computeOrderTotal', () => {
-  it('suma totales de líneas', () => {
+  it('suma totales de lineas', () => {
     expect(computeOrderTotal([{ lineTotal: 5 }, { lineTotal: 2.5 }])).toBe(7.5)
   })
 })

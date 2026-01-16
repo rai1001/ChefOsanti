@@ -4,7 +4,8 @@ import { mapSupabaseError } from '@/lib/shared/errors'
 import type { MenuTemplateItem } from '@/modules/events/domain/menu'
 import type { ServiceFormat } from '@/modules/events/domain/event'
 import { computeServiceNeedsWithOverrides, type ServiceOverrides } from '@/modules/events/domain/overrides'
-import type { SupplierItem } from '../domain/types'
+import type { ProductType, SupplierItem } from '../domain/types'
+import type { PurchaseOrderStatus } from '../domain/purchaseOrder'
 import { mapNeedsToSupplierItems, normalizeAlias, type Need } from '../domain/eventDraftOrder'
 import { getStockOnHand, getOnOrderQty } from './stock'
 import { getPurchasingSettings } from './settings'
@@ -17,11 +18,13 @@ export type EventPurchaseOrder = {
   hotelId: string
   eventId: string
   supplierId: string
-  status: 'draft' | 'sent' | 'cancelled'
+  status: PurchaseOrderStatus
   approvalStatus: 'pending' | 'approved' | 'rejected'
   orderNumber: string
   totalEstimated: number
   createdAt: string
+  productType: ProductType
+  receivedState?: 'none' | 'partial' | 'full'
 }
 
 export type EventPurchaseOrderLine = {
@@ -44,6 +47,17 @@ export type EventPurchaseOrderLine = {
   unitMismatch: boolean
 }
 
+export type EventOrderDeadline = {
+  orderId: string
+  eventId: string
+  supplierId: string
+  productType: ProductType
+  leadTimeDays: number
+  orderDeadlineAt: string
+  reminderEndAt: string
+  reminderActive: boolean
+}
+
 type EventPurchaseOrderRow = {
   id: string
   org_id: string
@@ -55,6 +69,8 @@ type EventPurchaseOrderRow = {
   order_number: string
   total_estimated?: number | null
   created_at: string
+  product_type?: EventPurchaseOrder['productType'] | null
+  received_state?: EventPurchaseOrder['receivedState'] | null
 }
 
 type EventPurchaseOrderLineRow = {
@@ -75,6 +91,17 @@ type EventPurchaseOrderLineRow = {
   net_qty?: number | null
   rounded_qty?: number | null
   unit_mismatch?: boolean | null
+}
+
+type EventOrderDeadlineRow = {
+  event_purchase_order_id: string
+  event_id: string
+  supplier_id: string
+  product_type: ProductType
+  lead_time_days: number
+  order_deadline_at: string
+  reminder_end_at: string
+  reminder_active: boolean
 }
 
 type MenuTemplateItemRow = {
@@ -101,6 +128,8 @@ function mapOrder(row: EventPurchaseOrderRow): EventPurchaseOrder {
     orderNumber: row.order_number,
     totalEstimated: row.total_estimated ?? 0,
     createdAt: row.created_at,
+    productType: (row.product_type as EventPurchaseOrder['productType']) ?? 'fresh',
+    receivedState: (row.received_state as EventPurchaseOrder['receivedState']) ?? 'none',
   }
 }
 
@@ -124,6 +153,44 @@ function mapLine(row: EventPurchaseOrderLineRow): EventPurchaseOrderLine {
     roundedQty: Number(row.rounded_qty ?? row.qty ?? 0),
     unitMismatch: Boolean(row.unit_mismatch ?? false),
   }
+}
+
+function mapDeadline(row: EventOrderDeadlineRow): EventOrderDeadline {
+  return {
+    orderId: row.event_purchase_order_id,
+    eventId: row.event_id,
+    supplierId: row.supplier_id,
+    productType: row.product_type,
+    leadTimeDays: Number(row.lead_time_days ?? 0),
+    orderDeadlineAt: row.order_deadline_at,
+    reminderEndAt: row.reminder_end_at,
+    reminderActive: Boolean(row.reminder_active),
+  }
+}
+
+export async function getEventOrderDeadline(orderId: string): Promise<EventOrderDeadline | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('event_purchase_order_deadlines')
+    .select('event_purchase_order_id, event_id, supplier_id, product_type, lead_time_days, order_deadline_at, reminder_end_at, reminder_active')
+    .eq('event_purchase_order_id', orderId)
+    .maybeSingle()
+  if (error) {
+    throw mapSupabaseError(error, {
+      module: 'purchasing',
+      operation: 'getEventOrderDeadline',
+      orderId,
+    })
+  }
+  return data ? mapDeadline(data) : null
+}
+
+export function useEventOrderDeadline(orderId: string | undefined) {
+  return useQuery({
+    queryKey: ['event_order_deadline', orderId],
+    queryFn: () => getEventOrderDeadline(orderId ?? ''),
+    enabled: Boolean(orderId),
+  })
 }
 
 export async function listEventOrders(orgId: string): Promise<EventPurchaseOrder[]> {
@@ -443,6 +510,7 @@ export async function createDraftOrders(params: {
     string,
     {
       supplierId: string
+      productType: ProductType
       lines: {
         supplierItem: SupplierItem
         label: string
@@ -482,10 +550,12 @@ export async function createDraftOrders(params: {
       continue
     }
 
-    if (!grouped.has(agg.supplierId)) {
-      grouped.set(agg.supplierId, { supplierId: agg.supplierId, lines: [] })
+    const productType = agg.supplierItem.productTypeOverride ?? agg.supplierItem.productType ?? 'fresh'
+    const groupKey = `${agg.supplierId}:${productType}`
+    if (!grouped.has(groupKey)) {
+      grouped.set(groupKey, { supplierId: agg.supplierId, productType, lines: [] })
     }
-    grouped.get(agg.supplierId)!.lines.push({
+    grouped.get(groupKey)!.lines.push({
       supplierItem: agg.supplierItem,
       label: agg.label,
       grossQty: netRes.grossQty,
@@ -511,6 +581,7 @@ export async function createDraftOrders(params: {
       .eq('org_id', params.orgId)
       .eq('event_id', params.eventId)
       .eq('supplier_id', group.supplierId)
+      .eq('product_type', group.productType)
       .eq('status', 'draft')
       .maybeSingle()
     if (existingErr) {
@@ -534,6 +605,7 @@ export async function createDraftOrders(params: {
           supplier_id: group.supplierId,
           status: 'draft',
           order_number: orderNumber,
+          product_type: group.productType,
         },
         { onConflict: 'id' },
       )

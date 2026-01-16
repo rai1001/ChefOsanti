@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { Printer, Mail } from 'lucide-react'
 import { useSupabaseSession } from '@/modules/auth/data/session'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
-import { useEventOrder } from '../data/eventOrders'
+import { useEventOrder, useEventOrderDeadline } from '../data/eventOrders'
 import { useSuppliers } from '../data/suppliers'
 import { ApprovalActions } from './ApprovalActions'
 import { useReservationsByEvent, releaseReservation, upsertReservationForEvent } from '@/modules/inventory/data/reservations'
@@ -12,6 +12,7 @@ import { detectReservationConflicts } from '@/modules/inventory/domain/reservati
 import { PageHeader } from '@/modules/shared/ui/PageHeader'
 import { ConfirmDialog } from '@/modules/shared/ui/ConfirmDialog'
 import { useState } from 'react'
+import { downloadPurchaseOrderPdf } from '../data/pdf'
 
 type ReservationLine = {
   supplier_item_id: string
@@ -31,9 +32,12 @@ export default function EventOrderDetailPage() {
   const { session, loading, error } = useSupabaseSession()
   const { activeOrgId } = useActiveOrgId()
   const order = useEventOrder(id)
+  const deadline = useEventOrderDeadline(id)
   const suppliers = useSuppliers(activeOrgId ?? undefined)
   const reservations = useReservationsByEvent(order.data?.order.eventId)
   const [confirmRelease, setConfirmRelease] = useState(false)
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfError, setPdfError] = useState<string | null>(null)
 
   const stockQuery = useQuery({
     queryKey: ['stock_on_hand_for_order', order.data?.order.hotelId, order.data?.lines.map((l) => l.supplierItemId).join(',')],
@@ -61,6 +65,20 @@ export default function EventOrderDetailPage() {
       lines.map(l => `- ${l.itemLabel}: ${l.qty} ${l.purchaseUnit}`).join('\n')
 
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  }
+
+  const handlePdfExport = async () => {
+    if (!order.data) return
+    setPdfError(null)
+    setPdfLoading(true)
+    try {
+      await downloadPurchaseOrderPdf({ orderId: order.data.order.id, orderType: 'event' })
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'No se pudo generar el PDF.'
+      setPdfError(message)
+    } finally {
+      setPdfLoading(false)
+    }
   }
 
   const handleReserve = async () => {
@@ -124,15 +142,15 @@ export default function EventOrderDetailPage() {
     <div className="space-y-4">
       <PageHeader
         title={po.orderNumber}
-        subtitle={`Estado: ${po.status} · Proveedor: ${supplierName ?? 'N/D'} · Total estimado: ${po.totalEstimated.toFixed(2)}`}
+        subtitle={`Estado: ${po.status} | Proveedor: ${supplierName ?? 'N/D'} | Total estimado: ${po.totalEstimated.toFixed(2)}${deadline.data?.orderDeadlineAt ? ` | Deadline: ${new Date(deadline.data.orderDeadlineAt).toLocaleDateString()}` : ''}`}
         actions={
           <div className="flex gap-2 print:hidden">
             <button
-              onClick={() => window.print()}
+              onClick={handlePdfExport}
               className="flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
             >
               <Printer className="w-4 h-4" />
-              <span className="hidden md:inline">PDF</span>
+              <span className="hidden md:inline">{pdfLoading ? 'Generando...' : 'PDF'}</span>
             </button>
             <button
               onClick={handleEmailExport}
@@ -150,6 +168,21 @@ export default function EventOrderDetailPage() {
           </div>
         }
       />
+
+      {pdfError && (
+        <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {pdfError}
+        </div>
+      )}
+
+      {deadline.data && (
+        <div className={`rounded border p-3 text-sm ${deadline.data.reminderActive ? 'border-amber-300 bg-amber-50 text-amber-800' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
+          <p>
+            Lead time: {deadline.data.leadTimeDays} dias · Ultimo recordatorio:{' '}
+            {new Date(deadline.data.reminderEndAt).toLocaleDateString()}
+          </p>
+        </div>
+      )}
 
       <ApprovalActions
         entityType="event_purchase_order"

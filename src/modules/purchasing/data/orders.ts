@@ -28,6 +28,7 @@ export type PurchaseOrder = {
   totalEstimated: number
   approvalStatus: ApprovalStatus
   createdAt: string
+  receivedState?: 'none' | 'partial' | 'full'
 }
 
 export type PurchaseOrderLine = {
@@ -64,6 +65,7 @@ type PurchaseOrderRow = {
   total_estimated?: number | null
   approval_status?: ApprovalStatus | null
   created_at: string
+  received_state?: PurchaseOrder['receivedState'] | null
 }
 type PurchaseOrderLineRow = {
   id: string
@@ -106,6 +108,7 @@ function mapPurchaseOrder(row: PurchaseOrderRow): PurchaseOrder {
     totalEstimated: row.total_estimated ?? 0,
     approvalStatus: row.approval_status ?? 'pending',
     createdAt: row.created_at,
+    receivedState: row.received_state ?? 'none',
   }
 }
 
@@ -322,7 +325,7 @@ export async function listPurchaseOrders(
   let query = supabase
     .from('purchase_orders')
     .select(
-      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, approval_status, created_at',
+      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, approval_status, created_at, received_state',
     )
     .eq('org_id', orgId)
     .order('created_at', { ascending: false })
@@ -349,7 +352,7 @@ export async function getPurchaseOrderWithLines(
   const { data: order, error: orderError } = await supabase
     .from('purchase_orders')
     .select(
-      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, approval_status, created_at',
+      'id, org_id, hotel_id, supplier_id, status, order_number, notes, total_estimated, approval_status, created_at, received_state',
     )
     .eq('id', id)
     .single()
@@ -395,8 +398,10 @@ export async function updatePurchaseOrderStatus(id: string, status: PurchaseOrde
     .from('purchase_orders')
     .update({
       status,
-      confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
+      approved_at: status === 'approved' ? new Date().toISOString() : null,
+      ordered_at: status === 'ordered' ? new Date().toISOString() : null,
       received_at: status === 'received' ? new Date().toISOString() : null,
+      received_state: status === 'received' ? 'full' : 'none',
     })
     .eq('id', id)
 

@@ -1,8 +1,8 @@
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
 
-const PO_OPEN_STATUSES = ['draft', 'confirmed']
-const EVENT_PO_OPEN_STATUSES = ['draft', 'sent']
+const PO_OPEN_STATUSES = ['draft', 'approved', 'ordered']
+const EVENT_PO_OPEN_STATUSES = ['draft', 'approved', 'ordered']
 
 export async function getStockOnHand(orgId: string, hotelId: string, supplierItemIds: string[]) {
   if (!orgId || supplierItemIds.length === 0) return {}
