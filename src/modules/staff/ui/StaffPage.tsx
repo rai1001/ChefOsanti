@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useHotels } from '@/modules/events/data/events'
 import { useCreateStaffMember, useStaffMembers, useToggleStaffActive } from '../data/staff'
+import { useCompensationBalances, useRegisterExtraShift, useRequestTimeOff, useVacationBalances } from '../data/vacations'
 import type { EmploymentType, StaffRole } from '../domain/staff'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
@@ -18,9 +19,13 @@ export default function StaffPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
   const [onlyActive, setOnlyActive] = useState(true)
   const staff = useStaffMembers(activeOrgId ?? undefined, onlyActive)
+  const vacationBalances = useVacationBalances(activeOrgId ?? undefined)
+  const compensationBalances = useCompensationBalances(activeOrgId ?? undefined)
   const hotels = useHotels()
   const createStaff = useCreateStaffMember(activeOrgId ?? undefined)
   const toggleActive = useToggleStaffActive(activeOrgId ?? undefined)
+  const requestTimeOff = useRequestTimeOff(activeOrgId ?? undefined)
+  const registerExtraShift = useRegisterExtraShift(activeOrgId ?? undefined)
   const { role } = useCurrentRole()
   const canWrite = can(role, 'staff:write')
   const [isImporterOpen, setIsImporterOpen] = useState(false)
@@ -35,6 +40,15 @@ export default function StaffPage() {
   const [notes, setNotes] = useState('')
   const [shiftPattern, setShiftPattern] = useState<'mañana' | 'tarde' | 'rotativo'>('rotativo')
   const [maxShifts, setMaxShifts] = useState<number>(5)
+  const [timeOffStaffId, setTimeOffStaffId] = useState<string>('')
+  const [timeOffStart, setTimeOffStart] = useState<string>('')
+  const [timeOffEnd, setTimeOffEnd] = useState<string>('')
+  const [timeOffType, setTimeOffType] = useState<'vacaciones' | 'permiso' | 'baja' | 'otros'>('vacaciones')
+  const [timeOffNotes, setTimeOffNotes] = useState('')
+  const [extraStaffId, setExtraStaffId] = useState<string>('')
+  const [extraDate, setExtraDate] = useState<string>('')
+  const [extraHours, setExtraHours] = useState<number>(0)
+  const [extraReason, setExtraReason] = useState('')
 
   if (loading) {
     return (
@@ -48,6 +62,39 @@ export default function StaffPage() {
     return (
       <ErrorBanner title="Selecciona una organización" message={formattedError || 'Selecciona una organización.'} />
     )
+  }
+
+  const onSubmitTimeOff = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!timeOffStaffId || !timeOffStart || !timeOffEnd || !canWrite) return
+    await requestTimeOff.mutateAsync({
+      staffMemberId: timeOffStaffId,
+      startDate: timeOffStart,
+      endDate: timeOffEnd,
+      type: timeOffType,
+      notes: timeOffNotes || null,
+      approved: true,
+    })
+    setTimeOffStaffId('')
+    setTimeOffStart('')
+    setTimeOffEnd('')
+    setTimeOffType('vacaciones')
+    setTimeOffNotes('')
+  }
+
+  const onSubmitExtraShift = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!extraStaffId || !extraDate || extraHours <= 0 || !canWrite) return
+    await registerExtraShift.mutateAsync({
+      staffMemberId: extraStaffId,
+      shiftDate: extraDate,
+      hours: extraHours,
+      reason: extraReason || null,
+    })
+    setExtraStaffId('')
+    setExtraDate('')
+    setExtraHours(0)
+    setExtraReason('')
   }
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -73,6 +120,16 @@ export default function StaffPage() {
 
   const hotelMap = (hotels.data ?? []).reduce<Record<string, string>>((acc, h) => {
     acc[h.id] = h.name
+    return acc
+  }, {})
+
+  const vacationByStaff = (vacationBalances.data ?? []).reduce<Record<string, { remaining: number; total: number }>>((acc, row) => {
+    acc[row.staffMemberId] = { remaining: row.daysRemaining, total: row.daysTotal }
+    return acc
+  }, {})
+
+  const compensationByStaff = (compensationBalances.data ?? []).reduce<Record<string, number>>((acc, row) => {
+    acc[row.staffMemberId] = row.hoursOpen
     return acc
   }, {})
 
@@ -219,6 +276,143 @@ export default function StaffPage() {
       </div>
 
       <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
+        <h2 className="text-sm font-semibold text-white">Vacaciones y compensaciones</h2>
+        {!canWrite && <p className="text-xs text-slate-400">Sin permisos para registrar ajustes.</p>}
+        <div className="mt-3 grid gap-4 md:grid-cols-2">
+          <form className="space-y-3" onSubmit={onSubmitTimeOff}>
+            <p className="text-xs font-semibold text-slate-300">Registrar vacaciones</p>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-400">Empleado</span>
+              <select
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white"
+                value={timeOffStaffId}
+                onChange={(e) => setTimeOffStaffId(e.target.value)}
+                disabled={!canWrite}
+              >
+                <option value="">Selecciona</option>
+                {staff.data?.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.fullName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="space-y-1">
+                <span className="text-xs text-slate-400">Desde</span>
+                <input
+                  type="date"
+                  className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white"
+                  value={timeOffStart}
+                  onChange={(e) => setTimeOffStart(e.target.value)}
+                  disabled={!canWrite}
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs text-slate-400">Hasta</span>
+                <input
+                  type="date"
+                  className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white"
+                  value={timeOffEnd}
+                  onChange={(e) => setTimeOffEnd(e.target.value)}
+                  disabled={!canWrite}
+                />
+              </label>
+            </div>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-400">Tipo</span>
+              <select
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white"
+                value={timeOffType}
+                onChange={(e) => setTimeOffType(e.target.value as typeof timeOffType)}
+                disabled={!canWrite}
+              >
+                <option value="vacaciones">Vacaciones</option>
+                <option value="permiso">Permiso</option>
+                <option value="baja">Baja</option>
+                <option value="otros">Otros</option>
+              </select>
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-400">Notas</span>
+              <input
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white"
+                value={timeOffNotes}
+                onChange={(e) => setTimeOffNotes(e.target.value)}
+                disabled={!canWrite}
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={!canWrite || requestTimeOff.isPending}
+              className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white"
+            >
+              {requestTimeOff.isPending ? 'Guardando...' : 'Registrar vacaciones'}
+            </button>
+          </form>
+
+          <form className="space-y-3" onSubmit={onSubmitExtraShift}>
+            <p className="text-xs font-semibold text-slate-300">Registrar turno extra</p>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-400">Empleado</span>
+              <select
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white"
+                value={extraStaffId}
+                onChange={(e) => setExtraStaffId(e.target.value)}
+                disabled={!canWrite}
+              >
+                <option value="">Selecciona</option>
+                {staff.data?.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.fullName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="space-y-1">
+                <span className="text-xs text-slate-400">Fecha</span>
+                <input
+                  type="date"
+                  className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white"
+                  value={extraDate}
+                  onChange={(e) => setExtraDate(e.target.value)}
+                  disabled={!canWrite}
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs text-slate-400">Horas</span>
+                <input
+                  type="number"
+                  step="0.5"
+                  className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white"
+                  value={extraHours}
+                  onChange={(e) => setExtraHours(Number(e.target.value) || 0)}
+                  disabled={!canWrite}
+                />
+              </label>
+            </div>
+            <label className="space-y-1">
+              <span className="text-xs text-slate-400">Motivo</span>
+              <input
+                className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white"
+                value={extraReason}
+                onChange={(e) => setExtraReason(e.target.value)}
+                disabled={!canWrite}
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={!canWrite || registerExtraShift.isPending}
+              className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+            >
+              {registerExtraShift.isPending ? 'Guardando...' : 'Registrar turno extra'}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
         <h2 className="text-sm font-semibold text-white">Listado</h2>
         {staff.isLoading && (
           <div className="mt-3 space-y-2">
@@ -241,6 +435,9 @@ export default function StaffPage() {
                 </p>
                 <p className="text-xs text-slate-500">
                   Hotel base: {s.homeHotelId ? hotelMap[s.homeHotelId] ?? s.homeHotelId : 'N/A'}
+                </p>
+                <p className="text-xs text-slate-500">
+                  Vacaciones: {vacationByStaff[s.id] ? `${vacationByStaff[s.id].remaining}/${vacationByStaff[s.id].total}` : '--'} | Comp: {(compensationByStaff[s.id] ?? 0).toFixed(1)}h
                 </p>
               </div>
               <div className="flex items-center gap-2">
