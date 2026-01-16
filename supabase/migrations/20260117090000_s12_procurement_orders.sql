@@ -94,6 +94,8 @@ CREATE POLICY "Supplier lead times delete by membership"
   USING (public.is_org_member(org_id));
 
 -- Purchase orders status enum + received state
+DROP VIEW IF EXISTS public.dashboard_purchase_event_metrics;
+
 ALTER TABLE public.purchase_orders
   ADD COLUMN IF NOT EXISTS approved_at timestamptz NULL,
   ADD COLUMN IF NOT EXISTS ordered_at timestamptz NULL,
