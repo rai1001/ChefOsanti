@@ -47,7 +47,7 @@ type SupplierItemRow = {
   product_type_override?: ProductType | null
   lead_time_days_override?: number | null
   created_at: string
-  products?: { product_type?: ProductType | null } | null
+  products?: { product_type?: ProductType | null }[] | null
 }
 
 function mapSupplier(row: SupplierRow): Supplier {
@@ -71,7 +71,7 @@ function mapSupplierItem(row: SupplierItemRow): SupplierItem {
     pricePerUnit: row.price_per_unit,
     notes: row.notes,
     productTypeOverride: row.product_type_override ?? null,
-    productType: row.products?.product_type ?? null,
+    productType: row.products?.[0]?.product_type ?? null,
     leadTimeDaysOverride: typeof row.lead_time_days_override === 'number' ? row.lead_time_days_override : null,
     createdAt: row.created_at,
   }
