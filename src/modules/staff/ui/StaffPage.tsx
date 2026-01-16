@@ -345,7 +345,7 @@ export default function StaffPage() {
             <button
               type="submit"
               disabled={!canWrite || requestTimeOff.isPending}
-              className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white"
+              className="w-full rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {requestTimeOff.isPending ? 'Guardando...' : 'Registrar vacaciones'}
             </button>
@@ -404,7 +404,7 @@ export default function StaffPage() {
             <button
               type="submit"
               disabled={!canWrite || registerExtraShift.isPending}
-              className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+              className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {registerExtraShift.isPending ? 'Guardando...' : 'Registrar turno extra'}
             </button>
