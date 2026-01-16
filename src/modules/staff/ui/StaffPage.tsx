@@ -11,6 +11,7 @@ import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { PageHeader } from '@/modules/shared/ui/PageHeader'
 import { ErrorBanner } from '@/modules/shared/ui/ErrorBanner'
 import { Skeleton } from '@/modules/shared/ui/Skeleton'
+import { toast } from 'sonner'
 
 const roles: StaffRole[] = ['jefe_cocina', 'cocinero', 'ayudante', 'pasteleria', 'office', 'otros']
 const types: EmploymentType[] = ['fijo', 'eventual', 'extra']
@@ -32,6 +33,8 @@ export default function StaffPage() {
   // queryClient removed
   const formattedError = useFormattedError(error)
   const createError = useFormattedError(createStaff.error)
+  const timeOffError = useFormattedError(requestTimeOff.error)
+  const extraShiftError = useFormattedError(registerExtraShift.error)
 
   const [fullName, setFullName] = useState('')
   const [roleInput, setRoleInput] = useState<StaffRole>('cocinero')
@@ -66,35 +69,59 @@ export default function StaffPage() {
 
   const onSubmitTimeOff = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!timeOffStaffId || !timeOffStart || !timeOffEnd || !canWrite) return
-    await requestTimeOff.mutateAsync({
-      staffMemberId: timeOffStaffId,
-      startDate: timeOffStart,
-      endDate: timeOffEnd,
-      type: timeOffType,
-      notes: timeOffNotes || null,
-      approved: true,
-    })
-    setTimeOffStaffId('')
-    setTimeOffStart('')
-    setTimeOffEnd('')
-    setTimeOffType('vacaciones')
-    setTimeOffNotes('')
+    if (!canWrite) {
+      toast.error('Sin permisos para registrar vacaciones')
+      return
+    }
+    if (!timeOffStaffId || !timeOffStart || !timeOffEnd) {
+      toast.error('Completa empleado y fechas')
+      return
+    }
+    try {
+      await requestTimeOff.mutateAsync({
+        staffMemberId: timeOffStaffId,
+        startDate: timeOffStart,
+        endDate: timeOffEnd,
+        type: timeOffType,
+        notes: timeOffNotes || null,
+        approved: true,
+      })
+      toast.success('Vacaciones registradas')
+      setTimeOffStaffId('')
+      setTimeOffStart('')
+      setTimeOffEnd('')
+      setTimeOffType('vacaciones')
+      setTimeOffNotes('')
+    } catch {
+      toast.error('Error al registrar vacaciones')
+    }
   }
 
   const onSubmitExtraShift = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!extraStaffId || !extraDate || extraHours <= 0 || !canWrite) return
-    await registerExtraShift.mutateAsync({
-      staffMemberId: extraStaffId,
-      shiftDate: extraDate,
-      hours: extraHours,
-      reason: extraReason || null,
-    })
-    setExtraStaffId('')
-    setExtraDate('')
-    setExtraHours(0)
-    setExtraReason('')
+    if (!canWrite) {
+      toast.error('Sin permisos para registrar turnos extra')
+      return
+    }
+    if (!extraStaffId || !extraDate || extraHours <= 0) {
+      toast.error('Completa empleado, fecha y horas')
+      return
+    }
+    try {
+      await registerExtraShift.mutateAsync({
+        staffMemberId: extraStaffId,
+        shiftDate: extraDate,
+        hours: extraHours,
+        reason: extraReason || null,
+      })
+      toast.success('Turno extra registrado')
+      setExtraStaffId('')
+      setExtraDate('')
+      setExtraHours(0)
+      setExtraReason('')
+    } catch {
+      toast.error('Error al registrar turno extra')
+    }
   }
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -349,6 +376,7 @@ export default function StaffPage() {
             >
               {requestTimeOff.isPending ? 'Guardando...' : 'Registrar vacaciones'}
             </button>
+            {timeOffError && <p className="text-xs text-red-400">{timeOffError}</p>}
           </form>
 
           <form className="space-y-3" onSubmit={onSubmitExtraShift}>
@@ -408,6 +436,7 @@ export default function StaffPage() {
             >
               {registerExtraShift.isPending ? 'Guardando...' : 'Registrar turno extra'}
             </button>
+            {extraShiftError && <p className="text-xs text-red-400">{extraShiftError}</p>}
           </form>
         </div>
       </div>
