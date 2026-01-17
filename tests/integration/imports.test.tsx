@@ -72,6 +72,9 @@ describe('UniversalImporter Integration', () => {
         const confirmBtn = screen.getByText('Confirmar Importación')
         await user.click(confirmBtn)
 
+        const finalImportBtn = screen.getByRole('button', { name: 'Importar' })
+        await user.click(finalImportBtn)
+
         await waitFor(() => {
             expect(onImport).toHaveBeenCalledWith([{ name: 'Item A' }])
         })
@@ -112,6 +115,9 @@ describe('UniversalImporter Integration', () => {
 
         const confirmBtn = screen.getByText('Confirmar Importación')
         await user.click(confirmBtn)
+
+        const finalImportBtn = screen.getByRole('button', { name: 'Importar' })
+        await user.click(finalImportBtn)
 
         await waitFor(() => {
             expect(screen.getByText('Import failed')).toBeInTheDocument()

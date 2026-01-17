@@ -15,5 +15,9 @@ export default defineConfig({
     globals: true,
     css: true,
     exclude: ['tests/e2e/**', 'node_modules/**', 'dist/**', 'supabase/functions/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+    },
   },
 })
