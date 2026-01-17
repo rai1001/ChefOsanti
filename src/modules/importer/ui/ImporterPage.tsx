@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useImportJobs, useImportStage, useImportValidate, useImportCommit, useImportJobRows } from '../data/importer'
 import { parseCSV } from '../data/csvParser'
+import { processMatrixData } from '../utils/matrix'
 import { listHotelsByOrg } from '@/modules/orgs/data/hotels'
 import { useQuery } from '@tanstack/react-query'
 import type { ImportEntity } from '../domain/types'
@@ -56,189 +57,6 @@ export default function ImporterPage() {
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Handlers
-    const processMatrixData = (raw: any[], headerIndex: number, dateColKey: string, selectedSheetName: string): any[] => {
-        if (!raw || raw.length <= headerIndex) return []
-        const unpivoted: any[] = []
-
-        // Initialize Quarter/Month Context
-        const monthsFull = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
-        const monthsShort = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
-        const monthsEng = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
-        const monthsEngShort = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-
-        // Try to determine initial month from Sheet Name (e.g. "2025-ENE-MAR" -> Starts with ENE)
-        const sNameUpper = selectedSheetName.toUpperCase()
-        // Find FIRST occurrence of any month in the sheet name to use as default
-        // We iterate through months chronologicaly, but we should probably check position?
-        // Simple heuristic: First match in the month list is usually the start of the quarter (Jan, Apr, Jul, Oct) if ordered.
-        let currentMonthIdx = -1
-
-        // Find the first month that appears in the sheet name (Scanning 0..11)
-        // This favors "ENERO" in "ENERO-MARZO"
-        for (let i = 0; i < 12; i++) {
-            if (sNameUpper.includes(monthsFull[i]) || sNameUpper.includes(monthsShort[i]) || sNameUpper.includes(monthsEng[i]) || sNameUpper.includes(monthsEngShort[i])) {
-                currentMonthIdx = i
-                break
-            }
-        }
-
-        // Try to find Year in Sheet Name (e.g. "2025-...") OR File Name
-        // Regex to find years like 2014, 2025, 2026. Matches 2010-2029 to be safe, or just 4 digits.
-        const yearRegex = /20[1-2]\d/
-        const yearMatch = selectedSheetName.match(yearRegex) || (file?.name || '').match(yearRegex)
-        const year = yearMatch ? Number(yearMatch[0]) : new Date().getFullYear()
-
-        raw.forEach(row => {
-            // 1. Context Switch Check: Scan Date Column Only (or First Column if Date Empty)
-            // Priority: Date Column -> Then other columns if date is empty
-
-            const cellDate = row[dateColKey]
-            const cellDateStr = cellDate ? String(cellDate).toUpperCase().trim() : ''
-
-            // Check Date Column Context Switch
-            let isHeaderRow = false
-
-            // Only consider it a header if it's NOT a number (e.g. "15") and matches a month name exactly or closely
-            if (cellDateStr && !/^\d/.test(cellDateStr)) {
-                // Skip known junk (Total, etc)
-                const junkKeywords = ['TOTAL', 'TRIMESTRE', 'SEMESTRE', 'NOTAS']
-                if (!junkKeywords.some(k => cellDateStr.includes(k))) {
-                    let foundIdx = monthsFull.findIndex(m => cellDateStr === m || (cellDateStr.includes(m) && cellDateStr.length < 20)) // Strict length to avoid titles
-                    if (foundIdx === -1) foundIdx = monthsShort.findIndex(m => cellDateStr === m)
-                    if (foundIdx === -1) foundIdx = monthsEng.findIndex(m => cellDateStr === m || (cellDateStr.includes(m) && cellDateStr.length < 20))
-                    if (foundIdx === -1) foundIdx = monthsEngShort.findIndex(m => cellDateStr === m)
-
-                    if (foundIdx !== -1) {
-                        currentMonthIdx = foundIdx
-                        isHeaderRow = true
-                    }
-                }
-            }
-
-            if (isHeaderRow) return
-
-            // 2. Process Date Data
-            // Note: dateValue was already grabbed above but let's re-declare or just use `cellDate` if compatible?
-            // To minimize diff risk, we'll keep existing flow but ensure we rely on `dateValue`.
-            const dateValue = row[dateColKey]
-            if (!dateValue) return
-            const dateStr = String(dateValue).toUpperCase().trim()
-
-            // Junk check again for the specific date column specific value
-            const junkKeywords = [
-                'TOTAL', 'P.V.P', 'IDENTIFICACIÓN', 'ALERGENOS',
-                'ROOM', 'DESAYUNO', 'BANQUETES', 'COFFEE',
-                'MINIBAR', 'SALA', 'PRODUCCION', 'BAR', 'BUFFET',
-                'HORAS', 'EQUIPOS', 'GRUPOS', 'ESTADO',
-                'TRIMESTRE', 'SEMESTRE'
-            ]
-            if (junkKeywords.some(k => dateStr.includes(k))) return
-
-            // Parse Date immediately to verify validity
-            let finalDate = null
-
-            // Numeric day (1-31) logic
-            if (typeof dateValue === 'number' || (typeof dateValue === 'string' && dateValue.match(/^\d{1,2}$/))) {
-                const day = Number(dateValue)
-                if (day >= 1 && day <= 31) {
-                    // Use detected context
-                    if (currentMonthIdx >= 0) {
-                        finalDate = new Date(year, currentMonthIdx, day).toISOString()
-                    }
-                }
-            } else {
-                // Standard or String date
-                // Standard or String date
-                finalDate = normalizeDate(dateValue, year)
-
-                // If we resolved a full date (not just a day number), Update the Context!
-                // This handles cases where a header is actually "01/02/2026" formatted as "Febrero"
-                // or if the list just jumps to "15-Feb" without a header.
-                if (finalDate) {
-                    const d = new Date(finalDate)
-                    if (!isNaN(d.getTime())) {
-                        currentMonthIdx = d.getMonth()
-                    }
-                }
-            }
-
-            // FILTER: If we couldn't resolve a valid date, SKIP this row entirely
-            // This prevents "Missing starts_at" errors for miscellaneous text rows
-            if (!finalDate) return
-
-            Object.keys(row).forEach(key => {
-                // Ignore the Date Column itself, internal row num, and any empty header columns from XLSX parsing
-                if (key !== dateColKey && key !== '__rowNum__' && !key.startsWith('__EMPTY')) {
-                    const cellValue = row[key]
-                    // Strict filter: omit null/undefined and empty/whitespace strings
-                    if (cellValue && /\S/.test(String(cellValue))) {
-                        unpivoted.push({
-                            name: cellValue,
-                            date: finalDate,
-                            location: key, // Using Column Header as Location Name
-                        })
-                    }
-                }
-            })
-        })
-        return unpivoted
-    }
-
-    // Helper to normalize dates (Excel can return strings like "10/05/2025" or Date objects)
-    // Helper to normalize dates (Excel can return strings like "10/05/2025" or Date objects)
-    const normalizeDate = (input: any, defaultYear?: number): string | null => {
-        if (!input) return null
-        if (input instanceof Date) return input.toISOString()
-
-        // Logic for handling Strings
-        if (typeof input === 'string') {
-            // Case 1: DD/MM/YYYY (Explicit Year)
-            if (input.match(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/)) {
-                const parts = input.split(/[\/\-]/)
-                // Assuming DD/MM/YYYY
-                const day = Number(parts[0])
-                const month = Number(parts[1])
-                const year = Number(parts[2])
-                return new Date(year, month - 1, day).toISOString()
-            }
-
-            // Case 2: DD/MM (Implicit Year) or "15-Ene" (Implicit Year)
-            // If defaultYear is provided, we must enforce it.
-            // Problem: new Date("10/05") defaults to 2001 (Chrome) or Current Year.
-            // We retry parsing with the year appended if possible, or construct manually.
-
-            // DD/MM Regex
-            const shortDateMatch = input.match(/^(\d{1,2})[\/\-](\d{1,2})$/)
-            if (shortDateMatch && defaultYear) {
-                const day = Number(shortDateMatch[1])
-                const month = Number(shortDateMatch[2])
-                return new Date(defaultYear, month - 1, day).toISOString()
-            }
-        }
-
-        // Fallback: Standard parsing
-        const d = new Date(input)
-        if (!isNaN(d.getTime())) {
-            // Fix: If standard parsing results in "Current Year" (or 2001) but we have a `defaultYear` different from it,
-            // AND the input string didn't look like it had a year... we might want to override.
-            // However, detecting "did it have a year" is tricky across locales.
-            // Safe bet: If we passed `defaultYear`, we expect the result to be in that year UNLESS input explicitly had another year.
-
-            // For now, let's trust explicit DD/MM logic above for overrides.
-            // If it falls through here (e.g. "15 Jan"), we can try to fix the year if it mismatches.
-            if (defaultYear && d.getFullYear() !== defaultYear) {
-                // Heuristic: If input lacks 4 digits, assume it meant defaultYear
-                if (!/\d{4}/.test(String(input))) {
-                    d.setFullYear(defaultYear)
-                    return d.toISOString()
-                }
-            }
-            return d.toISOString()
-        }
-
-        console.warn('Could not parse date:', input)
-        return null
-    }
 
     const parsePreviewExcel = async (file: File) => {
         const { parseExcelFile } = await import('@/modules/importer/utils/excelParser')
@@ -377,7 +195,7 @@ export default function ImporterPage() {
                             continue
                         }
 
-                        const unpivoted = processMatrixData(sData, 0, sDateCol, sName)
+                        const unpivoted = processMatrixData(sData, 0, sDateCol, sName, file.name)
                         if (unpivoted.length === 0) {
                             skippedSheets.push(`${sName} (Sin filas válidas - ¿Fallo mes?)`)
                         }
