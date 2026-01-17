@@ -82,6 +82,10 @@ export function AppLayout({ children }: Props) {
         { label: 'Personal', to: '/staff', perm: 'staff:read' },
       ],
     },
+    {
+      label: 'Admin',
+      items: [{ label: 'Organizacion', to: '/org', perm: 'admin:org' }],
+    },
   ]
 
   const visibleSections = navSections

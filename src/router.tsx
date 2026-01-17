@@ -32,6 +32,7 @@ const ReportsPage = lazy(() => import('./modules/reporting/ui/ReportsPage'))
 const ImporterPage = lazy(() => import('./modules/importer/ui/ImporterPage'))
 const PreparationsPage = lazy(() => import('./modules/inventory/ui/PreparationsPage'))
 const ExpiryAlertsPage = lazy(() => import('./modules/inventory/ui/ExpiryAlertsPage'))
+const OrgSettingsPage = lazy(() => import('./modules/orgs/ui/OrgSettingsPage'))
 
 export const appRouter = createBrowserRouter([
   {
@@ -301,6 +302,16 @@ export const appRouter = createBrowserRouter([
           <RequirePermission perm="reports:read">
             <Suspense fallback={<PageLoader />}>
               <ReportsPage />
+            </Suspense>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'org',
+        element: (
+          <RequirePermission perm="admin:org">
+            <Suspense fallback={<PageLoader />}>
+              <OrgSettingsPage />
             </Suspense>
           </RequirePermission>
         ),
