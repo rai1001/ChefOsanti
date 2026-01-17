@@ -1,0 +1,14 @@
+# Documentación del Módulo: Orgs - Capa Data
+**Fecha:** 2026-01-17
+
+## Descripción General
+Documentación automática de la capa data del módulo orgs.
+
+## Archivos
+- `hotels.ts`
+- `memberships.ts`
+- `orgPlans.ts`
+- `activeOrg.ts`
+
+## Detalles
+*(Esta sección debe ser completada con detalles específicos de la lógica de negocio, esquemas de datos o componentes UI)*

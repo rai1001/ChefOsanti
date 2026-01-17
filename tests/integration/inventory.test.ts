@@ -83,9 +83,7 @@ describe('Inventory Data', () => {
   })
 
   it('listExpiryAlerts filters by status', async () => {
-    client.eq.mockReturnValueOnce(client)
-    client.eq.mockReturnValueOnce(client)
-    client.order.mockResolvedValueOnce({
+    client.rpc.mockResolvedValueOnce({
       data: [
         {
           id: 'a1',
@@ -95,18 +93,16 @@ describe('Inventory Data', () => {
           status: 'open',
           created_at: new Date().toISOString(),
           sent_at: null,
-          expiry_rules: { days_before: 3 },
-          stock_batches: {
-            expires_at: new Date().toISOString(),
-            qty: 2,
-            unit: 'kg',
-            lot_code: null,
-            source: 'purchase',
-            location_id: 'loc-1',
-            supplier_items: { name: 'Leche' },
-            preparations: null,
-            inventory_locations: { id: 'loc-1', name: 'Cocina', hotel_id: 'hotel-1' },
-          },
+          days_before: 3,
+          expires_at: new Date().toISOString(),
+          qty: 2,
+          unit: 'kg',
+          product_name: 'Leche',
+          location_id: 'loc-1',
+          location_name: 'Cocina',
+          hotel_id: 'hotel-1',
+          lot_code: null,
+          source: 'purchase',
         },
       ],
       error: null,
@@ -114,9 +110,10 @@ describe('Inventory Data', () => {
 
     const result = await listExpiryAlerts({ orgId: 'org-1', status: 'open' })
 
-    expect(client.from).toHaveBeenCalledWith('expiry_alerts')
-    expect(client.eq).toHaveBeenCalledWith('org_id', 'org-1')
-    expect(client.eq).toHaveBeenCalledWith('status', 'open')
+    expect(client.rpc).toHaveBeenCalledWith('list_expiry_alerts', {
+      p_org_id: 'org-1',
+      p_status: 'open',
+    })
     expect(result[0].productName).toBe('Leche')
   })
 

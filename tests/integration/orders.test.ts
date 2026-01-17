@@ -122,12 +122,12 @@ describe('Purchase Order Data Logic', () => {
     it('updatePurchaseOrderStatus updates status correctly', async () => {
         mockEq.mockResolvedValue({ error: null })
 
-        await updatePurchaseOrderStatus('po-123', 'confirmed')
+        await updatePurchaseOrderStatus('po-123', 'approved')
 
         expect(mockFrom).toHaveBeenCalledWith('purchase_orders')
         expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-            status: 'confirmed',
-            confirmed_at: expect.any(String),
+            status: 'approved',
+            approved_at: expect.any(String),
         }))
         expect(mockEq).toHaveBeenCalledWith('id', 'po-123')
     })
