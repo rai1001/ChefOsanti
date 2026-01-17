@@ -86,7 +86,7 @@ describe('Events Data', () => {
             orgId: 'o1',
             hotelId: 'h1',
             title: 'New Event',
-            status: 'inquiry'
+            status: 'draft'
         })
 
         expect(mockFrom).toHaveBeenCalledWith('events')
@@ -137,7 +137,7 @@ describe('Events Data', () => {
 
     it('listEventServices fetches services', async () => {
         mockOrder.mockResolvedValue({
-            data: [{ id: 's1', service_type: 'coffee' }],
+            data: [{ id: 's1', service_type: 'coffee_break' }],
             error: null,
         })
 
@@ -155,8 +155,8 @@ describe('Events Data', () => {
         await createEventService({
             orgId: 'o1',
             eventId: 'e1',
-            serviceType: 'coffee',
-            format: 'buffet',
+            serviceType: 'coffee_break',
+            format: 'de_pie',
             startsAt: '2024-01-01',
             pax: 10
         })

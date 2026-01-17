@@ -4,10 +4,6 @@ import {
   useProductionPlan,
   useProductionTasks,
   useCreateProductionPlan,
-  useCreateProductionTask,
-  useUpdateProductionTask,
-  useDeleteProductionTask,
-  useGlobalTasks,
 } from './productionRepository'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { renderHook, waitFor } from '@testing-library/react'
