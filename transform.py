@@ -40,7 +40,12 @@ def transform():
             
         room_cols = [c for c in df.columns if c not in [first_col, '_sheet', '_row_number', '_imported_at'] and not c.startswith("Unnamed")]
         
-        for idx, row in df.iterrows():
+        # Get column indices to use with itertuples
+        sheet_col_idx = df.columns.get_loc('_sheet')
+        row_num_col_idx = df.columns.get_loc('_row_number')
+        room_col_indices = {c: df.columns.get_loc(c) for c in room_cols}
+
+        for row in df.itertuples(index=False):
             val_0 = str(row[0]).strip().upper()
             
             if val_0 in MONTH_MAP:
@@ -57,8 +62,8 @@ def transform():
                 
             date_str = f"{year}-{current_month:02d}-{day:02d}"
             
-            for room in room_cols:
-                content = str(row[room]).strip()
+            for room, room_idx in room_col_indices.items():
+                content = str(row[room_idx]).strip()
                 if content and content != 'nan' and content != '\u00a0': # Handle &nbsp;
                     # Event name is the content (needs cleaning later)
                     event_name = content
@@ -81,8 +86,8 @@ def transform():
                         all_events[event_key]["rooms"].append(room)
                     
                     all_events[event_key]["sources"].append({
-                        "sheet": row["_sheet"],
-                        "row": row["_row_number"],
+                        "sheet": row[sheet_col_idx],
+                        "row": row[row_num_col_idx],
                         "room": room,
                         "raw_content": content
                     })
