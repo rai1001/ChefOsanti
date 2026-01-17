@@ -37,6 +37,13 @@ ALTER SCHEMA "public" OWNER TO "pg_database_owner";
 
 COMMENT ON SCHEMA "public" IS 'standard public schema';
 
+--
+-- Extensions
+--
+
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA "public";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "public";
+
 
 --
 -- Name: expiry_alert_status; Type: TYPE; Schema: public; Owner: postgres
