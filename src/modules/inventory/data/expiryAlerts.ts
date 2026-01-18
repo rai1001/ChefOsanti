@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
+import { isValidUuid } from '@/lib/utils'
 import { categorizeExpiry, daysUntilExpiry } from '../domain/expiryAlerts'
 
 export type ExpiryRule = {
@@ -34,7 +35,7 @@ export type ExpiryAlert = {
 }
 
 export async function listExpiryRules(orgId: string | undefined) {
-  if (!orgId) return []
+  if (!isValidUuid(orgId)) return []
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('expiry_rules')
@@ -105,7 +106,7 @@ export async function listExpiryAlerts(params: {
   orgId: string | undefined
   status?: 'open' | 'dismissed' | 'sent'
 }) {
-  if (!params.orgId) return []
+  if (!isValidUuid(params.orgId)) return []
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.rpc('list_expiry_alerts', {
     p_org_id: params.orgId,
