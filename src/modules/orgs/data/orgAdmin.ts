@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { getEnv } from '@/config/env'
 import { mapSupabaseError } from '@/lib/shared/errors'
-import { isValidUuid } from '@/lib/utils'
 
 const { supabaseUrl } = getEnv()
 
@@ -38,7 +37,6 @@ function mapMember(row: any): OrgMember {
 }
 
 async function fetchOrgMembers(orgId: string): Promise<OrgMember[]> {
-  if (!isValidUuid(orgId)) return []
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.rpc('org_list_members', { p_org_id: orgId })
   if (error) {
@@ -52,9 +50,6 @@ async function fetchOrgMembers(orgId: string): Promise<OrgMember[]> {
 }
 
 async function callOrgAdmin(payload: Record<string, unknown>) {
-  if (typeof payload.orgId === 'string' && !isValidUuid(payload.orgId)) {
-    throw new Error('OrgId invalido')
-  }
   const supabase = getSupabaseClient()
   const {
     data: { session },
