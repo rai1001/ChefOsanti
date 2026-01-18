@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { getEnv } from '@/config/env'
 import { mapSupabaseError } from '@/lib/shared/errors'
+import { isValidUuid } from '@/lib/utils'
 
 const { supabaseUrl } = getEnv()
 
@@ -104,7 +105,7 @@ export function useOrgMembers(orgId?: string) {
   return useQuery({
     queryKey: ['org_members', orgId],
     queryFn: () => fetchOrgMembers(orgId ?? ''),
-    enabled: Boolean(orgId),
+    enabled: isValidUuid(orgId),
   })
 }
 
