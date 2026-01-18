@@ -32,3 +32,4 @@ supabase/volumes
 coverage
 playwright-report
 test-results
+.vercel/

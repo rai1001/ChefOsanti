@@ -11,6 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "node scripts/waitForSupabase.ts && playwright test",
+    "test:supabase": "vitest run tests/integration/supabase.rls.test.ts tests/integration/supabase.inventory.test.ts tests/integration/supabase.purchasing.test.ts tests/integration/supabase.events.test.ts",
+    "supabase:start": "supabase start -x mailpit",
+    "supabase:reset": "supabase db reset --local --yes",
     "env:check": "node scripts/env-check.js",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "preview": "vite preview"

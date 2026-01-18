@@ -588,8 +588,8 @@ where i.org_id = p.org_id
 
 insert into public.recipes (id, org_id, name, category, default_servings, notes)
 values
-  ('90000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000001', 'Tortilla basica', 'demo', 10, 'Receta demo'),
-  ('90000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000001', 'Receta Test', 'e2e', 10, 'Receta base E2E')
+  ('90000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000001', 'Tortilla basica', 'platos', 10, 'Receta demo'),
+  ('90000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000001', 'Receta Test', 'platos', 10, 'Receta base E2E')
 on conflict (id) do update
 set name = excluded.name,
     category = excluded.category,
@@ -782,7 +782,7 @@ values (
   '00000000-0000-0000-0000-000000000001',
   '20000000-0000-0000-0000-000000000001',
   '30000000-0000-0000-0000-000000000001',
-  'confirmed',
+  'ordered',
   'PO-DEMO-002',
   0
 )
