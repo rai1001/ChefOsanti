@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
-import { isValidUuid } from '@/lib/utils'
 
 export type InboundMissingExpiryLine = {
   lineId: string
@@ -22,7 +21,6 @@ export async function listInboundMissingExpiry(params: {
   hotelId?: string
   locationId?: string
 }) {
-  if (!isValidUuid(params.orgId)) return []
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.rpc('list_inbound_missing_expiry', {
     p_org_id: params.orgId,

@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
-import { isValidUuid } from '@/lib/utils'
 import { endOfRange, startOfRange } from '../domain/week'
 
 export type WeekEvent = {
@@ -82,7 +81,6 @@ function toIsoDate(date: Date) {
 }
 
 async function fetchWeekEvents(hotelId: string, weekStart: string): Promise<WeekEventsByDay> {
-  if (!isValidUuid(hotelId)) return []
   const supabase = getSupabaseClient()
   const start = startOfRange(weekStart)
   const end = endOfRange(weekStart, 7)
@@ -151,12 +149,6 @@ export type StaffAvailability = {
 }
 
 async function fetchOrdersSummary(orgId: string, weekStart: string): Promise<OrdersSummary> {
-  if (!isValidUuid(orgId)) {
-    return {
-      purchaseOrders: { total: 0, totalEstimado: 0, porEstado: {} },
-      eventOrders: { total: 0, totalEstimado: 0, porEstado: {} },
-    }
-  }
   const supabase = getSupabaseClient()
   const start = startOfRange(weekStart).toISOString()
   const end = endOfRange(weekStart, 7).toISOString()
@@ -213,20 +205,6 @@ async function fetchDashboardPurchaseMetrics(
   hotelId: string,
   day: string,
 ): Promise<DashboardPurchaseMetrics> {
-  if (!isValidUuid(orgId) || !isValidUuid(hotelId)) {
-    return {
-      orgId,
-      hotelId,
-      day,
-      eventsCount: 0,
-      confirmedMenus: 0,
-      pendingOrders: 0,
-      receivedOrders: 0,
-      totalOrderValue: 0,
-      pendingValue: 0,
-      receivedValue: 0,
-    }
-  }
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('dashboard_purchase_event_metrics')
@@ -264,7 +242,6 @@ async function fetchDashboardRollingGrid(
   hotelId: string,
   rangeStart: string,
 ): Promise<DashboardRollingDay[]> {
-  if (!isValidUuid(orgId) || !isValidUuid(hotelId)) return []
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.rpc('dashboard_rolling_grid', {
     p_org_id: orgId,
@@ -302,7 +279,6 @@ async function fetchDashboardHighlights(
   hotelId: string,
   rangeStart: string,
 ): Promise<DashboardEventHighlight[]> {
-  if (!isValidUuid(orgId) || !isValidUuid(hotelId)) return []
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.rpc('dashboard_event_highlights', {
     p_org_id: orgId,
@@ -337,7 +313,6 @@ async function fetchDashboardBriefing(
   hotelId: string,
   rangeStart: string,
 ): Promise<DashboardDeadline[]> {
-  if (!isValidUuid(orgId) || !isValidUuid(hotelId)) return []
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.rpc('dashboard_briefing', {
     p_org_id: orgId,
@@ -376,7 +351,6 @@ async function fetchDashboardStaffShifts(
   hotelId: string,
   day: string,
 ): Promise<DashboardShift[]> {
-  if (!isValidUuid(orgId) || !isValidUuid(hotelId)) return []
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('shifts')
@@ -420,7 +394,6 @@ export type OrderToDeliver = {
 }
 
 async function fetchOrdersToDeliver(orgId: string, weekStart: string, scope: 'week' | 'all') {
-  if (!isValidUuid(orgId)) return []
   const supabase = getSupabaseClient()
   const start = startOfRange(weekStart).toISOString()
   const end = endOfRange(weekStart, 7).toISOString()
@@ -478,9 +451,6 @@ async function fetchOrdersToDeliver(orgId: string, weekStart: string, scope: 'we
 }
 
 async function fetchStaffAvailability(hotelId: string, date: string): Promise<StaffAvailability> {
-  if (!isValidUuid(hotelId)) {
-    return { required: 0, assigned: 0, percent: 100 }
-  }
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('shifts')
@@ -522,9 +492,6 @@ export type DashboardNote = {
 }
 
 async function fetchDashboardNote(orgId: string, userId: string, weekStart: string): Promise<DashboardNote> {
-  if (!isValidUuid(orgId)) {
-    return { orgId, userId, weekStart, content: '' }
-  }
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('dashboard_notes')
@@ -554,7 +521,6 @@ async function fetchDashboardNote(orgId: string, userId: string, weekStart: stri
 }
 
 async function upsertDashboardNote(note: DashboardNote) {
-  if (!isValidUuid(note.orgId)) throw new Error('OrgId invalido')
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('dashboard_notes')
