@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupabaseClient } from '@/lib/supabaseClient'
 import { mapSupabaseError } from '@/lib/shared/errors'
+import { isValidUuid } from '@/lib/utils'
 import { endOfRange, startOfRange } from '../domain/week'
 
 export type WeekEvent = {
@@ -558,7 +559,7 @@ export function useWeekEvents(hotelId?: string, weekStart?: string) {
   return useQuery({
     queryKey: ['dashboard', 'weekEvents', hotelId, weekStart],
     queryFn: () => fetchWeekEvents(hotelId ?? '', weekStart ?? toIsoDate(new Date())),
-    enabled: Boolean(hotelId && weekStart),
+    enabled: isValidUuid(hotelId) && Boolean(weekStart),
   })
 }
 
@@ -566,7 +567,7 @@ export function useOrdersSummary(orgId?: string, weekStart?: string) {
   return useQuery({
     queryKey: ['dashboard', 'ordersSummary', orgId, weekStart],
     queryFn: () => fetchOrdersSummary(orgId ?? '', weekStart ?? toIsoDate(new Date())),
-    enabled: Boolean(orgId && weekStart),
+    enabled: isValidUuid(orgId) && Boolean(weekStart),
   })
 }
 
@@ -574,7 +575,7 @@ export function useOrdersToDeliver(orgId?: string, weekStart?: string, scope: 'w
   return useQuery({
     queryKey: ['dashboard', 'ordersToDeliver', orgId, weekStart, scope],
     queryFn: () => fetchOrdersToDeliver(orgId ?? '', weekStart ?? toIsoDate(new Date()), scope),
-    enabled: Boolean(orgId && weekStart),
+    enabled: isValidUuid(orgId) && Boolean(weekStart),
   })
 }
 
@@ -582,7 +583,7 @@ export function useDashboardPurchaseMetrics(orgId?: string, hotelId?: string, da
   return useQuery({
     queryKey: ['dashboard', 'purchaseMetrics', orgId, hotelId, day],
     queryFn: () => fetchDashboardPurchaseMetrics(orgId ?? '', hotelId ?? '', day ?? toIsoDate(new Date())),
-    enabled: Boolean(orgId && hotelId && day),
+    enabled: isValidUuid(orgId) && isValidUuid(hotelId) && Boolean(day),
   })
 }
 
@@ -590,7 +591,7 @@ export function useDashboardRollingGrid(orgId?: string, hotelId?: string, rangeS
   return useQuery({
     queryKey: ['dashboard', 'rollingGrid', orgId, hotelId, rangeStart],
     queryFn: () => fetchDashboardRollingGrid(orgId ?? '', hotelId ?? '', rangeStart ?? toIsoDate(new Date())),
-    enabled: Boolean(orgId && hotelId && rangeStart),
+    enabled: isValidUuid(orgId) && isValidUuid(hotelId) && Boolean(rangeStart),
   })
 }
 
@@ -598,7 +599,7 @@ export function useDashboardHighlights(orgId?: string, hotelId?: string, rangeSt
   return useQuery({
     queryKey: ['dashboard', 'highlights', orgId, hotelId, rangeStart],
     queryFn: () => fetchDashboardHighlights(orgId ?? '', hotelId ?? '', rangeStart ?? toIsoDate(new Date())),
-    enabled: Boolean(orgId && hotelId && rangeStart),
+    enabled: isValidUuid(orgId) && isValidUuid(hotelId) && Boolean(rangeStart),
   })
 }
 
@@ -606,7 +607,7 @@ export function useDashboardBriefing(orgId?: string, hotelId?: string, rangeStar
   return useQuery({
     queryKey: ['dashboard', 'briefing', orgId, hotelId, rangeStart],
     queryFn: () => fetchDashboardBriefing(orgId ?? '', hotelId ?? '', rangeStart ?? toIsoDate(new Date())),
-    enabled: Boolean(orgId && hotelId && rangeStart),
+    enabled: isValidUuid(orgId) && isValidUuid(hotelId) && Boolean(rangeStart),
   })
 }
 
@@ -614,7 +615,7 @@ export function useDashboardStaffShifts(orgId?: string, hotelId?: string, day?: 
   return useQuery({
     queryKey: ['dashboard', 'staffShifts', orgId, hotelId, day],
     queryFn: () => fetchDashboardStaffShifts(orgId ?? '', hotelId ?? '', day ?? toIsoDate(new Date())),
-    enabled: Boolean(orgId && hotelId && day),
+    enabled: isValidUuid(orgId) && isValidUuid(hotelId) && Boolean(day),
   })
 }
 
@@ -624,7 +625,7 @@ export function useDashboardNote(orgId?: string, userId?: string, weekStart?: st
   const query = useQuery({
     queryKey: key,
     queryFn: () => fetchDashboardNote(orgId ?? '', userId ?? '', weekStart ?? toIsoDate(new Date())),
-    enabled: Boolean(orgId && userId && weekStart),
+    enabled: isValidUuid(orgId) && isValidUuid(userId) && Boolean(weekStart),
   })
   const mutation = useMutation({
     mutationFn: (content: string) =>
@@ -643,6 +644,6 @@ export function useStaffAvailability(hotelId?: string, date?: string) {
   return useQuery({
     queryKey: ['dashboard', 'staffAvailability', hotelId, date],
     queryFn: () => fetchStaffAvailability(hotelId ?? '', date ?? toIsoDate(new Date())),
-    enabled: Boolean(hotelId && date),
+    enabled: isValidUuid(hotelId) && Boolean(date),
   })
 }
