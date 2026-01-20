@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState, memo } from 'react'
 import { ChefHat, Filter, Sparkles, SlidersHorizontal } from 'lucide-react'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
 import { useCreateRecipe, useRecipes } from '../data/recipes'
-import type { RecipeCategory } from '../domain/recipes'
+import type { Recipe, RecipeCategory } from '../domain/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { EmptyState } from '@/modules/shared/ui/EmptyState'
@@ -22,6 +22,43 @@ const RECIPE_CATEGORIES: { value: RecipeCategory; label: string }[] = [
   { value: 'platos', label: 'Platos' },
   { value: 'quinta_gama', label: 'Quinta gama' },
 ]
+
+interface RecipeListItemProps {
+  recipe: Recipe
+  isActive: boolean
+  onSelect: (id: string) => void
+}
+
+const RecipeListItem = memo(function RecipeListItem({ recipe, isActive, onSelect }: RecipeListItemProps) {
+  return (
+    <Link
+      to={`/recipes/${recipe.id}`}
+      onClick={(e) => {
+        e.preventDefault()
+        onSelect(recipe.id)
+      }}
+      className={`rounded-2xl border px-4 py-3 text-left transition ${
+        isActive
+          ? 'border-accent bg-white/10 shadow-[0_18px_44px_rgba(3,7,18,0.5)]'
+          : 'border-border/30 bg-surface/70 hover:border-accent/60'
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-muted-foreground">
+          <ChefHat size={18} />
+        </div>
+        <div>
+          <p className="font-semibold text-foreground">{recipe.name}</p>
+          <p className="text-xs text-muted-foreground">Base: {recipe.defaultServings} raciones</p>
+        </div>
+      </div>
+      <div className="mt-3 flex items-center justify-between text-xs">
+        <Badge variant="neutral">{recipe.category ?? 'Sin categoria'}</Badge>
+        <span className="text-muted-foreground">ID: {recipe.id.slice(0, 6)}...</span>
+      </div>
+    </Link>
+  )
+})
 
 export default function RecipesPage() {
   const { activeOrgId, loading, error } = useActiveOrgId()
@@ -139,38 +176,14 @@ export default function RecipesPage() {
             emptyState={<EmptyState title="Sin recetas" description="Crea tu primera receta para empezar a calcular costes." />}
           >
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {filtered.map((r) => {
-                const isActive = r.id === selected?.id
-                return (
-                  <Link
-                    key={r.id}
-                    to={`/recipes/${r.id}`}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setSelectedId(r.id)
-                    }}
-                    className={`rounded-2xl border px-4 py-3 text-left transition ${
-                      isActive
-                        ? 'border-accent bg-white/10 shadow-[0_18px_44px_rgba(3,7,18,0.5)]'
-                        : 'border-border/30 bg-surface/70 hover:border-accent/60'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-muted-foreground">
-                        <ChefHat size={18} />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">{r.name}</p>
-                        <p className="text-xs text-muted-foreground">Base: {r.defaultServings} raciones</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-xs">
-                      <Badge variant="neutral">{r.category ?? 'Sin categoria'}</Badge>
-                      <span className="text-muted-foreground">ID: {r.id.slice(0, 6)}...</span>
-                    </div>
-                  </Link>
-                )
-              })}
+              {filtered.map((r) => (
+                <RecipeListItem
+                  key={r.id}
+                  recipe={r}
+                  isActive={r.id === selected?.id}
+                  onSelect={setSelectedId}
+                />
+              ))}
             </div>
           </DataState>
         </Card>
