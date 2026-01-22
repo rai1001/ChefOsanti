@@ -95,7 +95,8 @@ export async function listRecipes(params: {
   category?: RecipeCategory | null
 }): Promise<Recipe[]> {
   const supabase = getSupabaseClient()
-  let query = supabase.from('recipes').select('*').order('created_at', { ascending: false })
+  // Optimized: Select only necessary fields to reduce payload size (avoids large 'notes' or unused columns)
+  let query = supabase.from('recipes').select('id, name, category, default_servings').order('created_at', { ascending: false })
   if (params.orgId) query = query.eq('org_id', params.orgId)
   const term = params.search?.trim()
   if (term) query = query.ilike('name', `%${term}%`)

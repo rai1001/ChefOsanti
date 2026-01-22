@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getSupabaseClient } from '@/lib/supabaseClient'
-import { createRecipe, addRecipeLine, getRecipeWithLines } from '@/modules/recipes/data/recipes'
+import { createRecipe, addRecipeLine, getRecipeWithLines, listRecipes } from '@/modules/recipes/data/recipes'
 
 // Mock Supabase client
 vi.mock('@/lib/supabaseClient', () => ({
@@ -13,6 +13,8 @@ describe('Recipes Data Logic', () => {
     const mockFrom = vi.fn()
     const mockEq = vi.fn()
     const mockSingle = vi.fn()
+    const mockOrder = vi.fn()
+    const mockIlike = vi.fn()
 
     const mockClient = {
         from: mockFrom,
@@ -20,6 +22,9 @@ describe('Recipes Data Logic', () => {
         insert: mockInsert,
         eq: mockEq,
         single: mockSingle,
+        order: mockOrder,
+        ilike: mockIlike,
+        then: (onfulfilled: any) => Promise.resolve({ data: [], error: null }).then(onfulfilled)
     } as any
 
     beforeEach(() => {
@@ -31,6 +36,8 @@ describe('Recipes Data Logic', () => {
         mockSelect.mockReturnValue(mockClient)
         mockEq.mockReturnValue(mockClient)
         mockSingle.mockReturnValue(mockClient)
+        mockOrder.mockReturnValue(mockClient)
+        mockIlike.mockReturnValue(mockClient)
     })
 
     it('createRecipe inserts correct data', async () => {
@@ -101,5 +108,10 @@ describe('Recipes Data Logic', () => {
         expect(mockEq).toHaveBeenCalledWith('id', 'r-1')
         expect(result.lines).toHaveLength(1)
         expect(result.lines[0].productName).toBe('Carrot')
+    })
+
+    it('listRecipes selects optimized columns', async () => {
+        await listRecipes({ orgId: 'org-1' })
+        expect(mockSelect).toHaveBeenCalledWith('id, name, category, default_servings')
     })
 })
