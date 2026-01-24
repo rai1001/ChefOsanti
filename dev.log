@@ -1,0 +1,12 @@
+
+> chefos@0.0.0 dev /app
+> vite --host --port 4173
+
+
+  VITE v7.3.1  ready in 502 ms
+
+  ➜  Local:   http://localhost:4173/
+  ➜  Network: http://192.168.0.2:4173/
+1:46:12 AM [vite] (client) hmr update /src/index.css
+1:46:40 AM [vite] .env.local changed, restarting server...
+1:46:40 AM [vite] server restarted.
