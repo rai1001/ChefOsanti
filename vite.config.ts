@@ -16,7 +16,6 @@ export default defineConfig({
     css: true,
     pool: 'threads',
     maxWorkers: 1,
-    minWorkers: 1,
     sequence: {
       concurrent: false,
       shuffle: false,
