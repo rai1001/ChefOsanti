@@ -1,19 +1,17 @@
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useActiveOrgId } from '@/modules/orgs/data/activeOrg'
-import { useProducts } from '../data/products'
-import { useAddRecipeLine, useRecipe, useRemoveRecipeLine, useRecipeCostBreakdown, useRecipeCostSummary, useRecipeMiseEnPlace } from '../data/recipes'
+import { useRecipe, useRemoveRecipeLine, useRecipeCostBreakdown, useRecipeCostSummary, useRecipeMiseEnPlace } from '../data/recipes'
 import { useCurrentRole } from '@/modules/auth/data/permissions'
 import { can } from '@/modules/auth/domain/roles'
 import { useFormattedError } from '@/modules/shared/hooks/useFormattedError'
 import { toast } from 'sonner'
+import { AddIngredientForm } from './components/AddIngredientForm'
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { activeOrgId, loading, error } = useActiveOrgId()
   const recipe = useRecipe(id)
-  const products = useProducts(activeOrgId ?? undefined)
-  const addLine = useAddRecipeLine(id, activeOrgId ?? undefined)
   const removeLine = useRemoveRecipeLine(id)
   const costSummary = useRecipeCostSummary(id)
   const costBreakdown = useRecipeCostBreakdown(id)
@@ -23,9 +21,6 @@ export default function RecipeDetailPage() {
   const recipeError = useFormattedError(recipe.error)
   const costError = useFormattedError(costSummary.error ?? costBreakdown.error)
 
-  const [productId, setProductId] = useState<string>('')
-  const [qty, setQty] = useState<number>(0)
-  const [unit, setUnit] = useState<'kg' | 'ud'>('ud')
   const [miseMode, setMiseMode] = useState<'servings' | 'packs'>('servings')
   const [miseQty, setMiseQty] = useState<number>(0)
 
@@ -58,20 +53,6 @@ export default function RecipeDetailPage() {
         {recipeError && <p className="text-xs text-red-400 mt-1">{recipeError}</p>}
       </div>
     )
-  }
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!productId || qty <= 0 || !canWrite) return
-    try {
-      await addLine.mutateAsync({ productId, qty, unit })
-      toast.success('Ingrediente añadido')
-      setProductId('')
-      setQty(0)
-      setUnit('ud')
-    } catch {
-      toast.error('Error al añadir ingrediente')
-    }
   }
 
   return (
@@ -191,73 +172,7 @@ export default function RecipeDetailPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
-        <h3 className="text-sm font-semibold text-white">Añadir ingrediente</h3>
-        {!canWrite && <p className="text-xs text-slate-500">Sin permisos para editar.</p>}
-        <form className="mt-3 grid gap-3 md:grid-cols-3" onSubmit={onSubmit}>
-          <label className="space-y-1">
-            <span className="text-xs font-semibold text-slate-300" id="product-select-label">
-              Producto
-            </span>
-            <select
-              aria-labelledby="product-select-label"
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
-              value={productId}
-              onChange={(e) => {
-                setProductId(e.target.value)
-                const p = products.data?.find((pr) => pr.id === e.target.value)
-                if (p) setUnit(p.baseUnit)
-              }}
-              disabled={!canWrite}
-            >
-              <option value="">Selecciona</option>
-              {products.data?.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.baseUnit})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-1">
-            <span className="text-xs font-semibold text-slate-300" id="qty-label">
-              Cantidad
-            </span>
-            <input
-              aria-labelledby="qty-label"
-              type="number"
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
-              value={qty}
-              onChange={(e) => setQty(Number(e.target.value) || 0)}
-              disabled={!canWrite}
-            />
-          </label>
-          <label className="space-y-1">
-            <span className="text-xs font-semibold text-slate-300" id="unit-label">
-              Unidad
-            </span>
-            <select
-              aria-labelledby="unit-label"
-              className="w-full rounded-md border border-white/10 bg-nano-navy-900 px-3 py-2 text-sm text-white focus:border-nano-blue-500 outline-none transition-colors"
-              value={unit}
-              onChange={(e) => setUnit(e.target.value as 'kg' | 'ud')}
-              disabled={!canWrite}
-            >
-              <option value="ud">ud</option>
-              <option value="kg">kg</option>
-            </select>
-          </label>
-          <div className="md:col-span-3">
-            <button
-              type="submit"
-              className="rounded-md bg-nano-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-nano-blue-500/20 transition hover:bg-nano-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={addLine.isPending || !canWrite}
-              title={!canWrite ? 'Sin permisos' : undefined}
-            >
-              {addLine.isPending ? 'Guardando...' : 'Añadir'}
-            </button>
-          </div>
-        </form>
-      </div>
+      <AddIngredientForm orgId={activeOrgId ?? undefined} recipeId={id} canWrite={canWrite} />
 
       <div className="rounded-xl border border-white/10 bg-nano-navy-800/50 p-4 shadow-xl backdrop-blur-sm">
         <h3 className="text-sm font-semibold text-white">Mise en place</h3>
