@@ -1,0 +1,35 @@
+
+> chefos@0.0.0 dev /app
+> vite --host --port 4173
+
+
+  VITE v7.3.1  ready in 277 ms
+
+  ➜  Local:   http://localhost:4173/
+  ➜  Network: http://192.168.0.2:4173/
+1:53:59 AM [vite] (client) hmr update /src/index.css
+1:55:02 AM [vite] (client) page reload coverage/index.html
+1:55:02 AM [vite] (client) page reload coverage/lib/index.html
+1:55:02 AM [vite] (client) page reload coverage/lib/queryClient.ts.html
+1:55:02 AM [vite] (client) page reload coverage/lib/supabaseClient.ts.html
+1:55:02 AM [vite] (client) page reload coverage/lib/utils.ts.html
+1:55:02 AM [vite] (client) page reload coverage/lib/shared/errors.ts.html
+1:55:02 AM [vite] (client) page reload coverage/lib/shared/index.html
+1:55:02 AM [vite] (client) page reload coverage/lib/shared/logger.ts.html
+1:55:02 AM [vite] (client) page reload coverage/lib/shared/mappers.ts.html
+1:55:02 AM [vite] (client) page reload coverage/lib/shared/useFormattedError.ts.html
+1:55:02 AM [vite] (client) page reload coverage/lib/shared/userMessages.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/events/data/index.html
+1:55:02 AM [vite] (client) page reload coverage/modules/events/data/menus.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/events/data/ocr.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/events/data/overrides.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/events/data/requirements.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/events/data/events.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/inventory/data/barcodes.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/inventory/data/batches.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/inventory/data/expiryAlerts.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/inventory/data/inbound.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/inventory/data/inboundAlerts.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/inventory/data/index.html
+1:55:02 AM [vite] (client) page reload coverage/modules/inventory/data/preparations.ts.html
+1:55:02 AM [vite] (client) page reload coverage/modules/inventory/data/reservations.ts.html
